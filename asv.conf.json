@@ -1,0 +1,37 @@
+{
+    "version": 1,
+    "project": "nxbench",
+    "project_url": "https://github.com/dpys/nxbench",
+    "repo": ".",
+    "branches": [
+        "main"
+    ],
+    "build_command": [
+        "python -m pip install build",
+        "python -m build --wheel -o {build_cache_dir} {build_dir}"
+    ],
+    "dvcs": "git",
+    "environment_type": "virtualenv",
+    "show_commit_url": "https://github.com/dpys/nxbench/commit/",
+    "matrix": {
+        "networkx": [
+            "3.2"
+        ],
+        "nx-parallel": [],
+        "cugraph": []
+    },
+    "benchmark_dir": "nxbench/profile/benchmarks",
+    "results_dir": "nxbench/profile/results",
+    "html_dir": "nxbench/viz/static",
+    "hash_length": 8,
+    "plugins": [
+        "asv_runner"
+    ],
+    "conda_channels": [
+        "defaults",
+        "conda-forge",
+        "nvidia/label/cuda12.0.0"
+    ],
+    "build_cache_size": 8,
+    "default_benchmark_timeout": 1200
+}

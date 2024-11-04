@@ -1,0 +1,141 @@
+output_dir: "benchmark_results"
+histogram: true
+json_report: true
+compare: true
+
+machine_info:
+  cpu_model: "AMD Ryzen 9 5950X"
+  cpu_count: 16
+  memory_total: "64GB"
+  gpu_model: "NVIDIA RTX 3090"
+  cuda_version: "11.7"
+  os: "Ubuntu 22.04"
+
+pytest_benchmark_options:
+  min-time: 0.1
+  max-time: 1.0
+  min-rounds: 5
+  warmup-iterations: 100
+  calibration-precision: 10
+  warmup: true
+  disable-gc: true
+
+algorithms:
+  - name: "pagerank"
+    func: "networkx.pagerank"
+    params:
+      alpha: 0.9
+      tol: 1.0e-6
+    requires_directed: false
+    groups: ["centrality", "random_walk"]
+    min_rounds: 10
+    warmup: true
+    warmup_iterations: 50
+    validate_result: "nxbench.validation.validate_node_scores"
+
+  # - name: "betweenness_centrality"
+  #   func: "networkx.betweenness_centrality"
+  #   params:
+  #     k: 100
+  #     normalized: true
+  #     endpoints: false
+  #   requires_directed: false
+  #   groups: ["centrality", "path_based"]
+  #   min_rounds: 5
+  #   warmup: true
+  #   warmup_iterations: 20
+  #   validate_result: "nxbench.validation.validate_node_scores"
+
+  - name: "louvain"
+    func: "networkx.algorithms.community.louvain_communities"
+    params:
+      resolution: 1.0
+      seed: 42
+    requires_undirected: true
+    groups: ["community", "partition"]
+    min_rounds: 3
+    validate_result: "nxbench.validation.validate_communities"
+
+  - name: "shortest_paths"
+    func: "networkx.all_pairs_shortest_path_length"
+    requires_directed: false
+    groups: ["paths", "distance"]
+    min_rounds: 3
+    validate_result: "nxbench.validation.validate_path_lengths"
+
+  - name: "max_flow"
+    func: "networkx.algorithms.flow.maximum_flow"
+    params:
+        flow_func: {func: "networkx.algorithms.flow.edmonds_karp"}
+        _s: 0
+        _t: 1
+    requires_directed: True
+    groups: ["flow", "optimization"]
+    validate_result: "nxbench.validation.validate_flow"
+
+  - name: "jaccard_coefficient"
+    func: "networkx.jaccard_coefficient"
+    requires_directed: false
+    groups: ["link_prediction", "similarity"]
+    validate_result: "nxbench.validation.validate_similarity_scores"
+
+datasets:
+  - name: "08blocks"
+    source: "networkrepository"
+    params: {}
+
+  # - name: "1138-bus"
+  #   source: "networkrepository"
+  #   params: {}
+
+  - name: "jazz"
+    source: "networkrepository"
+    params: {}
+
+  - name: "erdos_renyi_small"
+    source: "generator"
+    params:
+      generator: "networkx.erdos_renyi_graph"
+      n: 1000
+      p: 0.01
+    metadata:
+      directed: false
+      weighted: false
+
+  - name: "watts_strogatz_medium"
+    source: "generator"
+    params:
+      generator: "networkx.watts_strogatz_graph"
+      n: 10000
+      k: 6
+      p: 0.1
+    metadata:
+      directed: false
+      weighted: false
+
+  # - name: "barabasi_albert_large"
+  #   source: "generator"
+  #   params:
+  #     generator: "networkx.barabasi_albert_graph"
+  #     n: 100000
+  #     m: 3
+  #   metadata:
+  #     directed: false
+  #     weighted: false
+
+  - name: "powerlaw_cluster"
+    source: "generator"
+    params:
+      generator: "networkx.powerlaw_cluster_graph"
+      n: 50000
+      m: 2
+      p: 0.1
+    metadata:
+      directed: false
+      weighted: false
+
+validation:
+  skip_slow: false
+  validate_all: true
+  error_on_fail: true
+  report_memory: true

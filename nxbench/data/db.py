@@ -1,0 +1,245 @@
+import sqlite3
+import warnings
+from contextlib import contextmanager
+from dataclasses import asdict
+from datetime import datetime
+from pathlib import Path
+from typing import Dict, Generator, List, Optional, Union
+
+import pandas as pd
+
+from nxbench.profile.benchmark import BenchmarkResult
+
+warnings.filterwarnings("ignore")
+
+SCHEMA = """
+CREATE TABLE IF NOT EXISTS benchmarks (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    timestamp TEXT NOT NULL,
+    algorithm TEXT NOT NULL,
+    backend TEXT NOT NULL,
+    dataset TEXT NOT NULL,
+    timing REAL NOT NULL,
+    num_nodes INTEGER NOT NULL,
+    num_edges INTEGER NOT NULL,
+    directed INTEGER NOT NULL,
+    weighted INTEGER NOT NULL,
+    parameters TEXT,
+    error TEXT,
+    memory_usage REAL,
+    git_commit TEXT,
+    machine_info TEXT,
+    python_version TEXT,
+    package_versions TEXT
+);
+
+CREATE INDEX IF NOT EXISTS idx_algorithm ON benchmarks(algorithm);
+CREATE INDEX IF NOT EXISTS idx_backend ON benchmarks(backend);
+CREATE INDEX IF NOT EXISTS idx_dataset ON benchmarks(dataset);
+CREATE INDEX IF NOT EXISTS idx_timestamp ON benchmarks(timestamp);
+"""
+
+
+class BenchmarkDB:
+    """Database interface for storing and querying benchmark results."""
+
+    def __init__(self, db_path: Union[str, Path] = None):
+        """Initialize the database connection.
+
+        Parameters
+        ----------
+        db_path : str or Path, optional
+            Path to SQLite database file. If None, uses default location
+        """
+        if db_path is None:
+            db_path = Path.home() / ".nxbench" / "benchmarks.db"
+
+        self.db_path = Path(db_path)
+        self.db_path.parent.mkdir(parents=True, exist_ok=True)
+
+        self._init_db()
+
+    def _init_db(self) -> None:
+        """Initialize the database schema."""
+        with self._connection() as conn:
+            conn.executescript(SCHEMA)
+
+    @contextmanager
+    def _connection(self) -> Generator[sqlite3.Connection, None, None]:
+        """Context manager for database connections."""
+        conn = sqlite3.connect(self.db_path)
+        try:
+            yield conn
+        finally:
+            conn.close()
+
+    def save_results(
+        self,
+        results: Union[BenchmarkResult, List[BenchmarkResult]],
+        git_commit: Optional[str] = None,
+        machine_info: Optional[Dict] = None,
+        python_version: Optional[str] = None,
+        package_versions: Optional[Dict] = None,
+    ) -> None:
+        """Save benchmark results to database.
+
+        Parameters
+        ----------
+        results : BenchmarkResult or list of BenchmarkResult
+            Results to save
+        git_commit : str, optional
+            Git commit hash for version tracking
+        machine_info : dict, optional
+            System information
+        python_version : str, optional
+            Python version used
+        package_versions : dict, optional
+            Versions of key packages
+        """
+        if isinstance(results, BenchmarkResult):
+            results = [results]
+
+        with self._connection() as conn:
+            for result in results:
+                result_dict = asdict(result)
+                result_dict.update(
+                    {
+                        "timestamp": datetime.now().isoformat(),
+                        "git_commit": git_commit,
+                        "machine_info": str(machine_info),
+                        "python_version": python_version,
+                        "package_versions": str(package_versions),
+                    }
+                )
+
+                placeholders = ",".join("?" * len(result_dict))
+                columns = ",".join(result_dict.keys())
+
+                query = f"""
+                INSERT INTO benchmarks ({columns})
+                VALUES ({placeholders})
+                """
+
+                conn.execute(query, list(result_dict.values()))
+            conn.commit()
+
+    def get_results(
+        self,
+        algorithm: Optional[str] = None,
+        backend: Optional[str] = None,
+        dataset: Optional[str] = None,
+        start_date: Optional[str] = None,
+        end_date: Optional[str] = None,
+        as_pandas: bool = True,
+    ) -> Union[pd.DataFrame, List[Dict]]:
+        """Query benchmark results with optional filters.
+
+        Parameters
+        ----------
+        algorithm : str, optional
+            Filter by algorithm name
+        backend : str, optional
+            Filter by backend
+        dataset : str, optional
+            Filter by dataset
+        start_date : str, optional
+            Filter results after this date (ISO format)
+        end_date : str, optional
+            Filter results before this date (ISO format)
+        as_pandas : bool, default=True
+            Return results as pandas DataFrame
+
+        Returns
+        -------
+        DataFrame or list of dict
+            Filtered benchmark results
+        """
+        query = "SELECT * FROM benchmarks WHERE 1=1"
+        params = []
+
+        if algorithm:
+            query += " AND algorithm = ?"
+            params.append(algorithm)
+        if backend:
+            query += " AND backend = ?"
+            params.append(backend)
+        if dataset:
+            query += " AND dataset = ?"
+            params.append(dataset)
+        if start_date:
+            query += " AND timestamp >= ?"
+            params.append(start_date)
+        if end_date:
+            query += " AND timestamp <= ?"
+            params.append(end_date)
+
+        with self._connection() as conn:
+            if as_pandas:
+                return pd.read_sql_query(query, conn, params=params)
+
+            cursor = conn.execute(query, params)
+            columns = [desc[0] for desc in cursor.description]
+            return [dict(zip(columns, row)) for row in cursor.fetchall()]
+
+    def get_unique_values(self, column: str) -> List[str]:
+        """Get unique values for a given column.
+
+        Parameters
+        ----------
+        column : str
+            Column name to get unique values for
+
+        Returns
+        -------
+        list
+            Unique values in column
+        """
+        with self._connection() as conn:
+            cursor = conn.execute(f"SELECT DISTINCT {column} FROM benchmarks")
+            return [row[0] for row in cursor.fetchall()]
+
+    def delete_results(
+        self,
+        algorithm: Optional[str] = None,
+        backend: Optional[str] = None,
+        dataset: Optional[str] = None,
+        before_date: Optional[str] = None,
+    ) -> int:
+        """Delete benchmark results matching criteria.
+
+        Parameters
+        ----------
+        algorithm : str, optional
+            Delete results for this algorithm
+        backend : str, optional
+            Delete results for this backend
+        dataset : str, optional
+            Delete results for this dataset
+        before_date : str, optional
+            Delete results before this date
+
+        Returns
+        -------
+        int
+            Number of records deleted
+        """
+        query = "DELETE FROM benchmarks WHERE 1=1"
+        params = []
+
+        if algorithm:
+            query += " AND algorithm = ?"
+            params.append(algorithm)
+        if backend:
+            query += " AND backend = ?"
+            params.append(backend)
+        if dataset:
+            query += " AND dataset = ?"
+            params.append(dataset)
+        if before_date:
+            query += " AND timestamp < ?"
+            params.append(before_date)
+
+        with self._connection() as conn:
+            cursor = conn.execute(query, params)
+            conn.commit()
+            return cursor.rowcount
