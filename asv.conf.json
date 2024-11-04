@@ -3,24 +3,32 @@
     "project": "nxbench",
     "repo": ".",
     "project_url": "https://github.com/dpys/nxbench",
-    "branches": ["main"],
+    "branches": [
+        "main"
+    ],
     "build_command": [
         "export NXBENCH_CONFIG_FILE='configs/example.yaml'",
         "python -m pip install ."
     ],
-    "dvcs": null,
+    "dvcs": "git",
     "environment_type": "virtualenv",
     "show_commit_url": "https://github.com/dpys/nxbench/commit/",
     "matrix": {
-        "networkx": ["3.3"],
-        "nx-parallel": ["0.3rc0.dev0"]
+        "networkx": [
+            "3.3"
+        ],
+        "nx-parallel": [
+            "0.3rc0.dev0"
+        ]
     },
     "benchmark_dir": "nxbench/benchmarks",
     "env_dir": "env",
     "results_dir": "results",
     "html_dir": "html",
     "hash_length": 8,
-    "plugins": ["asv_runner"],
+    "plugins": [
+        "asv_runner"
+    ],
     "conda_channels": [
         "defaults",
         "conda-forge",

@@ -187,3 +187,9 @@ downloaded_pdfs/
 
 # Checkpoint files
 **.pth
+
+# Results files
+results/*
+
+# html
+html/*
