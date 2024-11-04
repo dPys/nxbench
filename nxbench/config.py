@@ -197,7 +197,6 @@ def get_benchmark_config() -> BenchmarkConfig:
         else:
             raise FileNotFoundError(f"Configuration file not found: {config_file}")
     else:
-        # Fallback to default configuration
         _BENCHMARK_CONFIG = load_default_config()
         return _BENCHMARK_CONFIG
 

@@ -1,18 +1,16 @@
 {
     "version": 1,
     "project": "nxbench",
-    "repo": ".",
     "project_url": "https://github.com/dpys/nxbench",
+    "repo": ".",
     "branches": [
         "main"
     ],
-    "build_command": [
-        "export NXBENCH_CONFIG_FILE='configs/example.yaml'",
-        "python -m pip install ."
-    ],
-    "dvcs": "git",
-    "environment_type": "virtualenv",
+    "environment_type": "existing",
     "show_commit_url": "https://github.com/dpys/nxbench/commit/",
+    "pythons": [
+        "3.10"
+    ],
     "matrix": {
         "networkx": [
             "3.3"
@@ -29,11 +27,13 @@
     "plugins": [
         "asv_runner"
     ],
-    "conda_channels": [
-        "defaults",
-        "conda-forge",
-        "nvidia/label/cuda12.0.0"
+    "build_command": [
+        "python -m pip install ."
     ],
-    "build_cache_size": 8,
-    "default_benchmark_timeout": 1200
+    "install_command": [
+        "python -m pip install {wheel_file}"
+    ],
+    "uninstall_command": [
+        "return-code=any python -m pip uninstall -y {project}"
+    ]
 }

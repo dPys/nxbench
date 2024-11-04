@@ -3,10 +3,8 @@
 import logging
 import warnings
 import time
-import os
 import tracemalloc
 import json
-from pathlib import Path
 from dataclasses import dataclass
 from typing import Any, Dict, Union, List, Any, Tuple
 
@@ -46,17 +44,12 @@ class BenchmarkResult:
         cls, asv_result: Dict[str, Any], graph: Union[nx.Graph, nx.DiGraph, None] = None
     ):
         """Create BenchmarkResult from ASV benchmark output."""
+        execution_time = asv_result.get("execution_time", 0.0)
+        memory_used = asv_result.get("memory_used", 0.0)
 
-        execution_time = asv_result.get("stats", {}).get("mean", 0.0)
-
-        memory_used = 0.0
         result = asv_result.get("result")
-        if isinstance(result, str):
-            try:
-                result_dict = json.loads(result)
-                memory_used = result_dict.get("memory_used_mb", 0.0)
-            except json.JSONDecodeError:
-                logger.error("Failed to decode memory usage JSON string.")
+        if memory_used == 0.0 and isinstance(result, dict):
+            memory_used = result.get("memory_used", 0.0)
 
         if graph is None:
             graph = nx.Graph()
@@ -189,54 +182,70 @@ class GraphBenchmark:
 
     def run_benchmark(
         self, algo_config: AlgorithmConfig, dataset_name: str, backend: str
-    ) -> float:
-        """Run the benchmark for a given algorithm and return execution time."""
+    ) -> str:
+        """Run the benchmark for a given algorithm and return composite metric."""
         try:
             self.setup(dataset_name, backend)
         except NotImplementedError:
             logger.warning(
                 f"Skipping benchmark for algorithm '{algo_config.name}' on dataset '{dataset_name}' with backend '{backend}'."
             )
-            return float("nan")  # Return NaN to indicate the benchmark was skipped
+            result = json.dumps(
+                {"execution_time": float("nan"), "memory_used": float("nan")}
+            )
+            logger.debug(f"Returning skipped result: {result}")
+            return result
 
         try:
             algo_func = get_algorithm_function(algo_config, backend)
         except (ImportError, AttributeError) as e:
             logger.error(f"Skipping algorithm '{algo_config.name}' due to error: {e}")
-            return float("nan")  # Return NaN to indicate an error occurred
+            result = json.dumps(
+                {"execution_time": float("nan"), "memory_used": float("nan")}
+            )
+            logger.debug(f"Returning error result: {result}")
+            return result
 
         try:
             pos_args, kwargs = process_algorithm_params(algo_config.params)
             tracemalloc.start()
             start_time = time.perf_counter()
-            result = algo_func(self.current_graph, *pos_args, **kwargs)
+            func_result = algo_func(self.current_graph, *pos_args, **kwargs)
             end_time = time.perf_counter()
             current, peak = tracemalloc.get_traced_memory()
             tracemalloc.stop()
-            exec_time = end_time - start_time
-            memory_used = peak / (1024 * 1024)  # convert to MB
+
+            validator = BenchmarkValidator()
+            try:
+                validator.validate_result(
+                    func_result, algo_config.name, self.current_graph
+                )
+                logger.info(
+                    f"Validation passed for algorithm '{algo_config.name}' on dataset '{dataset_name}' with backend '{backend}'."
+                )
+            except Exception as e:
+                logger.error(f"Validation failed for '{algo_config.name}': {e}")
+
+            result = json.dumps(
+                {
+                    "execution_time": end_time - start_time,
+                    "memory_used": peak / (1024 * 1024),  # convert to MB
+                }
+            )
+            logger.debug(f"Returning successful result: {result}")
+            return result
 
         except Exception as e:
             logger.error(f"Error running algorithm '{algo_config.name}': {e}")
-            return float("nan")  # Return NaN to indicate an error occurred
-
-        # Optional: Perform validation
-        validator = BenchmarkValidator()
-        try:
-            validator.validate_result(result, algo_config.name, self.current_graph)
-            logger.info(
-                f"Validation passed for algorithm '{algo_config.name}' on dataset '{dataset_name}' with backend '{backend}'."
+            result = json.dumps(
+                {"execution_time": float("nan"), "memory_used": float("nan")}
             )
-        except Exception as e:
-            logger.error(f"Validation failed for '{algo_config.name}': {e}")
-
-        return exec_time
+            logger.debug(f"Returning error result: {result}")
+            return result
 
 
 def get_algorithm_function(algo_config: AlgorithmConfig, backend_name: str) -> Any:
-    """
-    Retrieve the algorithm function for the specified backend.
-    """
+    """Retrieve the algorithm function for the specified backend."""
     if backend_name == "networkx":
         return algo_config.func_ref
     elif backend_name == "cugraph":
@@ -250,7 +259,6 @@ def get_algorithm_function(algo_config: AlgorithmConfig, backend_name: str) -> A
         else:
             mapping = {
                 "pagerank": cugraph.pagerank,
-                # Add more mappings as needed
             }
             if func_name in mapping:
                 return mapping[func_name]
@@ -281,8 +289,8 @@ def get_algorithm_function(algo_config: AlgorithmConfig, backend_name: str) -> A
 def process_algorithm_params(
     params: Dict[str, Any],
 ) -> Tuple[List[Any], Dict[str, Any]]:
-    """Process algorithm parameters to separate positional arguments and keyword arguments,
-    and resolve any function references.
+    """Process algorithm parameters to separate positional arguments and keyword
+    arguments, and resolve any function references.
 
     Parameters
     ----------

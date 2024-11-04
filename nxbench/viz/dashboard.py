@@ -1,8 +1,7 @@
 import json
 import logging
-import os
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Dict, List
 
 import networkx as nx
 
@@ -31,16 +30,47 @@ class BenchmarkDashboard:
                     with env_file.open("r") as f:
                         data = json.load(f)
                         for bench_name, bench_data in data.get("results", {}).items():
-                            params = bench_data.get("params", {})
-                            stats = bench_data.get("stats", {})
-                            result_value = bench_data.get("result", {})
+                            if isinstance(bench_data, list):
+                                raw_results = bench_data[0]
+                                params_info = bench_data[1]
 
-                            asv_result = {
-                                "name": bench_name,
-                                "stats": stats,
-                                "params": params,
-                                "result": result_value,
-                            }
+                                # Handle results
+                                if isinstance(raw_results, (list, dict)):
+                                    # If results are a list of measurements
+                                    if isinstance(raw_results, list):
+                                        exec_times = raw_results
+                                        memory_vals = [0.0] * len(
+                                            raw_results
+                                        )  # Default if no memory info
+                                    else:
+                                        # If results are a dict with both time and memory
+                                        exec_times = [
+                                            raw_results.get("execution_time", 0.0)
+                                        ]
+                                        memory_vals = [
+                                            raw_results.get("memory_used", 0.0)
+                                        ]
+                                else:
+                                    exec_times = [raw_results]
+                                    memory_vals = [0.0]
+
+                                stats = {
+                                    "mean": (
+                                        sum(exec_times) / len(exec_times)
+                                        if exec_times
+                                        else 0.0
+                                    ),
+                                    "memory_mean": (
+                                        sum(memory_vals) / len(memory_vals)
+                                        if memory_vals
+                                        else 0.0
+                                    ),
+                                }
+                            else:
+                                logger.warning(
+                                    f"Unexpected format for bench_data: {bench_data}"
+                                )
+                                continue
 
                             parts = bench_name.split("_")
                             if len(parts) >= 4:
@@ -55,17 +85,27 @@ class BenchmarkDashboard:
                             dummy_graph = nx.Graph()
                             dummy_graph.graph["name"] = dataset
 
-                            benchmark_result = BenchmarkResult.from_asv_result(
-                                asv_result, dummy_graph
-                            )
-                            results.append(benchmark_result)
+                            # Create a result for each combination
+                            for exec_time, memory_val in zip(exec_times, memory_vals):
+                                asv_result = {
+                                    "name": bench_name,
+                                    "stats": stats,
+                                    "params": params_info,
+                                    "execution_time": exec_time,
+                                    "memory_used": memory_val,
+                                }
+
+                                benchmark_result = BenchmarkResult.from_asv_result(
+                                    asv_result, dummy_graph
+                                )
+                                results.append(benchmark_result)
+
         return results
 
     def compare_results(
         self, baseline: str, comparison: str, threshold: float
     ) -> List[Dict]:
-        """
-        Compare benchmark results between two algorithms or datasets.
+        """Compare benchmark results between two algorithms or datasets.
 
         Parameters
         ----------
@@ -81,15 +121,12 @@ class BenchmarkDashboard:
         List[Dict]
             A list of dictionaries containing comparison results.
         """
-        # Load all results
         results = self.load_results()
         comparisons = []
 
-        # Filter results for baseline and comparison
         baseline_results = [res for res in results if res.algorithm == baseline]
         comparison_results = [res for res in results if res.algorithm == comparison]
 
-        # Compare execution times
         for base_res in baseline_results:
             for comp_res in comparison_results:
                 if (

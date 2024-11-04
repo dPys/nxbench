@@ -36,7 +36,6 @@ def cli(ctx, verbose: int, config: Optional[Path]):
         os.environ["NXBENCH_CONFIG_FILE"] = str(config)
         logger.info(f"Using config file: {config}")
 
-    # Store config in the Click context object to pass it to subcommands
     ctx.ensure_object(dict)
     ctx.obj["CONFIG"] = config
 
@@ -122,7 +121,15 @@ def run_benchmark(ctx, backend: str, collection: str):
     if config:
         logger.debug(f"Config file used for benchmark run: {config}")
 
-    cmd_parts = ["asv", "run", "--quick"]
+    try:
+        git_hash = subprocess.check_output(
+            ["git", "rev-parse", "HEAD"], universal_newlines=True
+        ).strip()
+    except subprocess.CalledProcessError as e:
+        logger.error(f"Failed to get git hash: {e}")
+        raise click.ClickException("Could not determine git commit hash")
+
+    cmd_parts = ["asv", "run", "--quick", f"--set-commit-hash={git_hash}"]
 
     if backend != "all" or collection != "all":
         benchmark_pattern = "GraphBenchmark.time_"
@@ -136,6 +143,7 @@ def run_benchmark(ctx, backend: str, collection: str):
 
     cmd = " ".join(cmd_parts)
     logger.info(f"Running command: {cmd}")
+
     try:
         subprocess.run(cmd, shell=True, check=True)
     except subprocess.CalledProcessError as e:
@@ -153,10 +161,7 @@ def export(ctx, result_file: Path, format: str):
     if config:
         logger.debug(f"Config file used for export: {config}")
 
-    # Initialize BenchmarkDashboard with ASV's results directory
-    dashboard = BenchmarkDashboard(
-        results_dir="results"
-    )  # Ensure this points to ASV's results
+    dashboard = BenchmarkDashboard(results_dir="results")
     results = dashboard.load_results()
 
     if not results:
@@ -164,7 +169,47 @@ def export(ctx, result_file: Path, format: str):
         click.echo("No benchmark results found.")
         return
 
-    df = pd.DataFrame([r.__dict__ for r in results])
+    records = []
+    for result in results:
+        param_lists = result.parameters
+        datasets = [d.strip("'") for d in param_lists[0]]
+        backends = [b.strip("'") for b in param_lists[1]]
+
+        algo_name = result.algorithm.split(".")[-1]
+        if algo_name.startswith("time_"):
+            algo_name = algo_name[5:]
+
+        execution_times = (
+            result.execution_time
+            if isinstance(result.execution_time, list)
+            else [result.execution_time]
+        )
+
+        for i, (dataset, backend, time) in enumerate(
+            zip(datasets, backends, execution_times)
+        ):
+            record = {
+                "algorithm": algo_name,
+                "dataset": dataset,
+                "backend": backend,
+                "execution_time": time,
+                "memory_used": (
+                    result.memory_used
+                    if isinstance(result.memory_used, (int, float))
+                    else 0.0
+                ),
+                "num_nodes": result.num_nodes,
+                "num_edges": result.num_edges,
+                "is_directed": result.is_directed,
+                "is_weighted": result.is_weighted,
+            }
+            records.append(record)
+
+    df = pd.DataFrame(records)
+    df = df.sort_values(["algorithm", "dataset", "backend"])
+
+    df["execution_time"] = df["execution_time"].map("{:.6f}".format)
+    df["memory_used"] = df["memory_used"].map("{:.2f}".format)
 
     if format == "csv":
         df.to_csv(result_file, index=False)
