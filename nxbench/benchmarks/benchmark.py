@@ -85,7 +85,7 @@ def generate_benchmark_methods(cls):
         algo_name = algo_config.name
 
         def benchmark_method(self, dataset_name, backend):
-            self.run_benchmark(algo_config, dataset_name, backend)
+            return self.run_benchmark(algo_config, dataset_name, backend)
 
         benchmark_method.__name__ = f"time_{algo_name}"
         return benchmark_method
@@ -197,13 +197,13 @@ class GraphBenchmark:
             logger.warning(
                 f"Skipping benchmark for algorithm '{algo_config.name}' on dataset '{dataset_name}' with backend '{backend}'."
             )
-            return 0.0
+            return float("nan")  # Return NaN to indicate the benchmark was skipped
 
         try:
             algo_func = get_algorithm_function(algo_config, backend)
         except (ImportError, AttributeError) as e:
             logger.error(f"Skipping algorithm '{algo_config.name}' due to error: {e}")
-            return 0.0
+            return float("nan")  # Return NaN to indicate an error occurred
 
         try:
             pos_args, kwargs = process_algorithm_params(algo_config.params)
@@ -218,8 +218,9 @@ class GraphBenchmark:
 
         except Exception as e:
             logger.error(f"Error running algorithm '{algo_config.name}': {e}")
-            return 0.0
+            return float("nan")  # Return NaN to indicate an error occurred
 
+        # Optional: Perform validation
         validator = BenchmarkValidator()
         try:
             validator.validate_result(result, algo_config.name, self.current_graph)
