@@ -142,7 +142,7 @@ def run_benchmark(ctx, backend: str, collection: str):
     cmd_parts = ["asv", "run", "--quick", f"--set-commit-hash={git_hash}", "--verbose"]
 
     if backend != "all" or collection != "all":
-        benchmark_pattern = "GraphBenchmark.time_"
+        benchmark_pattern = "GraphBenchmark.track_"
         if collection != "all":
             benchmark_pattern = f"{benchmark_pattern}.*{collection}"
         if backend != "all":
@@ -181,9 +181,8 @@ def export(ctx, result_file: Path, format: str):
 
     records = []
     for result in results:
-        param_dict = result.parameters
-        dataset = param_dict.get("dataset", "").strip("'")
-        backend = param_dict.get("backend", "").strip("'")
+        dataset = result.dataset.strip("'")
+        backend = result.backend.strip("'")
 
         algo_name = result.algorithm.split(".")[-1]
         if algo_name.startswith("track_"):

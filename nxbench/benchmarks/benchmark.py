@@ -40,13 +40,8 @@ class BenchmarkResult:
     num_edges: int
     is_directed: bool
     is_weighted: bool
-    parameters: Dict[str, Any]
+    backend: str
     metadata: Dict[str, Any]
-
-    @property
-    def backend(self) -> str:
-        """Convenience property to access the backend."""
-        return self.parameters.get("backend", "Unknown")
 
     @classmethod
     def from_asv_result(
@@ -55,6 +50,9 @@ class BenchmarkResult:
         """Create BenchmarkResult from ASV benchmark output."""
         execution_time = asv_result.get("execution_time", 0.0)
         memory_used = asv_result.get("memory_used", 0.0)
+        dataset = asv_result.get("dataset", "Unknown")
+        backend = asv_result.get("backend", "Unknown")
+        algorithm = asv_result.get("algorithm", "Unknown")
 
         logger.debug(f"execution_time: {execution_time}, type: {type(execution_time)}")
         logger.debug(f"memory_used: {memory_used}, type: {type(memory_used)}")
@@ -67,15 +65,15 @@ class BenchmarkResult:
             memory_used = float("nan")
 
         return cls(
-            algorithm=asv_result.get("name", ""),
-            dataset=graph.graph.get("name", "unknown"),
+            algorithm=algorithm,
+            dataset=dataset,
             execution_time=execution_time,
             memory_used=memory_used,
             num_nodes=graph.number_of_nodes(),
             num_edges=graph.number_of_edges(),
             is_directed=graph.is_directed(),
             is_weighted=nx.is_weighted(graph),
-            parameters=asv_result.get("params", {}),
+            backend=backend,
             metadata={},
         )
 

@@ -74,7 +74,6 @@ class BenchmarkDashboard:
                             for (dataset, backend), measurement in zip(
                                 param_combinations, measurements
                             ):
-                                # Handle different measurement types
                                 if isinstance(measurement, dict):
                                     execution_time = measurement.get(
                                         "execution_time", float("nan")
@@ -100,13 +99,10 @@ class BenchmarkDashboard:
                                     execution_time = float("nan")
                                     memory_used = float("nan")
 
-                                parts = bench_name.split(".")
-                                if len(parts) >= 3:
-                                    algorithm = parts[2]
-                                else:
-                                    algorithm = bench_name
+                                algorithm = bench_name.split(".")[-1].replace(
+                                    "track_", ""
+                                )
 
-                                # Load the actual graph and metadata
                                 dataset_config = next(
                                     (
                                         ds
@@ -121,28 +117,19 @@ class BenchmarkDashboard:
                                     )
                                     graph = nx.Graph()
                                     graph.graph["name"] = dataset
-                                    metadata = {}
                                 else:
-                                    try:
-                                        graph, metadata = (
-                                            self.data_manager.load_network_sync(
-                                                dataset_config
-                                            )
+                                    graph, metadata = (
+                                        self.data_manager.load_network_sync(
+                                            dataset_config
                                         )
-                                    except Exception as e:
-                                        logger.error(
-                                            f"Failed to load graph for dataset '{dataset}': {e}"
-                                        )
-                                        graph = nx.Graph()
-                                        graph.graph["name"] = dataset
-                                        metadata = {}
+                                    )
 
                                 asv_result = {
-                                    "name": bench_name,
+                                    "algorithm": algorithm,
+                                    "dataset": dataset,
+                                    "backend": backend,
                                     "execution_time": execution_time,
                                     "memory_used": memory_used,
-                                    "params": {"dataset": dataset, "backend": backend},
-                                    "result": measurement,
                                 }
 
                                 try:
@@ -221,7 +208,6 @@ class BenchmarkDashboard:
             for res in results:
                 f.write(f"<h2>Algorithm: {res.algorithm}</h2>")
                 f.write(f"<p>Dataset: {res.dataset}</p>")
-
                 f.write(f"<p>Backend: {res.backend}</p>")
 
                 f.write(f"<p>Execution Time: {res.execution_time:.6f} seconds</p>")
