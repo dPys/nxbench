@@ -30,7 +30,7 @@ class AlgorithmConfig:
     """Configuration for a graph algorithm to benchmark."""
 
     name: str
-    func: str  # fully qualified function name (e.g. "networkx.pagerank")
+    func: str
     params: Dict[str, Any] = field(default_factory=dict)
     requires_directed: bool = False
     requires_undirected: bool = False
@@ -44,13 +44,25 @@ class AlgorithmConfig:
     def __post_init__(self):
         """Validate and resolve the function reference."""
         module_path, func_name = self.func.rsplit(".", 1)
-        module = __import__(module_path, fromlist=[func_name])
-        self.func_ref = getattr(module, func_name)
+        try:
+            module = __import__(module_path, fromlist=[func_name])
+            self.func_ref = getattr(module, func_name)
+        except (ImportError, AttributeError) as e:
+            logger.error(
+                f"Failed to import function '{self.func}' for algorithm '{self.name}': {e}"
+            )
+            self.func_ref = None
 
         if self.validate_result:
             mod_path, val_func = self.validate_result.rsplit(".", 1)
-            module = __import__(mod_path, fromlist=[val_func])
-            self.validate_ref = getattr(module, val_func)
+            try:
+                module = __import__(mod_path, fromlist=[val_func])
+                self.validate_ref = getattr(module, val_func)
+            except (ImportError, AttributeError) as e:
+                logger.error(
+                    f"Failed to import validation function '{self.validate_result}' for algorithm '{self.name}': {e}"
+                )
+                self.validate_ref = None
         else:
             self.validate_ref = None
 
@@ -98,11 +110,20 @@ class BenchmarkConfig:
         with path.open() as f:
             data = yaml.safe_load(f)
 
-        algorithms = [
-            AlgorithmConfig(**algo_data) for algo_data in data.get("algorithms", [])
-        ]
+        algorithms_data = data.get("algorithms") or []
+        datasets_data = data.get("datasets") or []
 
-        datasets = [DatasetConfig(**ds_data) for ds_data in data.get("datasets", [])]
+        if not isinstance(algorithms_data, list):
+            logger.error(f"'algorithms' should be a list in the config file: {path}")
+            algorithms_data = []
+
+        if not isinstance(datasets_data, list):
+            logger.error(f"'datasets' should be a list in the config file: {path}")
+            datasets_data = []
+
+        algorithms = [AlgorithmConfig(**algo_data) for algo_data in algorithms_data]
+
+        datasets = [DatasetConfig(**ds_data) for ds_data in datasets_data]
 
         return cls(
             algorithms=algorithms,
@@ -213,20 +234,13 @@ def load_default_config() -> BenchmarkConfig:
         algorithms=[
             AlgorithmConfig(
                 name="pagerank",
-                func="networkx.pagerank",
+                func="networkx.algorithms.link_analysis.pagerank_alg.pagerank",
                 params={"alpha": 0.85},
                 groups=["centrality"],
             ),
-            # AlgorithmConfig(
-            #     name="betweenness_centrality",
-            #     func="networkx.betweenness_centrality",
-            #     params={"k": 100, "normalized": True},
-            #     requires_directed=False,
-            #     groups=["centrality", "path_based"],
-            # ),
             AlgorithmConfig(
                 name="louvain_communities",
-                func="networkx.algorithms.community.louvain_communities",
+                func="networkx.algorithms.community.louvain.louvain_communities",
                 requires_undirected=True,
                 groups=["community"],
             ),

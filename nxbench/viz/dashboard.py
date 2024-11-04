@@ -1,4 +1,6 @@
 import json
+import itertools
+import math
 import logging
 from pathlib import Path
 from typing import Dict, List
@@ -21,84 +23,115 @@ class BenchmarkDashboard:
         results = []
 
         for commit_dir in self.results_dir.iterdir():
-            if (
-                commit_dir.is_dir()
-                and commit_dir.name != "machine.json"
-                and commit_dir.name != "benchmarks.json"
-            ):
+            if commit_dir.is_dir() and commit_dir.name not in {
+                "machine.json",
+                "benchmarks.json",
+            }:
                 for env_file in commit_dir.glob("*.json"):
                     with env_file.open("r") as f:
-                        data = json.load(f)
+                        try:
+                            data = json.load(f)
+                        except json.JSONDecodeError as e:
+                            logger.error(f"Failed to decode JSON from {env_file}: {e}")
+                            continue
+
                         for bench_name, bench_data in data.get("results", {}).items():
-                            if isinstance(bench_data, list):
-                                raw_results = bench_data[0]
-                                params_info = bench_data[1]
-
-                                # Handle results
-                                if isinstance(raw_results, (list, dict)):
-                                    # If results are a list of measurements
-                                    if isinstance(raw_results, list):
-                                        exec_times = raw_results
-                                        memory_vals = [0.0] * len(
-                                            raw_results
-                                        )  # Default if no memory info
-                                    else:
-                                        # If results are a dict with both time and memory
-                                        exec_times = [
-                                            raw_results.get("execution_time", 0.0)
-                                        ]
-                                        memory_vals = [
-                                            raw_results.get("memory_used", 0.0)
-                                        ]
-                                else:
-                                    exec_times = [raw_results]
-                                    memory_vals = [0.0]
-
-                                stats = {
-                                    "mean": (
-                                        sum(exec_times) / len(exec_times)
-                                        if exec_times
-                                        else 0.0
-                                    ),
-                                    "memory_mean": (
-                                        sum(memory_vals) / len(memory_vals)
-                                        if memory_vals
-                                        else 0.0
-                                    ),
-                                }
-                            else:
+                            if not isinstance(bench_data, list) or len(bench_data) < 2:
                                 logger.warning(
-                                    f"Unexpected format for bench_data: {bench_data}"
+                                    f"Unexpected bench_data format for {bench_name}"
                                 )
                                 continue
 
-                            parts = bench_name.split("_")
-                            if len(parts) >= 4:
-                                algorithm = parts[2]
-                                dataset = parts[3]
-                                backend = parts[4] if len(parts) > 4 else "unknown"
-                            else:
-                                algorithm = bench_name
-                                dataset = "unknown"
-                                backend = "unknown"
+                            measurements = bench_data[0]
+                            params_info = bench_data[1]
 
-                            dummy_graph = nx.Graph()
-                            dummy_graph.graph["name"] = dataset
+                            if not (
+                                isinstance(params_info, list) and len(params_info) == 2
+                            ):
+                                logger.warning(
+                                    f"Unexpected params_info format for {bench_name}"
+                                )
+                                continue
 
-                            # Create a result for each combination
-                            for exec_time, memory_val in zip(exec_times, memory_vals):
+                            datasets = [name.strip("'") for name in params_info[0]]
+                            backends = [name.strip("'") for name in params_info[1]]
+
+                            # Generate all combinations of datasets and backends
+                            param_combinations = list(
+                                itertools.product(datasets, backends)
+                            )
+
+                            if len(measurements) != len(param_combinations):
+                                logger.warning(
+                                    f"Number of measurements ({len(measurements)}) does not match "
+                                    f"number of parameter combinations ({len(param_combinations)}) "
+                                    f"for benchmark {bench_name}"
+                                )
+                                # Optionally, handle partial data or skip
+                                continue
+
+                            for (dataset, backend), measurement in zip(
+                                param_combinations, measurements
+                            ):
+                                # Handle different measurement types
+                                if isinstance(measurement, dict):
+                                    execution_time = measurement.get(
+                                        "execution_time", float("nan")
+                                    )
+                                    memory_used = measurement.get(
+                                        "memory_used", float("nan")
+                                    )
+                                    # Handle 'NaN' and 'null' by converting them to appropriate Python types
+                                    if execution_time is None or isinstance(
+                                        execution_time, str
+                                    ):
+                                        execution_time = float("nan")
+                                    if memory_used is None or isinstance(
+                                        memory_used, str
+                                    ):
+                                        memory_used = float("nan")
+                                elif isinstance(measurement, (int, float)):
+                                    execution_time = float(measurement)
+                                    memory_used = 0.0
+                                else:
+                                    logger.warning(
+                                        f"Unsupported measurement type for {bench_name}: {type(measurement)}"
+                                    )
+                                    execution_time = float("nan")
+                                    memory_used = float("nan")
+
+                                # Extract algorithm name from bench_name
+                                # Assuming bench_name format: "GraphBenchmark.time_pagerank"
+                                parts = bench_name.split(".")
+                                if len(parts) >= 3:
+                                    algorithm = parts[2]
+                                else:
+                                    algorithm = (
+                                        bench_name  # Fallback if format is unexpected
+                                    )
+
+                                # Create a dummy graph with dataset name
+                                dummy_graph = nx.Graph()
+                                dummy_graph.graph["name"] = dataset
+
                                 asv_result = {
                                     "name": bench_name,
-                                    "stats": stats,
-                                    "params": params_info,
-                                    "execution_time": exec_time,
-                                    "memory_used": memory_val,
+                                    "execution_time": execution_time,
+                                    "memory_used": memory_used,
+                                    "params": {"dataset": dataset, "backend": backend},
+                                    "result": measurement,
                                 }
 
-                                benchmark_result = BenchmarkResult.from_asv_result(
-                                    asv_result, dummy_graph
-                                )
-                                results.append(benchmark_result)
+                                try:
+                                    benchmark_result = BenchmarkResult.from_asv_result(
+                                        asv_result, dummy_graph
+                                    )
+                                    results.append(benchmark_result)
+                                except Exception as e:
+                                    logger.error(
+                                        f"Failed to create BenchmarkResult for {bench_name} "
+                                        f"with dataset {dataset} and backend {backend}: {e}"
+                                    )
 
         return results
 

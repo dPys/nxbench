@@ -12,6 +12,7 @@ from nxbench.data.loader import BenchmarkDataManager
 from nxbench.config import DatasetConfig
 from nxbench.data.repository import NetworkRepository
 from nxbench.viz.dashboard import BenchmarkDashboard
+from _nxbench.config import _config as package_config
 
 warnings.filterwarnings("ignore")
 
@@ -28,8 +29,16 @@ logger = logging.getLogger("nxbench")
 @click.pass_context
 def cli(ctx, verbose: int, config: Optional[Path]):
     """NetworkX Benchmarking Suite CLI."""
-    # Set logging level based on verbosity
-    log_level = max(logging.INFO - 10 * verbose, logging.DEBUG)
+    if verbose >= 2:
+        verbosity_level = 2
+    elif verbose == 1:
+        verbosity_level = 1
+    else:
+        verbosity_level = 0
+
+    package_config.set_verbosity_level(verbosity_level)
+
+    log_level = [logging.WARNING, logging.INFO, logging.DEBUG][verbosity_level]
     logging.basicConfig(level=log_level)
 
     if config:
@@ -129,7 +138,7 @@ def run_benchmark(ctx, backend: str, collection: str):
         logger.error(f"Failed to get git hash: {e}")
         raise click.ClickException("Could not determine git commit hash")
 
-    cmd_parts = ["asv", "run", "--quick", f"--set-commit-hash={git_hash}"]
+    cmd_parts = ["asv", "run", "--quick", f"--set-commit-hash={git_hash}", "--verbose"]
 
     if backend != "all" or collection != "all":
         benchmark_pattern = "GraphBenchmark.time_"
@@ -159,7 +168,7 @@ def export(ctx, result_file: Path, format: str):
     """Export benchmark results."""
     config = ctx.obj.get("CONFIG")
     if config:
-        logger.debug(f"Config file used for export: {config}")
+        logger.debug(f"Using config file for export: {config}")
 
     dashboard = BenchmarkDashboard(results_dir="results")
     results = dashboard.load_results()
@@ -171,39 +180,37 @@ def export(ctx, result_file: Path, format: str):
 
     records = []
     for result in results:
-        param_lists = result.parameters
-        datasets = [d.strip("'") for d in param_lists[0]]
-        backends = [b.strip("'") for b in param_lists[1]]
+        param_dict = result.parameters
+        dataset = param_dict.get("dataset", "").strip("'")
+        backend = param_dict.get("backend", "").strip("'")
 
         algo_name = result.algorithm.split(".")[-1]
-        if algo_name.startswith("time_"):
-            algo_name = algo_name[5:]
+        if algo_name.startswith("track_"):
+            algo_name = algo_name[6:]
 
-        execution_times = (
+        execution_time = (
             result.execution_time
-            if isinstance(result.execution_time, list)
-            else [result.execution_time]
+            if isinstance(result.execution_time, (int, float))
+            else float("nan")
+        )
+        memory_used = (
+            result.memory_used
+            if isinstance(result.memory_used, (int, float))
+            else float("nan")
         )
 
-        for i, (dataset, backend, time) in enumerate(
-            zip(datasets, backends, execution_times)
-        ):
-            record = {
-                "algorithm": algo_name,
-                "dataset": dataset,
-                "backend": backend,
-                "execution_time": time,
-                "memory_used": (
-                    result.memory_used
-                    if isinstance(result.memory_used, (int, float))
-                    else 0.0
-                ),
-                "num_nodes": result.num_nodes,
-                "num_edges": result.num_edges,
-                "is_directed": result.is_directed,
-                "is_weighted": result.is_weighted,
-            }
-            records.append(record)
+        record = {
+            "algorithm": algo_name,
+            "dataset": dataset,
+            "backend": backend,
+            "execution_time": execution_time,
+            "memory_used": memory_used,
+            "num_nodes": result.num_nodes,
+            "num_edges": result.num_edges,
+            "is_directed": result.is_directed,
+            "is_weighted": result.is_weighted,
+        }
+        records.append(record)
 
     df = pd.DataFrame(records)
     df = df.sort_values(["algorithm", "dataset", "backend"])
@@ -217,6 +224,7 @@ def export(ctx, result_file: Path, format: str):
         df.to_json(result_file, orient="records")
 
     logger.info(f"Exported results to {result_file}")
+    click.echo(f"Exported results to {result_file}")
 
 
 @benchmark.command()
