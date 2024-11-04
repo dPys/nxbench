@@ -19,7 +19,13 @@ warnings.filterwarnings("ignore")
 logger = logging.getLogger("nxbench")
 
 
-__all__ = ["BenchmarkResult", "GraphBenchmark"]
+__all__ = [
+    "BenchmarkResult",
+    "GraphBenchmark",
+    "BenchmarkMetrics",
+    "get_algorithm_function",
+    "process_algorithm_params",
+]
 
 
 @dataclass
@@ -30,14 +36,17 @@ class BenchmarkResult:
     dataset: str
     execution_time: float
     memory_used: float
-    result: Any
-    result_type: str
     num_nodes: int
     num_edges: int
     is_directed: bool
     is_weighted: bool
     parameters: Dict[str, Any]
     metadata: Dict[str, Any]
+
+    @property
+    def backend(self) -> str:
+        """Convenience property to access the backend."""
+        return self.parameters.get("backend", "Unknown")
 
     @classmethod
     def from_asv_result(
@@ -47,20 +56,21 @@ class BenchmarkResult:
         execution_time = asv_result.get("execution_time", 0.0)
         memory_used = asv_result.get("memory_used", 0.0)
 
-        result = asv_result.get("result")
-        if memory_used == 0.0 and isinstance(result, dict):
-            memory_used = result.get("memory_used", 0.0)
+        logger.debug(f"execution_time: {execution_time}, type: {type(execution_time)}")
+        logger.debug(f"memory_used: {memory_used}, type: {type(memory_used)}")
 
-        if graph is None:
-            graph = nx.Graph()
+        if not isinstance(execution_time, (int, float)):
+            logger.error(f"Non-numeric execution_time: {execution_time}")
+            execution_time = float("nan")
+        if not isinstance(memory_used, (int, float)):
+            logger.error(f"Non-numeric memory_used: {memory_used}")
+            memory_used = float("nan")
 
         return cls(
             algorithm=asv_result.get("name", ""),
             dataset=graph.graph.get("name", "unknown"),
             execution_time=execution_time,
             memory_used=memory_used,
-            result=result,
-            result_type=type(result).__name__,
             num_nodes=graph.number_of_nodes(),
             num_edges=graph.number_of_edges(),
             is_directed=graph.is_directed(),

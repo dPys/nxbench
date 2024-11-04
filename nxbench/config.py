@@ -81,12 +81,7 @@ class BenchmarkConfig:
 
     algorithms: List[AlgorithmConfig]
     datasets: List[DatasetConfig]
-    output_dir: Path = Path("benchmark_results")
-    histogram: bool = True
-    json_report: bool = True
-    compare: bool = True
     machine_info: Dict[str, Any] = field(default_factory=dict)
-    pytest_benchmark_options: Dict[str, Any] = field(default_factory=dict)
 
     @classmethod
     def from_yaml(cls, path: Union[str, Path]) -> "BenchmarkConfig":
@@ -128,12 +123,7 @@ class BenchmarkConfig:
         return cls(
             algorithms=algorithms,
             datasets=datasets,
-            output_dir=Path(data.get("output_dir", "benchmark_results")),
-            histogram=data.get("histogram", True),
-            json_report=data.get("json_report", True),
-            compare=data.get("compare", True),
             machine_info=data.get("machine_info", {}),
-            pytest_benchmark_options=data.get("pytest_benchmark_options", {}),
         )
 
     def to_yaml(self, path: Union[str, Path]) -> None:
@@ -156,12 +146,7 @@ class BenchmarkConfig:
             "datasets": [
                 {k: v for k, v in ds.__dict__.items()} for ds in self.datasets
             ],
-            "output_dir": str(self.output_dir),
-            "histogram": self.histogram,
-            "json_report": self.json_report,
-            "compare": self.compare,
             "machine_info": self.machine_info,
-            "pytest_benchmark_options": self.pytest_benchmark_options,
         }
 
         with path.open("w") as f:

@@ -1,7 +1,3 @@
-json_report: true
-compare: true
-profile: true
-
 algorithms:
   # - name: "pagerank"
   #   func: "networkx.pagerank"

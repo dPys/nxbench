@@ -1,6 +1,5 @@
 import json
 import itertools
-import math
 import logging
 from pathlib import Path
 from typing import Dict, List
@@ -8,6 +7,8 @@ from typing import Dict, List
 import networkx as nx
 
 from nxbench.benchmarks.benchmark import BenchmarkResult
+from nxbench.data.loader import BenchmarkDataManager
+from nxbench.config import get_benchmark_config
 
 logger = logging.getLogger("nxbench")
 
@@ -17,6 +18,8 @@ class BenchmarkDashboard:
 
     def __init__(self, results_dir: str = "results"):
         self.results_dir = Path(results_dir)
+        self.data_manager = BenchmarkDataManager()
+        self.benchmark_config = get_benchmark_config()
 
     def load_results(self) -> List[BenchmarkResult]:
         """Load benchmark results from ASV's results directory."""
@@ -56,7 +59,6 @@ class BenchmarkDashboard:
                             datasets = [name.strip("'") for name in params_info[0]]
                             backends = [name.strip("'") for name in params_info[1]]
 
-                            # Generate all combinations of datasets and backends
                             param_combinations = list(
                                 itertools.product(datasets, backends)
                             )
@@ -67,7 +69,6 @@ class BenchmarkDashboard:
                                     f"number of parameter combinations ({len(param_combinations)}) "
                                     f"for benchmark {bench_name}"
                                 )
-                                # Optionally, handle partial data or skip
                                 continue
 
                             for (dataset, backend), measurement in zip(
@@ -81,7 +82,6 @@ class BenchmarkDashboard:
                                     memory_used = measurement.get(
                                         "memory_used", float("nan")
                                     )
-                                    # Handle 'NaN' and 'null' by converting them to appropriate Python types
                                     if execution_time is None or isinstance(
                                         execution_time, str
                                     ):
@@ -100,19 +100,42 @@ class BenchmarkDashboard:
                                     execution_time = float("nan")
                                     memory_used = float("nan")
 
-                                # Extract algorithm name from bench_name
-                                # Assuming bench_name format: "GraphBenchmark.time_pagerank"
                                 parts = bench_name.split(".")
                                 if len(parts) >= 3:
                                     algorithm = parts[2]
                                 else:
-                                    algorithm = (
-                                        bench_name  # Fallback if format is unexpected
-                                    )
+                                    algorithm = bench_name
 
-                                # Create a dummy graph with dataset name
-                                dummy_graph = nx.Graph()
-                                dummy_graph.graph["name"] = dataset
+                                # Load the actual graph and metadata
+                                dataset_config = next(
+                                    (
+                                        ds
+                                        for ds in self.benchmark_config.datasets
+                                        if ds.name == dataset
+                                    ),
+                                    None,
+                                )
+                                if dataset_config is None:
+                                    logger.warning(
+                                        f"No DatasetConfig found for dataset '{dataset}'"
+                                    )
+                                    graph = nx.Graph()
+                                    graph.graph["name"] = dataset
+                                    metadata = {}
+                                else:
+                                    try:
+                                        graph, metadata = (
+                                            self.data_manager.load_network_sync(
+                                                dataset_config
+                                            )
+                                        )
+                                    except Exception as e:
+                                        logger.error(
+                                            f"Failed to load graph for dataset '{dataset}': {e}"
+                                        )
+                                        graph = nx.Graph()
+                                        graph.graph["name"] = dataset
+                                        metadata = {}
 
                                 asv_result = {
                                     "name": bench_name,
@@ -124,8 +147,9 @@ class BenchmarkDashboard:
 
                                 try:
                                     benchmark_result = BenchmarkResult.from_asv_result(
-                                        asv_result, dummy_graph
+                                        asv_result, graph
                                     )
+                                    benchmark_result.metadata = metadata
                                     results.append(benchmark_result)
                                 except Exception as e:
                                     logger.error(
@@ -197,9 +221,15 @@ class BenchmarkDashboard:
             for res in results:
                 f.write(f"<h2>Algorithm: {res.algorithm}</h2>")
                 f.write(f"<p>Dataset: {res.dataset}</p>")
+
                 f.write(f"<p>Backend: {res.backend}</p>")
+
                 f.write(f"<p>Execution Time: {res.execution_time:.6f} seconds</p>")
                 f.write(f"<p>Memory Used: {res.memory_used:.6f} MB</p>")
+                f.write(f"<p>Number of Nodes: {res.num_nodes}</p>")
+                f.write(f"<p>Number of Edges: {res.num_edges}</p>")
+                f.write(f"<p>Directed: {res.is_directed}</p>")
+                f.write(f"<p>Weighted: {res.is_weighted}</p>")
                 f.write("<hr>")
             f.write("</body></html>")
         logger.info(f"Static report generated at {report_path}")

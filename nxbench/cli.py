@@ -1,5 +1,6 @@
 import logging
 import os
+import json
 import warnings
 from pathlib import Path
 from typing import Optional
@@ -212,6 +213,25 @@ def export(ctx, result_file: Path, format: str):
         }
         records.append(record)
 
+        metadata_exclude = [
+            "name",
+            "directed",
+            "weighted",
+            "n_nodes",
+            "n_edges",
+            "download_url",
+        ]
+        for key, value in result.metadata.items():
+            if key in metadata_exclude:
+                continue
+            if isinstance(value, (list, dict)):
+                value = json.dumps(value)
+            if key == "source" and value == "Unknown":
+                value = result.metadata.get("download_url", "Unknown")
+            record[f"{key}"] = value
+
+        records.append(record)
+
     df = pd.DataFrame(records)
     df = df.sort_values(["algorithm", "dataset", "backend"])
 
@@ -271,7 +291,7 @@ def publish(ctx):
     if config:
         logger.debug(f"Config file used for viz publish: {config}")
 
-    subprocess.run(["asv", "publish"])
+    subprocess.run(["asv", "publish", "--verbose"])
     dashboard = BenchmarkDashboard()
     dashboard.generate_static_report()
 
