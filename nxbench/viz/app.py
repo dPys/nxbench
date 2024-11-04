@@ -1,8 +1,9 @@
 import dash
 from dash import dcc, html
 import plotly.express as px
-from nxbench.viz.dashboard import BenchmarkDashboard
 import pandas as pd
+
+from nxbench.viz.dashboard import BenchmarkDashboard
 
 
 def run_server(port=8050, debug=False):

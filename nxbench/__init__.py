@@ -1,7 +1,6 @@
 from nxbench._version import __version__
 
 from .data import *
-from .profile import *
 from .validation import *
 from .viz import *
 from .log import initialize_logging

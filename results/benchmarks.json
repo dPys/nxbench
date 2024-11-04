@@ -1,0 +1,115 @@
+{
+    "GraphBenchmark.time_louvain_communities": {
+        "code": "class <locals>:\n    def benchmark_method(self, dataset_name, backend):\n        self.run_benchmark(algo_config, dataset_name, backend)\n\nclass GraphBenchmark:\n    def setup(self, dataset_name: str, backend: str):\n        \"\"\"Setup for each benchmark iteration.\"\"\"\n        if not self.graphs:\n            self.setup_cache()\n        self.current_graph = self.graphs.get(dataset_name)\n        if self.current_graph is None:\n            logger.error(f\"Graph for dataset '{dataset_name}' not found in cache.\")\n            raise NotImplementedError(f\"Dataset '{dataset_name}' not available.\")\n        self.current_backend = backend\n    \n        if backend == \"cugraph\":\n            if not is_cugraph_available():\n                logger.error(\"cugraph not available\")\n                raise NotImplementedError(\"cugraph not available\")\n            import cugraph\n    \n            if nx.is_weighted(self.current_graph):\n                edge_attr = \"weight\"\n            else:\n                edge_attr = None\n            self.current_graph = cugraph.from_networkx(\n                self.current_graph, edge_attrs=edge_attr\n            )\n\n    def setup_cache(self):\n        \"\"\"Cache graph data for benchmarks.\"\"\"\n        self.graphs = {}\n        for dataset_name in self.params[0]:\n            dataset_config = next(\n                (\n                    ds\n                    for ds in get_benchmark_config().datasets\n                    if ds.name == dataset_name\n                ),\n                None,\n            )\n            if dataset_config is None:\n                logger.error(f\"Dataset configuration for '{dataset_name}' not found.\")\n                continue\n            try:\n                graph, metadata = self.data_manager.load_network_sync(dataset_config)\n                self.graphs[dataset_name] = graph\n                logger.info(f\"Cached dataset '{dataset_name}'.\")\n            except Exception as e:\n                logger.error(f\"Failed to load dataset '{dataset_name}': {e}\")",
+        "min_run_count": 2,
+        "name": "GraphBenchmark.time_louvain_communities",
+        "number": 0,
+        "param_names": [
+            "dataset_name",
+            "backend"
+        ],
+        "params": [
+            [
+                "'08blocks'",
+                "'jazz'"
+            ],
+            [
+                "'networkx'",
+                "'nx_parallel'"
+            ]
+        ],
+        "repeat": 0,
+        "rounds": 2,
+        "sample_time": 0.01,
+        "setup_cache_key": "benchmark:144",
+        "type": "time",
+        "unit": "seconds",
+        "version": "22068a285a2d755508d332cb8f68bed6420a76981c3f43037804c15941771662",
+        "warmup_time": -1
+    },
+    "GraphBenchmark.time_pagerank": {
+        "code": "class <locals>:\n    def benchmark_method(self, dataset_name, backend):\n        self.run_benchmark(algo_config, dataset_name, backend)\n\nclass GraphBenchmark:\n    def setup(self, dataset_name: str, backend: str):\n        \"\"\"Setup for each benchmark iteration.\"\"\"\n        if not self.graphs:\n            self.setup_cache()\n        self.current_graph = self.graphs.get(dataset_name)\n        if self.current_graph is None:\n            logger.error(f\"Graph for dataset '{dataset_name}' not found in cache.\")\n            raise NotImplementedError(f\"Dataset '{dataset_name}' not available.\")\n        self.current_backend = backend\n    \n        if backend == \"cugraph\":\n            if not is_cugraph_available():\n                logger.error(\"cugraph not available\")\n                raise NotImplementedError(\"cugraph not available\")\n            import cugraph\n    \n            if nx.is_weighted(self.current_graph):\n                edge_attr = \"weight\"\n            else:\n                edge_attr = None\n            self.current_graph = cugraph.from_networkx(\n                self.current_graph, edge_attrs=edge_attr\n            )\n\n    def setup_cache(self):\n        \"\"\"Cache graph data for benchmarks.\"\"\"\n        self.graphs = {}\n        for dataset_name in self.params[0]:\n            dataset_config = next(\n                (\n                    ds\n                    for ds in get_benchmark_config().datasets\n                    if ds.name == dataset_name\n                ),\n                None,\n            )\n            if dataset_config is None:\n                logger.error(f\"Dataset configuration for '{dataset_name}' not found.\")\n                continue\n            try:\n                graph, metadata = self.data_manager.load_network_sync(dataset_config)\n                self.graphs[dataset_name] = graph\n                logger.info(f\"Cached dataset '{dataset_name}'.\")\n            except Exception as e:\n                logger.error(f\"Failed to load dataset '{dataset_name}': {e}\")",
+        "min_run_count": 2,
+        "name": "GraphBenchmark.time_pagerank",
+        "number": 0,
+        "param_names": [
+            "dataset_name",
+            "backend"
+        ],
+        "params": [
+            [
+                "'08blocks'",
+                "'jazz'"
+            ],
+            [
+                "'networkx'",
+                "'nx_parallel'"
+            ]
+        ],
+        "repeat": 0,
+        "rounds": 2,
+        "sample_time": 0.01,
+        "setup_cache_key": "benchmark:144",
+        "type": "time",
+        "unit": "seconds",
+        "version": "22068a285a2d755508d332cb8f68bed6420a76981c3f43037804c15941771662",
+        "warmup_time": -1
+    },
+    "benchmark.GraphBenchmark.time_louvain_communities": {
+        "code": "class <locals>:\n    def benchmark_method(self, dataset_name, backend):\n        self.run_benchmark(algo_config, dataset_name, backend)\n\nclass GraphBenchmark:\n    def setup(self, dataset_name: str, backend: str):\n        \"\"\"Setup for each benchmark iteration.\"\"\"\n        if not self.graphs:\n            self.setup_cache()\n        self.current_graph = self.graphs.get(dataset_name)\n        if self.current_graph is None:\n            logger.error(f\"Graph for dataset '{dataset_name}' not found in cache.\")\n            raise NotImplementedError(f\"Dataset '{dataset_name}' not available.\")\n        self.current_backend = backend\n    \n        if backend == \"cugraph\":\n            if not is_cugraph_available():\n                logger.error(\"cugraph not available\")\n                raise NotImplementedError(\"cugraph not available\")\n            import cugraph\n    \n            if nx.is_weighted(self.current_graph):\n                edge_attr = \"weight\"\n            else:\n                edge_attr = None\n            self.current_graph = cugraph.from_networkx(\n                self.current_graph, edge_attrs=edge_attr\n            )\n\n    def setup_cache(self):\n        \"\"\"Cache graph data for benchmarks.\"\"\"\n        self.graphs = {}\n        for dataset_name in self.params[0]:\n            dataset_config = next(\n                (\n                    ds\n                    for ds in get_benchmark_config().datasets\n                    if ds.name == dataset_name\n                ),\n                None,\n            )\n            if dataset_config is None:\n                logger.error(f\"Dataset configuration for '{dataset_name}' not found.\")\n                continue\n            try:\n                graph, metadata = self.data_manager.load_network_sync(dataset_config)\n                self.graphs[dataset_name] = graph\n                logger.info(f\"Cached dataset '{dataset_name}'.\")\n            except Exception as e:\n                logger.error(f\"Failed to load dataset '{dataset_name}': {e}\")",
+        "min_run_count": 2,
+        "name": "benchmark.GraphBenchmark.time_louvain_communities",
+        "number": 0,
+        "param_names": [
+            "dataset_name",
+            "backend"
+        ],
+        "params": [
+            [
+                "'08blocks'",
+                "'jazz'"
+            ],
+            [
+                "'networkx'",
+                "'nx_parallel'"
+            ]
+        ],
+        "repeat": 0,
+        "rounds": 2,
+        "sample_time": 0.01,
+        "setup_cache_key": "benchmark:144",
+        "type": "time",
+        "unit": "seconds",
+        "version": "22068a285a2d755508d332cb8f68bed6420a76981c3f43037804c15941771662",
+        "warmup_time": -1
+    },
+    "benchmark.GraphBenchmark.time_pagerank": {
+        "code": "class <locals>:\n    def benchmark_method(self, dataset_name, backend):\n        self.run_benchmark(algo_config, dataset_name, backend)\n\nclass GraphBenchmark:\n    def setup(self, dataset_name: str, backend: str):\n        \"\"\"Setup for each benchmark iteration.\"\"\"\n        if not self.graphs:\n            self.setup_cache()\n        self.current_graph = self.graphs.get(dataset_name)\n        if self.current_graph is None:\n            logger.error(f\"Graph for dataset '{dataset_name}' not found in cache.\")\n            raise NotImplementedError(f\"Dataset '{dataset_name}' not available.\")\n        self.current_backend = backend\n    \n        if backend == \"cugraph\":\n            if not is_cugraph_available():\n                logger.error(\"cugraph not available\")\n                raise NotImplementedError(\"cugraph not available\")\n            import cugraph\n    \n            if nx.is_weighted(self.current_graph):\n                edge_attr = \"weight\"\n            else:\n                edge_attr = None\n            self.current_graph = cugraph.from_networkx(\n                self.current_graph, edge_attrs=edge_attr\n            )\n\n    def setup_cache(self):\n        \"\"\"Cache graph data for benchmarks.\"\"\"\n        self.graphs = {}\n        for dataset_name in self.params[0]:\n            dataset_config = next(\n                (\n                    ds\n                    for ds in get_benchmark_config().datasets\n                    if ds.name == dataset_name\n                ),\n                None,\n            )\n            if dataset_config is None:\n                logger.error(f\"Dataset configuration for '{dataset_name}' not found.\")\n                continue\n            try:\n                graph, metadata = self.data_manager.load_network_sync(dataset_config)\n                self.graphs[dataset_name] = graph\n                logger.info(f\"Cached dataset '{dataset_name}'.\")\n            except Exception as e:\n                logger.error(f\"Failed to load dataset '{dataset_name}': {e}\")",
+        "min_run_count": 2,
+        "name": "benchmark.GraphBenchmark.time_pagerank",
+        "number": 0,
+        "param_names": [
+            "dataset_name",
+            "backend"
+        ],
+        "params": [
+            [
+                "'08blocks'",
+                "'jazz'"
+            ],
+            [
+                "'networkx'",
+                "'nx_parallel'"
+            ]
+        ],
+        "repeat": 0,
+        "rounds": 2,
+        "sample_time": 0.01,
+        "setup_cache_key": "benchmark:144",
+        "type": "time",
+        "unit": "seconds",
+        "version": "22068a285a2d755508d332cb8f68bed6420a76981c3f43037804c15941771662",
+        "warmup_time": -1
+    },
+    "version": 2
+}

@@ -1,12 +1,12 @@
 import json
 import logging
-import warnings
+import os
 from pathlib import Path
-from typing import Dict, List
+from typing import Dict, List, Optional
 
-from nxbench.profile.benchmark import BenchmarkResult
+import networkx as nx
 
-warnings.filterwarnings("ignore")
+from nxbench.benchmarks.benchmark import BenchmarkResult
 
 logger = logging.getLogger("nxbench")
 
@@ -14,36 +14,65 @@ logger = logging.getLogger("nxbench")
 class BenchmarkDashboard:
     """Dashboard for visualizing benchmark results."""
 
-    def __init__(self, results_dir: str = "benchmark_results"):
+    def __init__(self, results_dir: str = "results"):
         self.results_dir = Path(results_dir)
 
-    def load_results(self) -> Dict[str, List[BenchmarkResult]]:
-        """Load benchmark results."""
-        results = {}
+    def load_results(self) -> List[BenchmarkResult]:
+        """Load benchmark results from ASV's results directory."""
+        results = []
 
-        for result_file in self.results_dir.glob("*.json"):
-            with open(result_file) as f:
-                data = json.load(f)
-                machine_name = data.get("machine_info", {}).get("node", "unknown")
-                result_list = [
-                    BenchmarkResult(**res) for res in data.get("benchmarks", [])
-                ]
-                results[machine_name] = result_list
+        for commit_dir in self.results_dir.iterdir():
+            if (
+                commit_dir.is_dir()
+                and commit_dir.name != "machine.json"
+                and commit_dir.name != "benchmarks.json"
+            ):
+                for env_file in commit_dir.glob("*.json"):
+                    with env_file.open("r") as f:
+                        data = json.load(f)
+                        for bench_name, bench_data in data.get("results", {}).items():
+                            params = bench_data.get("params", {})
+                            stats = bench_data.get("stats", {})
+                            result_value = bench_data.get("result", {})
 
+                            asv_result = {
+                                "name": bench_name,
+                                "stats": stats,
+                                "params": params,
+                                "result": result_value,
+                            }
+
+                            parts = bench_name.split("_")
+                            if len(parts) >= 4:
+                                algorithm = parts[2]
+                                dataset = parts[3]
+                                backend = parts[4] if len(parts) > 4 else "unknown"
+                            else:
+                                algorithm = bench_name
+                                dataset = "unknown"
+                                backend = "unknown"
+
+                            dummy_graph = nx.Graph()
+                            dummy_graph.graph["name"] = dataset
+
+                            benchmark_result = BenchmarkResult.from_asv_result(
+                                asv_result, dummy_graph
+                            )
+                            results.append(benchmark_result)
         return results
 
     def compare_results(
         self, baseline: str, comparison: str, threshold: float
     ) -> List[Dict]:
         """
-        Compare benchmark results between two datasets or algorithms.
+        Compare benchmark results between two algorithms or datasets.
 
         Parameters
         ----------
         baseline : str
-            The name of the baseline dataset or algorithm.
+            The name of the baseline algorithm or dataset.
         comparison : str
-            The name of the dataset or algorithm to compare against the baseline.
+            The name of the algorithm or dataset to compare against the baseline.
         threshold : float
             The threshold for highlighting significant differences.
 
@@ -56,37 +85,29 @@ class BenchmarkDashboard:
         results = self.load_results()
         comparisons = []
 
-        # Flatten results into a list
-        all_results = []
-        for machine_results in results.values():
-            all_results.extend(machine_results)
-
         # Filter results for baseline and comparison
-        baseline_results = [
-            res
-            for res in all_results
-            if res.algorithm == baseline or res.dataset == baseline
-        ]
-        comparison_results = [
-            res
-            for res in all_results
-            if res.algorithm == comparison or res.dataset == comparison
-        ]
+        baseline_results = [res for res in results if res.algorithm == baseline]
+        comparison_results = [res for res in results if res.algorithm == comparison]
 
         # Compare execution times
         for base_res in baseline_results:
             for comp_res in comparison_results:
                 if (
-                    base_res.algorithm == comp_res.algorithm
-                    and base_res.dataset == comp_res.dataset
+                    base_res.dataset == comp_res.dataset
+                    and base_res.backend == comp_res.backend
                 ):
                     time_diff = comp_res.execution_time - base_res.execution_time
-                    percent_change = (time_diff / base_res.execution_time) * 100
+                    percent_change = (
+                        (time_diff / base_res.execution_time) * 100
+                        if base_res.execution_time != 0
+                        else 0.0
+                    )
                     significant = abs(percent_change) >= (threshold * 100)
                     comparisons.append(
                         {
                             "algorithm": base_res.algorithm,
                             "dataset": base_res.dataset,
+                            "backend": base_res.backend,
                             "baseline_time": base_res.execution_time,
                             "comparison_time": comp_res.execution_time,
                             "percent_change": percent_change,
@@ -103,17 +124,12 @@ class BenchmarkDashboard:
         with report_path.open("w") as f:
             f.write("<html><head><title>Benchmark Report</title></head><body>")
             f.write("<h1>Benchmark Report</h1>")
-            for machine, res_list in results.items():
-                f.write(f"<h2>Machine: {machine}</h2>")
-                f.write("<table border='1'>")
-                f.write(
-                    "<tr><th>Algorithm</th><th>Dataset</th><th>Execution Time (s)</th></tr>"
-                )
-                for res in res_list:
-                    f.write(
-                        f"<tr><td>{res.algorithm}</td><td>{res.dataset}</td>"
-                        f"<td>{res.execution_time:.6f}</td></tr>"
-                    )
-                f.write("</table>")
+            for res in results:
+                f.write(f"<h2>Algorithm: {res.algorithm}</h2>")
+                f.write(f"<p>Dataset: {res.dataset}</p>")
+                f.write(f"<p>Backend: {res.backend}</p>")
+                f.write(f"<p>Execution Time: {res.execution_time:.6f} seconds</p>")
+                f.write(f"<p>Memory Used: {res.memory_used:.6f} MB</p>")
+                f.write("<hr>")
             f.write("</body></html>")
         logger.info(f"Static report generated at {report_path}")

@@ -26,13 +26,8 @@ authors = [
 dependencies = [
     "numpy >=1.26",
     "networkx >=3.3",
+    "psutil >=5.9",
     "pandas >= 2.2.2",
-    "aiohttp >= 3.9.5",
-    "aiofiles >= 24.1.0",
-    "chardet >= 4.0.0",
-    "beautifulsoup4 >= 4.12.3",
-    "multidict >= 6.0.5",
-    "yarl >= 1.9.4",
     "pydantic >=2.8",
     "setuptools >=75.1",
     "nest-asyncio >=1.6",
@@ -43,6 +38,13 @@ dependencies = [
 
 [project.optional-dependencies]
 cuda = ["cugraph"]
+
+scrape = ["aiohttp >= 3.9.5",
+    "aiofiles >= 24.1.0",
+    "chardet >= 4.0.0",
+    "beautifulsoup4 >= 4.12.3",
+    "multidict >= 6.0.5",
+    "yarl >= 1.9.4"]
 
 test = [
     'pre-commit>=3.8.0',
@@ -76,9 +78,6 @@ doc = [
 [project.scripts]
 nxbench = "nxbench.cli:main"
 
-[project.entry-points."pytest11"]
-benchmark = "nxbench.benchmark.pytest_plugin"
-
 [tool.setuptools]
 zip-safe = false
 license-files = ["LICENSE"]
@@ -86,7 +85,7 @@ include-package-data = true
 packages = [
     'nxbench',
     "nxbench.data",
-    "nxbench.profile",
+    "nxbench.benchmarks",
     "nxbench.validation",
     "nxbench.viz",
     '_nxbench',

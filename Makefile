@@ -6,7 +6,7 @@ clean_local:
 	@find . -name "__pycache__" -type d -delete
 	@rm -f .coverage coverage.xml
 	@ruff clean
-	@rm -rf .mypy_cache .pytest_cache build dist nxbench.egg-info htmlcov
+	@rm -rf .mypy_cache .pytest_cache build dist nxbench.egg-info htmlcov .benchmarks
 
 install: clean_local
 	pip uninstall nxbench -y

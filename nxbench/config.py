@@ -1,6 +1,7 @@
 """Benchmark configuration handling."""
 
 import logging
+import os
 import warnings
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -182,16 +183,23 @@ def get_benchmark_config() -> BenchmarkConfig:
     -------
     BenchmarkConfig
         Current configuration
-
-    Raises
-    ------
-    RuntimeError
-        If configuration hasn't been set
     """
     global _BENCHMARK_CONFIG
-    if _BENCHMARK_CONFIG is None:
+    if _BENCHMARK_CONFIG is not None:
+        return _BENCHMARK_CONFIG
+
+    config_path = os.environ.get("NXBENCH_CONFIG_FILE")
+    if config_path:
+        config_file = Path(config_path)
+        if config_file.exists():
+            _BENCHMARK_CONFIG = BenchmarkConfig.from_yaml(config_file)
+            return _BENCHMARK_CONFIG
+        else:
+            raise FileNotFoundError(f"Configuration file not found: {config_file}")
+    else:
+        # Fallback to default configuration
         _BENCHMARK_CONFIG = load_default_config()
-    return _BENCHMARK_CONFIG
+        return _BENCHMARK_CONFIG
 
 
 def load_default_config() -> BenchmarkConfig:

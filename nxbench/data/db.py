@@ -8,7 +8,7 @@ from typing import Dict, Generator, List, Optional, Union
 
 import pandas as pd
 
-from nxbench.profile.benchmark import BenchmarkResult
+from nxbench.benchmarks.benchmark import BenchmarkResult
 
 warnings.filterwarnings("ignore")
 
