@@ -225,7 +225,6 @@ class GraphBenchmark:
             f"Running benchmark for {algo_config.name} on {dataset_name} with {backend}"
         )
 
-        # Setup environment and graph
         if not self.setup(dataset_name, backend):
             return {"execution_time": float("nan"), "memory_used": float("nan")}
 

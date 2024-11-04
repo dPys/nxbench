@@ -290,6 +290,23 @@ def publish(ctx):
     if config:
         logger.debug(f"Config file used for viz publish: {config}")
 
+    # Step 1: Run the results processing script
+    try:
+        subprocess.run(
+            [
+                "python",
+                "nxbench/validation/scripts/process_results.py",
+                "--results_dir",
+                "results",
+            ],
+            check=True,
+        )
+        logger.info("Successfully processed results.")
+    except subprocess.CalledProcessError as e:
+        logger.error(f"Failed to process results: {e}")
+        raise click.ClickException("Result processing failed")
+
+    # Step 2: Run asv publish
     subprocess.run(["asv", "publish", "--verbose"])
     dashboard = BenchmarkDashboard()
     dashboard.generate_static_report()
