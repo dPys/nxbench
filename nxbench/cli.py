@@ -60,11 +60,8 @@ def data(ctx):
 @data.command()
 @click.argument("name")
 @click.option("--category", type=str, help="Dataset category.")
-@click.option(
-    "--force/--no-force", default=False, help="Force download even if exists."
-)
 @click.pass_context
-def download(ctx, name: str, category: Optional[str], force: bool):
+def download(ctx, name: str, category: Optional[str]):
     """Download a specific dataset."""
     config = ctx.obj.get("CONFIG")
     if config:

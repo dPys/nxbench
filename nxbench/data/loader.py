@@ -22,11 +22,7 @@ logger = logging.getLogger("nxbench")
 class BenchmarkDataManager:
     """Manages loading and caching of networks for benchmarking."""
 
-    SUPPORTED_FORMATS = [
-        ".edgelist",
-        ".mtx",
-        ".graphml",
-    ]
+    SUPPORTED_FORMATS = [".edgelist", ".mtx", ".graphml", ".edges"]
 
     def __init__(self, data_dir: Optional[Union[str, Path]] = None):
         self.data_dir = (
@@ -121,22 +117,36 @@ class BenchmarkDataManager:
                         nx.DiGraph() if metadata.get("directed", False) else nx.Graph()
                     ),
                 )
-            elif graph_file.suffix == ".edgelist":
+            elif graph_file.suffix in [".edgelist", ".edges"]:
                 create_using = (
                     nx.DiGraph() if metadata.get("directed", False) else nx.Graph()
                 )
                 weighted = metadata.get("weighted", False)
                 logger.info(f"Loading edgelist from {graph_file}")
                 if weighted:
-                    graph = nx.read_edgelist(
-                        graph_file,
-                        nodetype=int,
-                        create_using=create_using,
-                        data=["weight"],
-                    )
+                    try:
+                        graph = nx.read_edgelist(
+                            graph_file,
+                            nodetype=str,
+                            create_using=create_using,
+                            data=["weight"],
+                        )
+                    except Exception:
+                        logger.warning(
+                            f"Could not parse weights from {graph_file} despite this being a weighted network. Resuming without weights..."
+                        )
+                        graph = nx.read_edgelist(
+                            graph_file,
+                            nodetype=str,
+                            create_using=create_using,
+                            data=False,
+                        )
                 else:
                     graph = nx.read_edgelist(
-                        graph_file, nodetype=int, create_using=create_using, data=False
+                        graph_file,
+                        nodetype=str,
+                        create_using=create_using,
+                        data=False,
                     )
             elif graph_file.suffix == ".graphml":
                 logger.info(f"Loading GraphML from {graph_file}")

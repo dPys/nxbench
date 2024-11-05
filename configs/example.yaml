@@ -20,7 +20,7 @@ algorithms:
   #   min_rounds: 5
   #   warmup: true
   #   warmup_iterations: 20
-  #   validate_result: "nxbench.validation.validate_node_scores"
+    # validate_result: "nxbench.validation.validate_node_scores"
 
   # - name: "edge_betweenness_centrality"
   #   func: "networkx.edge_betweenness_centrality"
@@ -40,12 +40,12 @@ algorithms:
   #   groups: ["connectivity", "approximation"]
   #   min_rounds: 3
 
-  # - name: "square_clustering"
-  #   func: "networkx.square_clustering"
-  #   params: {}
-  #   requires_directed: false
-  #   groups: ["clustering", "graph_structure"]
-  #   min_rounds: 3
+  - name: "square_clustering"
+    func: "networkx.square_clustering"
+    params: {}
+    requires_directed: false
+    groups: ["clustering", "graph_structure"]
+    min_rounds: 3
 
   # - name: "all_pairs_node_connectivity"
   #   func: "networkx.algorithms.connectivity.connectivity.all_pairs_node_connectivity"
@@ -76,12 +76,12 @@ algorithms:
   #   groups: ["paths", "all_pairs"]
   #   min_rounds: 3
 
-  - name: "all_pairs_shortest_path_length"
-    func: "networkx.all_pairs_shortest_path_length"
-    params: {}
-    requires_directed: false
-    groups: ["paths", "distance"]
-    min_rounds: 3
+  # - name: "all_pairs_shortest_path_length"
+  #   func: "networkx.all_pairs_shortest_path_length"
+  #   params: {}
+  #   requires_directed: false
+  #   groups: ["paths", "distance"]
+  #   min_rounds: 3
 
   # - name: "all_pairs_shortest_path"
   #   func: "networkx.all_pairs_shortest_path"
@@ -98,29 +98,21 @@ algorithms:
   #   groups: ["paths", "weighted"]
   #   min_rounds: 3
 
-  # - name: "all_pairs_dijkstra_path_length"
-  #   func: "networkx.all_pairs_dijkstra_path_length"
-  #   params:
-  #     weight: "weight"
-  #   requires_directed: false
-  #   groups: ["paths", "weighted"]
-  #   min_rounds: 3
+  - name: "all_pairs_dijkstra_path_length"
+    func: "networkx.all_pairs_dijkstra_path_length"
+    params:
+      weight: "weight"
+    requires_directed: false
+    groups: ["paths", "weighted"]
+    min_rounds: 3
 
-  # - name: "all_pairs_dijkstra_path"
-  #   func: "networkx.all_pairs_dijkstra_path"
-  #   params:
-  #     weight: "weight"
-  #   requires_directed: false
-  #   groups: ["paths", "weighted"]
-  #   min_rounds: 3
-
-  # - name: "all_pairs_bellman_ford_path_length"
-  #   func: "networkx.all_pairs_bellman_ford_path_length"
-  #   params:
-  #     weight: "weight"
-  #   requires_directed: false
-  #   groups: ["paths", "weighted"]
-  #   min_rounds: 3
+  - name: "all_pairs_bellman_ford_path_length"
+    func: "networkx.all_pairs_bellman_ford_path_length"
+    params:
+      weight: "weight"
+    requires_directed: false
+    groups: ["paths", "weighted"]
+    min_rounds: 3
 
   # - name: "all_pairs_bellman_ford_path"
   #   func: "networkx.all_pairs_bellman_ford_path"
@@ -138,46 +130,66 @@ algorithms:
   #   groups: ["paths", "weighted"]
   #   min_rounds: 3
 
-  # - name: "closeness_vitality"
-  #   func: "networkx.closeness_vitality"
-  #   params: {}
-  #   requires_directed: false
-  #   groups: ["vitality", "centrality"]
-  #   min_rounds: 3
+  - name: "closeness_vitality"
+    func: "networkx.closeness_vitality"
+    params: {}
+    requires_directed: false
+    groups: ["vitality", "centrality"]
+    min_rounds: 3
 
 datasets:
   - name: "08blocks"
     source: "networkrepository"
     params: {}
 
-  # - name: "1138-bus"
-  #   source: "networkrepository"
-  #   params: {}
+  - name: "karate"
+    source: "networkrepository"
+    params: {}
 
   - name: "jazz"
     source: "networkrepository"
     params: {}
 
-  - name: "erdos_renyi_small"
-    source: "generator"
-    params:
-      generator: "networkx.erdos_renyi_graph"
-      n: 1000
-      p: 0.01
-    metadata:
-      directed: false
-      weighted: false
+  - name: "patentcite"
+    source: "networkrepository"
+    params: {}
 
-  - name: "watts_strogatz_medium"
-    source: "generator"
-    params:
-      generator: "networkx.watts_strogatz_graph"
-      n: 10000
-      k: 6
-      p: 0.1
-    metadata:
-      directed: false
-      weighted: false
+  - name: "IMDB"
+    source: "networkrepository"
+    params: {}
+
+  - name: "citeseer"
+    source: "networkrepository"
+    params: {}
+
+  - name: "enron"
+    source: "networkrepository"
+    params: {}
+
+  - name: "twitter"
+    source: "networkrepository"
+    params: {}
+
+  # - name: "erdos_renyi_small"
+  #   source: "generator"
+  #   params:
+  #     generator: "networkx.erdos_renyi_graph"
+  #     n: 1000
+  #     p: 0.01
+  #   metadata:
+  #     directed: false
+  #     weighted: false
+
+  # - name: "watts_strogatz_medium"
+  #   source: "generator"
+  #   params:
+  #     generator: "networkx.watts_strogatz_graph"
+  #     n: 10000
+  #     k: 6
+  #     p: 0.1
+  #   metadata:
+  #     directed: false
+  #     weighted: false
 
   # - name: "barabasi_albert_large"
   #   source: "generator"
@@ -189,16 +201,16 @@ datasets:
   #     directed: false
   #     weighted: false
 
-  - name: "powerlaw_cluster"
-    source: "generator"
-    params:
-      generator: "networkx.powerlaw_cluster_graph"
-      n: 50000
-      m: 2
-      p: 0.1
-    metadata:
-      directed: false
-      weighted: false
+  # - name: "powerlaw_cluster"
+  #   source: "generator"
+  #   params:
+  #     generator: "networkx.powerlaw_cluster_graph"
+  #     n: 50000
+  #     m: 2
+  #     p: 0.1
+  #   metadata:
+  #     directed: false
+  #     weighted: false
 
 validation:
   skip_slow: false
