@@ -130,12 +130,12 @@ algorithms:
   #   groups: ["paths", "weighted"]
   #   min_rounds: 3
 
-  - name: "closeness_vitality"
-    func: "networkx.closeness_vitality"
-    params: {}
-    requires_directed: false
-    groups: ["vitality", "centrality"]
-    min_rounds: 3
+  # - name: "closeness_vitality"
+  #   func: "networkx.closeness_vitality"
+  #   params: {}
+  #   requires_directed: false
+  #   groups: ["vitality", "centrality"]
+  #   min_rounds: 3
 
 datasets:
   - name: "08blocks"

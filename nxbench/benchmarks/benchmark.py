@@ -272,7 +272,8 @@ class GraphBenchmark:
             try:
                 validator.validate_result(result, algo_config.name, self.current_graph)
                 logger.debug(
-                    f"Validation passed for algorithm '{algo_config.name}' on dataset '{dataset_name}'"
+                    f"Validation passed for algorithm '{algo_config.name}' on "
+                    f"dataset '{dataset_name}'"
                 )
             except Exception as e:
                 logger.warning(f"Validation warning for '{algo_config.name}': {e}")
@@ -297,8 +298,10 @@ def get_algorithm_function(algo_config: AlgorithmConfig, backend_name: str) -> A
             f"Function '{algo_config.func}' could not be imported for algorithm "
             f"'{algo_config.name}'"
         )
-
-    return partial(algo_config.func_ref, backend=backend_name)
+    if backend_name != "networkx":
+        return partial(algo_config.func_ref, backend=backend_name)
+    else:
+        return algo_config.func_ref
 
 
 def process_algorithm_params(

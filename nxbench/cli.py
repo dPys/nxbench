@@ -136,13 +136,7 @@ def run_benchmark(ctx, backend: str, collection: str):
         logger.error(f"Failed to get git hash: {e}")
         raise click.ClickException("Could not determine git commit hash")
 
-    cmd_parts = [
-        "asv",
-        "run",
-        "--quick",
-        f"--set-commit-hash={git_hash}",
-        #  "--verbose"
-    ]
+    cmd_parts = ["asv", "run", "--quick", f"--set-commit-hash={git_hash}", "--verbose"]
 
     if backend != "all" or collection != "all":
         benchmark_pattern = "GraphBenchmark.track_"

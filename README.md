@@ -67,8 +67,8 @@ nxbench data download karate  # Download specific dataset
 nxbench data list --category social  # List available datasets
 
 # Benchmarking
-nxbench benchmark run --backend all  # Run all benchmarks
-nxbench benchmark export results.csv  # Export results
+nxbench --config 'configs/example.yaml' -vv benchmark run  # Run configured benchmarks
+nxbench benchmark export 'results/results.csv'  # Export results
 nxbench benchmark compare HEAD HEAD~1  # Compare with previous commit
 
 # Visualization
