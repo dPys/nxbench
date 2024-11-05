@@ -1,6 +1,7 @@
 {
     "version": 1,
     "project": "nxbench",
+    "timeout": 120,
     "project_url": "https://github.com/dpys/nxbench",
     "repo": ".",
     "branches": [

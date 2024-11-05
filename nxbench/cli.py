@@ -119,10 +119,16 @@ def benchmark(ctx):
 
 
 @benchmark.command(name="run")
-@click.option("--backend", type=str, default="all", help="Backend to benchmark.")
+@click.option(
+    "--backend",
+    type=str,
+    multiple=True,
+    default=["all"],
+    help="Backends to benchmark. Specify multiple values to run for multiple backends.",
+)
 @click.option("--collection", type=str, default="all", help="Graph collection to use.")
 @click.pass_context
-def run_benchmark(ctx, backend: str, collection: str):
+def run_benchmark(ctx, backend: tuple[str], collection: str):
     """Run benchmarks."""
     config = ctx.obj.get("CONFIG")
     if config:
@@ -141,16 +147,24 @@ def run_benchmark(ctx, backend: str, collection: str):
         "run",
         "--quick",
         f"--set-commit-hash={git_hash}",
-        #  "--verbose"
     ]
 
-    if backend != "all" or collection != "all":
-        benchmark_pattern = "GraphBenchmark.track_"
+    verbosity_level = package_config.verbosity_level
+    if verbosity_level >= 1:
+        cmd_parts.append("--verbose")
+
+    # Handle multiple backends
+    if "all" not in backend:
+        for b in backend:
+            if b:
+                benchmark_pattern = "GraphBenchmark.track_"
+                if collection != "all":
+                    benchmark_pattern = f"{benchmark_pattern}.*{collection}"
+                benchmark_pattern = f"{benchmark_pattern}.*{b}"
+                cmd_parts.extend(["-b", f'"{benchmark_pattern}"'])
+    else:
         if collection != "all":
-            benchmark_pattern = f"{benchmark_pattern}.*{collection}"
-        if backend != "all":
-            benchmark_pattern = f"{benchmark_pattern}.*{backend}"
-        cmd_parts.extend(["-b", f'"{benchmark_pattern}"'])
+            cmd_parts.extend(["-b", f'"GraphBenchmark.track_.*{collection}"'])
 
     cmd_parts.append("--python=same")
 

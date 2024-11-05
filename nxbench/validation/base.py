@@ -3,7 +3,7 @@
 import logging
 import warnings
 from collections import defaultdict
-from typing import Any, Dict, Iterable, List, Optional, Set, Tuple, Union
+from typing import Any, Dict, Iterable, List, Optional, Set, Tuple, Union, Type
 
 import networkx as nx
 import numpy as np
@@ -22,6 +22,7 @@ __all__ = [
     "validate_flow",
     "validate_similarity_scores",
     "validate_edge_scores",
+    "validate_scalar_result",
 ]
 
 
@@ -96,10 +97,15 @@ def validate_node_scores(
     if not isinstance(result, dict):
         raise ValidationError(f"Expected dict result, got {type(result)}")
 
-    if set(result.keys()) != set(graph.nodes()):
+    if hasattr(graph, "nodes"):
+        graph_nodes = set(graph.nodes())
+    else:
+        graph_nodes = set(graph)
+
+    if set(result.keys()) != graph_nodes:
         raise ValidationError(
             f"Result nodes {set(result.keys())} don't match "
-            f"graph nodes {set(graph.nodes())}"
+            f"graph nodes {graph_nodes}"
         )
 
     min_score, max_score = score_range
@@ -464,3 +470,24 @@ def validate_similarity_scores(
                             f"Asymmetric scores: {u}->{v}={score}, "
                             f"{v}->{u}={symmetric_scores[v][u]}"
                         )
+
+
+def validate_scalar_result(
+    result: Any,
+    graph: Union[nx.Graph, nx.DiGraph],
+    expected_type: Type = float,
+    min_value: Optional[float] = None,
+    max_value: Optional[float] = None,
+) -> None:
+    """Validate scalar result (e.g., float, int)."""
+    if not isinstance(result, expected_type):
+        raise ValidationError(
+            f"Expected result of type {expected_type}, got {type(result)}"
+        )
+    if isinstance(result, (int, float)):
+        if min_value is not None and result < min_value:
+            raise ValidationError(f"Result {result} is less than minimum {min_value}")
+        if max_value is not None and result > max_value:
+            raise ValidationError(
+                f"Result {result} is greater than maximum {max_value}"
+            )

@@ -18,6 +18,7 @@ from nxbench.validation.base import (
     validate_flow,
     validate_similarity_scores,
     validate_edge_scores,
+    validate_scalar_result,
 )
 
 warnings.filterwarnings("ignore")
@@ -95,12 +96,6 @@ class ValidationRegistry:
             params={"score_range": (0.0, 1.0), "require_symmetric": True},
             expected_type=list,  # actually an iterator, but we convert it
         ),
-        "number_of_isolates": ValidationConfig(
-            validator=validate_node_scores,
-            params={"score_range": (0, float("inf"))},
-            expected_type=int,
-            required=True,
-        ),
         "edge_betweenness_centrality": ValidationConfig(
             validator=validate_edge_scores,
             params={"score_range": (0.0, 1.0)},
@@ -117,14 +112,20 @@ class ValidationRegistry:
             expected_type=dict,
         ),
         "square_clustering": ValidationConfig(
-            validator=validate_node_scores,  # Adjust or create a custom validator
-            params={},
+            validator=validate_node_scores,
+            params={"require_normalized": False},
             expected_type=dict,
         ),
         "local_efficiency": ValidationConfig(
-            validator=validate_node_scores,  # Adjust or create a custom validator
-            params={},
+            validator=validate_scalar_result,
+            params={"expected_type": float, "min_value": 0.0, "max_value": 1.0},
             expected_type=float,
+        ),
+        "number_of_isolates": ValidationConfig(
+            validator=validate_scalar_result,
+            params={"expected_type": int, "min_value": 0},
+            expected_type=int,
+            required=True,
         ),
         "all_pairs_all_shortest_paths": ValidationConfig(
             validator=validate_path_lengths,

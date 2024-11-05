@@ -16,10 +16,10 @@ class NxBenchConfig(Config):
     """
 
     active: bool = False
-    simple: int = False
 
     num_thread: int = 8
     num_gpu: int = 0
+    verbosity_level: int = 0
     backend_name: str = "nxbench"
     backend_params: dict = field(default_factory=dict)
 
@@ -86,6 +86,8 @@ class NxBenchConfig(Config):
         """Set the verbosity level (0-2). 2=DEBUG, 1=INFO, 0=NO logging."""
         if level not in [0, 1, 2]:
             raise ValueError("Verbosity level must be 0, 1, or 2")
+
+        self.verbosity_level = level
 
         level_map = {0: None, 1: "INFO", 2: "DEBUG"}
         log_level = level_map[level]

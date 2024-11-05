@@ -11,7 +11,7 @@ from typing import Any, Dict, Union, List, Any, Tuple
 
 import networkx as nx
 
-from _nxbench.config import _config as nxbench_config
+from _nxbench.config import _config as package_config
 from nxbench.data.loader import BenchmarkDataManager
 from nxbench.config import get_benchmark_config, AlgorithmConfig
 from nxbench.validation.registry import BenchmarkValidator
@@ -213,7 +213,7 @@ class GraphBenchmark:
                 pass
             elif backend == "parallel":
                 nx.config.backends.parallel.active = True
-                nx.config.backends.parallel.n_jobs = nxbench_config.num_thread
+                nx.config.backends.parallel.n_jobs = package_config.num_thread
             elif backend == "cugraph":
                 import cugraph
 
@@ -260,18 +260,23 @@ class GraphBenchmark:
         try:
             pos_args, kwargs = process_algorithm_params(algo_config.params)
             tracemalloc.start()
+
             start_time = time.perf_counter()
+
             result = algo_func(self.current_graph, *pos_args, **kwargs)
+
             end_time = time.perf_counter()
+
             current, peak = tracemalloc.get_traced_memory()
             tracemalloc.stop()
 
             if not isinstance(result, float) and not isinstance(result, int):
                 result = dict(result)
 
+            original_graph, _ = self.graphs[dataset_name]
             validator = BenchmarkValidator()
             try:
-                validator.validate_result(result, algo_config.name, self.current_graph)
+                validator.validate_result(result, algo_config.name, original_graph)
                 logger.debug(
                     f"Validation passed for algorithm '{algo_config.name}' on "
                     f"dataset '{dataset_name}'"
@@ -279,9 +284,11 @@ class GraphBenchmark:
             except Exception as e:
                 logger.warning(f"Validation warning for '{algo_config.name}': {e}")
 
+            execution_time = end_time - start_time
+
             metrics = {
-                "execution_time": end_time - start_time,
-                "memory_used": peak / (1024 * 1024),  # MB
+                "execution_time": execution_time,
+                "memory_used": peak / (1024 * 1024),  # bytes to MB
             }
             logger.debug(f"Benchmark results for {algo_config.name}: {metrics}")
             return metrics

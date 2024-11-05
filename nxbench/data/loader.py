@@ -129,11 +129,11 @@ class BenchmarkDataManager:
                             graph_file,
                             nodetype=str,
                             create_using=create_using,
-                            data=["weight"],
+                            data=[("weight", float)],
                         )
-                    except Exception:
+                    except Exception as e:
                         logger.warning(
-                            f"Could not parse weights from {graph_file} despite this being a weighted network. Resuming without weights..."
+                            f"Could not parse weights from {graph_file}: {e}. Resuming without weights..."
                         )
                         graph = nx.read_edgelist(
                             graph_file,
