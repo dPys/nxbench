@@ -5,11 +5,13 @@ import warnings
 import traceback
 import time
 import tracemalloc
+from functools import partial
 from dataclasses import dataclass
 from typing import Any, Dict, Union, List, Any, Tuple
 
 import networkx as nx
 
+from _nxbench.config import _config as nxbench_config
 from nxbench.data.loader import BenchmarkDataManager
 from nxbench.config import get_benchmark_config, AlgorithmConfig
 from nxbench.validation.registry import BenchmarkValidator
@@ -116,6 +118,15 @@ def is_cugraph_available():
         return False
 
 
+def is_graphblas_available():
+    try:
+        import graphblas
+
+        return True
+    except ImportError:
+        return False
+
+
 def is_nx_parallel_available():
     try:
         import nx_parallel
@@ -130,8 +141,11 @@ backends = ["networkx"]
 if is_cugraph_available():
     backends.append("cugraph")
 
+if is_graphblas_available():
+    backends.append("graphblas")
+
 if is_nx_parallel_available():
-    backends.append("nx_parallel")
+    backends.append("parallel")
 
 
 @dataclass
@@ -195,27 +209,31 @@ class GraphBenchmark:
         self.current_backend = backend
 
         try:
-            if backend == "nx_parallel":
+            if backend == "parallel":
                 import nx_parallel
+
+                nx_parallel.set_config(n_jobs=nxbench_config.num_thread)
             elif backend == "cugraph":
-                if not is_cugraph_available():
-                    logger.error("cugraph not available")
-                    return False
                 import cugraph
 
-                if nx.is_weighted(self.current_graph):
-                    edge_attr = "weight"
-                else:
-                    edge_attr = None
+                edge_attr = "weight" if nx.is_weighted(self.current_graph) else None
                 self.current_graph = cugraph.from_networkx(
                     self.current_graph, edge_attrs=edge_attr
                 )
+            elif backend == "graphblas":
+                import graphblas_algorithms as ga
+
+                self.current_graph = ga.Graph.from_networkx(self.current_graph)
+            else:
+                logger.error(f"Unsupported backend: {backend}")
+                return False
             return True
         except ImportError as e:
-            logger.error(f"Backend {backend} not available: {e}")
+            logger.error(f"Backend '{backend}' import failed: {e}")
             return False
         except Exception as e:
-            logger.error(f"Error setting up backend {backend}: {e}")
+            logger.error(f"Error setting up backend '{backend}': {e}")
+            logger.debug(traceback.format_exc())
             return False
 
     def do_benchmark(
@@ -230,7 +248,9 @@ class GraphBenchmark:
 
         try:
             algo_func = get_algorithm_function(algo_config, backend)
-            logger.debug(f"Got algorithm function: {algo_func.__name__}")
+            logger.debug(
+                f"Got algorithm function: {algo_func.func.__name__ if hasattr(algo_func, 'func') else algo_func.__name__}"
+            )
         except (ImportError, AttributeError) as e:
             logger.error(f"Function not available for backend {backend}: {e}")
             logger.debug(traceback.format_exc())
@@ -269,48 +289,13 @@ class GraphBenchmark:
 
 def get_algorithm_function(algo_config: AlgorithmConfig, backend_name: str) -> Any:
     """Retrieve the algorithm function for the specified backend."""
-    if backend_name == "networkx":
-        if algo_config.func_ref is None:
-            raise ImportError(
-                f"Function '{algo_config.func}' could not be imported for algorithm '{algo_config.name}'"
-            )
-        return algo_config.func_ref
-    elif backend_name == "cugraph":
-        try:
-            import cugraph
-        except ImportError:
-            raise ImportError("cugraph is not installed.")
-        func_name = algo_config.func.split(".")[-1]
-        if hasattr(cugraph, func_name):
-            return getattr(cugraph, func_name)
-        else:
-            mapping = {
-                "pagerank": cugraph.pagerank,
-            }
-            if func_name in mapping:
-                return mapping[func_name]
-            else:
-                raise AttributeError(f"Function '{func_name}' not found in cugraph.")
-    elif backend_name == "nx_parallel":
-        try:
-            import nx_parallel
-        except ImportError:
-            raise ImportError("nx_parallel is not installed.")
-        nx_func_name = algo_config.func
-        nxp_func_name = nx_func_name.replace("networkx", "nx_parallel")
-        module_path, func_name = nxp_func_name.rsplit(".", 1)
-        try:
-            module = __import__(module_path, fromlist=[func_name])
-            func = getattr(module, func_name)
-            return func
-        except ImportError as e:
-            raise ImportError(f"Could not import function '{nxp_func_name}': {e}")
-        except AttributeError as e:
-            raise AttributeError(
-                f"Function '{func_name}' not found in nx_parallel: {e}"
-            )
-    else:
-        raise ValueError(f"Unsupported backend: {backend_name}")
+    if algo_config.func_ref is None:
+        raise ImportError(
+            f"Function '{algo_config.func}' could not be imported for algorithm "
+            f"'{algo_config.name}'"
+        )
+
+    return partial(algo_config.func_ref, backend=backend_name)
 
 
 def process_algorithm_params(

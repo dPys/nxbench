@@ -17,6 +17,9 @@
         ],
         "nx-parallel": [
             "0.3rc0.dev0"
+        ],
+        "python-graphblas": [
+            "2024.2.0"
         ]
     },
     "benchmark_dir": "nxbench/benchmarks",

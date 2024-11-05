@@ -18,7 +18,6 @@ class NxBenchConfig(Config):
     active: bool = False
     simple: int = False
 
-    openai_api_key: str | None = None
     num_thread: int = 8
     num_gpu: int = 0
     backend_name: str = "nxbench"
