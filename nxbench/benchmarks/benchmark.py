@@ -265,6 +265,9 @@ class GraphBenchmark:
             current, peak = tracemalloc.get_traced_memory()
             tracemalloc.stop()
 
+            if not isinstance(result, float) and not isinstance(result, int):
+                result = dict(result)
+
             validator = BenchmarkValidator()
             try:
                 validator.validate_result(result, algo_config.name, self.current_graph)

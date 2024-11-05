@@ -19,7 +19,7 @@
 ```bash
 git clone https://github.com/dpys/nxbench.git
 cd nxbench
-pip install -e .[cuda]  # Optional extras for CUDA support
+pip install -e .[cuda]  # CUDA support is needed for CuGraph benchmarking
 ```
 
 For benchmarking using CUDA-based tools like [CuGraph](https://github.com/rapidsai/cugraph):

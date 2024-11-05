@@ -61,12 +61,12 @@ algorithms:
   #   groups: ["efficiency", "graph_measure"]
   #   min_rounds: 3
 
-  # - name: "number_of_isolates"
-  #   func: "networkx.number_of_isolates"
-  #   params: {}
-  #   requires_directed: false
-  #   groups: ["isolates", "graph_measure"]
-  #   min_rounds: 3
+  - name: "number_of_isolates"
+    func: "networkx.number_of_isolates"
+    params: {}
+    requires_directed: false
+    groups: ["isolates", "graph_measure"]
+    min_rounds: 3
 
   # - name: "all_pairs_all_shortest_paths"
   #   func: "networkx.all_pairs_all_shortest_paths"
@@ -98,21 +98,21 @@ algorithms:
   #   groups: ["paths", "weighted"]
   #   min_rounds: 3
 
-  - name: "all_pairs_dijkstra_path_length"
-    func: "networkx.all_pairs_dijkstra_path_length"
-    params:
-      weight: "weight"
-    requires_directed: false
-    groups: ["paths", "weighted"]
-    min_rounds: 3
+  # - name: "all_pairs_dijkstra_path_length"
+  #   func: "networkx.all_pairs_dijkstra_path_length"
+  #   params:
+  #     weight: "weight"
+  #   requires_directed: false
+  #   groups: ["paths", "weighted"]
+  #   min_rounds: 3
 
-  - name: "all_pairs_bellman_ford_path_length"
-    func: "networkx.all_pairs_bellman_ford_path_length"
-    params:
-      weight: "weight"
-    requires_directed: false
-    groups: ["paths", "weighted"]
-    min_rounds: 3
+  # - name: "all_pairs_bellman_ford_path_length"
+  #   func: "networkx.all_pairs_bellman_ford_path_length"
+  #   params:
+  #     weight: "weight"
+  #   requires_directed: false
+  #   groups: ["paths", "weighted"]
+  #   min_rounds: 3
 
   # - name: "all_pairs_bellman_ford_path"
   #   func: "networkx.all_pairs_bellman_ford_path"
