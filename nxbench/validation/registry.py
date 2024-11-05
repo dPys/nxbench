@@ -17,6 +17,7 @@ from nxbench.validation.base import (
     validate_path_lengths,
     validate_flow,
     validate_similarity_scores,
+    validate_edge_scores,
 )
 
 warnings.filterwarnings("ignore")
@@ -92,7 +93,73 @@ class ValidationRegistry:
         "jaccard_coefficient": ValidationConfig(
             validator=validate_similarity_scores,
             params={"score_range": (0.0, 1.0), "require_symmetric": True},
-            expected_type=list,  # Actually an iterator, but we convert it
+            expected_type=list,  # actually an iterator, but we convert it
+        ),
+        "number_of_isolates": ValidationConfig(
+            validator=validate_node_scores,
+            params={"score_range": (0, float("inf"))},
+            expected_type=int,
+            required=True,
+        ),
+        "edge_betweenness_centrality": ValidationConfig(
+            validator=validate_edge_scores,
+            params={"score_range": (0.0, 1.0)},
+            expected_type=dict,
+        ),
+        "approximate_all_pairs_node_connectivity": ValidationConfig(
+            validator=validate_path_lengths,
+            params={},
+            expected_type=dict,
+        ),
+        "all_pairs_node_connectivity": ValidationConfig(
+            validator=validate_path_lengths,
+            params={},
+            expected_type=dict,
+        ),
+        "square_clustering": ValidationConfig(
+            validator=validate_node_scores,  # Adjust or create a custom validator
+            params={},
+            expected_type=dict,
+        ),
+        "local_efficiency": ValidationConfig(
+            validator=validate_node_scores,  # Adjust or create a custom validator
+            params={},
+            expected_type=float,
+        ),
+        "all_pairs_all_shortest_paths": ValidationConfig(
+            validator=validate_path_lengths,
+            params={},
+            expected_type=dict,
+        ),
+        "all_pairs_dijkstra": ValidationConfig(
+            validator=validate_path_lengths,
+            params={},
+            expected_type=dict,
+        ),
+        "all_pairs_dijkstra_path_length": ValidationConfig(
+            validator=validate_path_lengths,
+            params={},
+            expected_type=dict,
+        ),
+        "all_pairs_bellman_ford_path_length": ValidationConfig(
+            validator=validate_path_lengths,
+            params={},
+            expected_type=dict,
+        ),
+        "all_pairs_bellman_ford_path": ValidationConfig(
+            validator=validate_path_lengths,
+            params={},
+            expected_type=dict,
+        ),
+        "johnson": ValidationConfig(
+            validator=validate_path_lengths,
+            params={},
+            expected_type=dict,
+        ),
+        "closeness_vitality": ValidationConfig(
+            validator=validate_node_scores,
+            params={},
+            expected_type=dict,
         ),
     }
 

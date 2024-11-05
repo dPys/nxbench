@@ -21,6 +21,7 @@ __all__ = [
     "validate_path_lengths",
     "validate_flow",
     "validate_similarity_scores",
+    "validate_edge_scores",
 ]
 
 
@@ -347,6 +348,44 @@ def validate_flow(
                         f"Flow conservation violated at node {node}: "
                         f"incoming={incoming}, outgoing={outgoing}"
                     )
+
+
+def validate_edge_scores(
+    edge_scores: dict,
+    graph: Union[nx.Graph, nx.DiGraph],
+    score_range: tuple = (0.0, 1.0),
+) -> None:
+    """Validate edge scores for a given graph.
+
+    Parameters
+    ----------
+    edge_scores : dict
+        Dictionary of edge scores where keys are tuples representing edges (u, v)
+        and values are the scores associated with those edges.
+    graph : networkx.Graph or networkx.DiGraph
+        The graph for which the edge scores are being validated.
+    score_range : tuple, default=(0.0, 1.0)
+        The range (min, max) within which the edge scores should lie.
+
+    Raises
+    ------
+    ValidationError
+        If edge scores do not satisfy the expected conditions.
+    """
+    for u, v in graph.edges:
+        if (u, v) not in edge_scores and (v, u) not in edge_scores:
+            raise ValidationError(f"Edge ({u}, {v}) is missing a score.")
+
+    min_score, max_score = score_range
+    for edge, score in edge_scores.items():
+        if not (min_score <= score <= max_score):
+            raise ValidationError(
+                f"Score for edge {edge} is {score}, which is outside the range "
+                f"{score_range}."
+            )
+
+    if min_score < 0:
+        raise ValidationError("Edge scores cannot be negative.")
 
 
 def validate_similarity_scores(

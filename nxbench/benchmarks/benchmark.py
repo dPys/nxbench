@@ -209,10 +209,11 @@ class GraphBenchmark:
         self.current_backend = backend
 
         try:
-            if backend == "parallel":
-                import nx_parallel
-
-                nx_parallel.set_config(n_jobs=nxbench_config.num_thread)
+            if backend == "networkx":
+                pass
+            elif backend == "parallel":
+                nx.config.backends.parallel.active = True
+                nx.config.backends.parallel.n_jobs = nxbench_config.num_thread
             elif backend == "cugraph":
                 import cugraph
 
