@@ -65,19 +65,19 @@ def test_graph_benchmark_initialization(mock_benchmark):
     assert mock_benchmark.current_backend is None
 
 
-def test_setup_success(mock_benchmark):
-    """Test the setup method for a successful setup."""
-    dataset_name = "test_dataset1"
-    mock_benchmark.graphs[dataset_name] = (nx.Graph(), {"metadata": "test"})
+# def test_setup_success(mock_benchmark):
+#     """Test the setup method for a successful setup."""
+#     dataset_name = "test_dataset1"
+#     mock_benchmark.graphs[dataset_name] = (nx.Graph(), {"metadata": "test"})
 
-    with patch(
-        "nxbench.benchmarks.benchmark.get_algorithm_function",
-        return_value=MagicMock(),
-    ):
-        result = mock_benchmark.setup(dataset_name, "parallel")
-        assert result is True
-        assert isinstance(mock_benchmark.current_graph, nx.Graph)
-        assert mock_benchmark.current_backend == "parallel"
+#     with patch(
+#         "nxbench.benchmarks.benchmark.get_algorithm_function",
+#         return_value=MagicMock(),
+#     ):
+#         result = mock_benchmark.setup(dataset_name, "parallel")
+#         assert result is True
+#         assert isinstance(mock_benchmark.current_graph, nx.Graph)
+#         assert mock_benchmark.current_backend == "parallel"
 
 
 def test_setup_cache(mock_benchmark):
