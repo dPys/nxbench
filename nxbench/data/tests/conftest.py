@@ -8,7 +8,7 @@ from nxbench.data.loader import BenchmarkDataManager
 
 
 @pytest.fixture
-def mock_metadata():
+def _mock_metadata():
     """Fixture to mock the _load_metadata method of BenchmarkDataManager."""
     from unittest.mock import patch
 
@@ -83,8 +83,10 @@ def mock_metadata():
 
 
 @pytest.fixture
-def data_manager(mock_metadata):
-    """Fixture for initializing BenchmarkDataManager with a temporary data directory and mocked metadata."""
+def data_manager(_mock_metadata):
+    """Fixture for initializing BenchmarkDataManager with a temporary data directory
+    and mocked metadata.
+    """
     with tempfile.TemporaryDirectory() as temp_dir:
         yield BenchmarkDataManager(data_dir=temp_dir)
 

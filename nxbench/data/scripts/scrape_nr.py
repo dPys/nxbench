@@ -1,7 +1,7 @@
 import asyncio
 import logging
-import os
 import random
+from pathlib import Path
 
 import pandas as pd
 
@@ -16,7 +16,7 @@ async def main(
     db_file: str = "../network_directory.csv",
     max_concurrent_tasks: int = 3,
 ):
-    if os.path.exists(db_file):
+    if Path(db_file).exists():
         existing_df = pd.read_csv(db_file)
         processed_networks = set(existing_df["name"])
         logger.info(f"Found {len(processed_networks)} already processed networks.")
@@ -53,20 +53,22 @@ async def main(
 
         async def process_with_backoff(semaphore, task, max_retries=3):
             """Execute task with exponential backoff and circuit breaker."""
+            last_exception = None
             for attempt in range(max_retries):
-                try:
-                    async with semaphore:
-                        return await asyncio.wait_for(
-                            task, timeout=120
-                        )  # 2 min timeout
-                except Exception as e:
-                    if attempt == max_retries - 1:
-                        raise
-                    delay = min(2**attempt + random.uniform(0, 1), 60)
-                    logger.warning(
-                        f"Attempt {attempt + 1} failed, retrying in {delay:.2f}s: {e!s}"
-                    )
-                    await asyncio.sleep(delay)
+                async with semaphore:
+                    try:
+                        retval = await asyncio.wait_for(task, timeout=120)
+                    except Exception as e:
+                        last_exception = e
+                        if attempt == max_retries - 1:
+                            break
+                        delay = min(2**attempt + random.uniform(0, 1), 60)
+                        await asyncio.sleep(delay)
+                    else:
+                        return retval
+
+            if last_exception:
+                raise last_exception
 
         async def process_network(name, category):
             try:
@@ -83,9 +85,9 @@ async def main(
                     data["network_statistics"] = data["network_statistics"].__dict__
                 networks_data.append(data)
                 logger.info(f"Processed network '{name}' in category '{category}'")
-            except Exception as e:
+            except Exception:
                 logger.exception(
-                    f"Error processing network '{name}' in category '{category}': {e}"
+                    f"Error processing network '{name}' in category '{category}'"
                 )
 
         semaphore = asyncio.Semaphore(max_concurrent_tasks)

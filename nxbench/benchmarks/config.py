@@ -44,9 +44,9 @@ class AlgorithmConfig:
         try:
             module = __import__(module_path, fromlist=[func_name])
             self.func_ref = getattr(module, func_name)
-        except (ImportError, AttributeError) as e:
+        except (ImportError, AttributeError):
             logger.exception(
-                f"Failed to import function '{self.func}' for algorithm '{self.name}': {e}"
+                f"Failed to import function '{self.func}' for algorithm '{self.name}'"
             )
             self.func_ref = None
 
@@ -55,10 +55,10 @@ class AlgorithmConfig:
             try:
                 module = __import__(mod_path, fromlist=[val_func])
                 self.validate_ref = getattr(module, val_func)
-            except (ImportError, AttributeError) as e:
+            except (ImportError, AttributeError):
                 logger.exception(
                     f"Failed to import validation function '{self.validate_result}' "
-                    f"for algorithm '{self.name}': {e}"
+                    f"for algorithm '{self.name}'"
                 )
                 self.validate_ref = None
         else:
@@ -142,9 +142,7 @@ class BenchmarkConfig:
                 {k: v for k, v in algo.__dict__.items() if not k.endswith("_ref")}
                 for algo in self.algorithms
             ],
-            "datasets": [
-                dict(ds.__dict__.items()) for ds in self.datasets
-            ],
+            "datasets": [dict(ds.__dict__.items()) for ds in self.datasets],
             "machine_info": self.machine_info,
             "output_dir": str(self.output_dir),
         }

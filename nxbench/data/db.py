@@ -1,10 +1,10 @@
 import sqlite3
 import warnings
+from collections.abc import Generator
 from contextlib import contextmanager
 from dataclasses import asdict
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
-from collections.abc import Generator
 
 import pandas as pd
 
@@ -96,6 +96,26 @@ class BenchmarkDB:
         package_versions : dict, optional
             Versions of key packages
         """
+        valid_columns = {
+            "id",
+            "timestamp",
+            "algorithm",
+            "backend",
+            "dataset",
+            "timing",
+            "num_nodes",
+            "num_edges",
+            "directed",
+            "weighted",
+            "parameters",
+            "error",
+            "memory_usage",
+            "git_commit",
+            "machine_info",
+            "python_version",
+            "package_versions",
+        }
+
         if isinstance(results, BenchmarkResult):
             results = [results]
 
@@ -104,7 +124,7 @@ class BenchmarkDB:
                 result_dict = asdict(result)
                 result_dict.update(
                     {
-                        "timestamp": datetime.now().isoformat(),
+                        "timestamp": datetime.now(timezone.utc).isoformat(),
                         "git_commit": git_commit,
                         "machine_info": str(machine_info),
                         "python_version": python_version,
@@ -112,15 +132,22 @@ class BenchmarkDB:
                     }
                 )
 
-                placeholders = ",".join("?" * len(result_dict))
-                columns = ",".join(result_dict.keys())
+                filtered_dict = {
+                    k: v for k, v in result_dict.items() if k in valid_columns
+                }
 
-                query = f"""
-                INSERT INTO benchmarks ({columns})
-                VALUES ({placeholders})
-                """
+                if not filtered_dict:
+                    continue
 
-                conn.execute(query, list(result_dict.values()))
+                columns = list(filtered_dict.keys())
+
+                query = "INSERT INTO benchmarks ("
+                query += ",".join(f'"{col}"' for col in columns)
+                query += ") VALUES ("
+                query += ",".join("?" for _ in columns)
+                query += ")"
+
+                conn.execute(query, list(filtered_dict.values()))
             conn.commit()
 
     def get_results(
@@ -195,7 +222,7 @@ class BenchmarkDB:
             Unique values in column
         """
         with self._connection() as conn:
-            cursor = conn.execute(f"SELECT DISTINCT {column} FROM benchmarks")
+            cursor = conn.execute("SELECT DISTINCT ? FROM benchmarks", (column,))
             return [row[0] for row in cursor.fetchall()]
 
     def delete_results(

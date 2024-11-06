@@ -1,12 +1,13 @@
 """Core benchmark functionality and result handling."""
 
+import gc
 import logging
 import time
 import traceback
 import tracemalloc
 import warnings
 from functools import partial
-from typing import Any
+from typing import Any, ClassVar
 
 import networkx as nx
 
@@ -79,8 +80,8 @@ def generate_benchmark_methods(cls):
 class GraphBenchmark:
     """Base class for all graph algorithm benchmarks."""
 
-    param_names = ["dataset_name", "backend"]
-    params = [datasets, backends]
+    param_names: ClassVar[list[str]] = ["dataset_name", "backend"]
+    params: ClassVar[list[Any]] = [datasets, backends]
 
     def __init__(self):
         self.data_manager = BenchmarkDataManager()
@@ -107,13 +108,14 @@ class GraphBenchmark:
                 graph, metadata = self.data_manager.load_network_sync(dataset_config)
                 self.graphs[dataset_name] = (graph, metadata)
                 logger.debug(
-                    f"Cached dataset '{dataset_name}' with {graph.number_of_nodes()} nodes"
+                    f"Cached dataset '{dataset_name}' with {graph.number_of_nodes()} "
+                    f"nodes"
                 )
-            except Exception as e:
-                logger.exception(f"Failed to load dataset '{dataset_name}': {e}")
+            except Exception:
+                logger.exception(f"Failed to load dataset '{dataset_name}'")
 
     def setup(self, dataset_name: str, backend: str) -> bool:
-        """Setup for each benchmark iteration."""
+        """Initialize the dataset and backend."""
         if not self.graphs:
             self.setup_cache()
 
@@ -147,14 +149,15 @@ class GraphBenchmark:
             else:
                 logger.error(f"Unsupported backend: {backend}")
                 return False
-            return True
-        except ImportError as e:
-            logger.exception(f"Backend '{backend}' import failed: {e}")
+        except ImportError:
+            logger.exception(f"Backend '{backend}' import failed")
             return False
-        except Exception as e:
-            logger.exception(f"Error setting up backend '{backend}': {e}")
+        except Exception:
+            logger.exception(f"Error setting up backend '{backend}'")
             logger.debug(traceback.format_exc())
             return False
+        else:
+            return True
 
     def do_benchmark(
         self, algo_config: AlgorithmConfig, dataset_name: str, backend: str
@@ -168,11 +171,14 @@ class GraphBenchmark:
 
         try:
             algo_func = get_algorithm_function(algo_config, backend)
-            logger.debug(
-                f"Got algorithm function: {algo_func.func.__name__ if hasattr(algo_func, 'func') else algo_func.__name__}"
+            alg_func_name = (
+                algo_func.func.__name__
+                if hasattr(algo_func, "func")
+                else algo_func.__name__
             )
-        except (ImportError, AttributeError) as e:
-            logger.exception(f"Function not available for backend {backend}: {e}")
+            logger.debug(f"Got algorithm function: {alg_func_name}")
+        except (ImportError, AttributeError):
+            logger.exception(f"Function not available for backend {backend}")
             logger.debug(traceback.format_exc())
             return {"execution_time": float("nan"), "memory_used": float("nan")}
 
@@ -188,6 +194,7 @@ class GraphBenchmark:
 
             current, peak = tracemalloc.get_traced_memory()
             tracemalloc.stop()
+            gc.collect()
 
             if not isinstance(result, float) and not isinstance(result, int):
                 result = dict(result)
@@ -200,8 +207,8 @@ class GraphBenchmark:
                     f"Validation passed for algorithm '{algo_config.name}' on "
                     f"dataset '{dataset_name}'"
                 )
-            except Exception as e:
-                logger.warning(f"Validation warning for '{algo_config.name}': {e}")
+            except Exception:
+                logger.warning(f"Validation warning for '{algo_config.name}'")
 
             execution_time = end_time - start_time
 
@@ -210,12 +217,12 @@ class GraphBenchmark:
                 "memory_used": peak / (1024 * 1024),  # bytes to MB
             }
             logger.debug(f"Benchmark results for {algo_config.name}: {metrics}")
-            return metrics
-
-        except Exception as e:
-            logger.exception(f"Error running algorithm '{algo_config.name}': {e!s}")
+        except Exception:
+            logger.exception(f"Error running algorithm '{algo_config.name}'")
             logger.debug(traceback.format_exc())
             return {"execution_time": float("nan"), "memory_used": float("nan")}
+        else:
+            return metrics
 
 
 def get_algorithm_function(algo_config: AlgorithmConfig, backend_name: str) -> Any:

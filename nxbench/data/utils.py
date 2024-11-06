@@ -1,4 +1,5 @@
 import re
+import zipfile
 
 import networkx as nx
 
@@ -47,3 +48,11 @@ def lcc(G: nx.Graph) -> nx.Graph:
     subgraph = G.subgraph(largest_cc).copy()
     subgraph.remove_edges_from(nx.selfloop_edges(subgraph))
     return subgraph
+
+
+def safe_extract(filepath, extracted_path):
+    with zipfile.ZipFile(filepath) as zf:
+        for name in zf.namelist():
+            if name.startswith("/") or ".." in name:
+                raise ValueError(f"Malicious path in archive: {name}")
+        zf.extractall(extracted_path)

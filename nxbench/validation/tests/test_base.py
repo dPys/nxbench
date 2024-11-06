@@ -1,3 +1,5 @@
+from typing import ClassVar
+
 import networkx as nx
 import numpy as np
 import pytest
@@ -17,7 +19,7 @@ from nxbench.validation.base import (
 
 def test_validate_graph_result_valid():
     class Result:
-        stats = {"mean": 1.5, "std": 0.5}
+        stats: ClassVar[dict[str, float]] = {"mean": 1.5, "std": 0.5}
 
     validate_graph_result(Result())
 
@@ -29,7 +31,7 @@ def test_validate_graph_result_none():
 
 def test_validate_graph_result_invalid_mean(simple_graph):
     class Result:
-        stats = {"mean": 0.0, "std": 0.5}
+        stats: ClassVar[dict[str, float]] = {"mean": 0.0, "std": 0.5}
 
     with pytest.raises(ValidationError, match=r"Invalid timing value"):
         validate_graph_result(Result())
@@ -37,7 +39,7 @@ def test_validate_graph_result_invalid_mean(simple_graph):
 
 def test_validate_graph_result_invalid_std(simple_graph):
     class Result:
-        stats = {"mean": 1.0, "std": -0.1}
+        stats: ClassVar[dict[str, float]] = {"mean": 1.0, "std": -0.1}
 
     with pytest.raises(ValidationError, match=r"Invalid timing standard deviation"):
         validate_graph_result(Result())

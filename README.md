@@ -11,7 +11,7 @@
 - **Validation Framework**: Comprehensive result validation for correctness across implementations
 - **Performance Monitoring**: Track execution time and memory usage with detailed metrics
 - **Interactive Visualization**: Dynamic dashboard for exploring benchmark results using Plotly Dash
-- **Flexible Storage**: SQLite-based result storage with pandas integration for analysis
+- **Flexible Storage**: SQLite-based result storage with pandas integration for analysis (In construction)
 - **CI Integration**: Support for automated benchmarking through ASV (Airspeed Velocity)
 
 ## Installation
@@ -154,8 +154,8 @@ This project is licensed under the MIT License - see [LICENSE](LICENSE) for deta
 
 ## Acknowledgments
 
-- NetworkX community for the core graph library
-- NetworkRepository.com for dataset access
+- NetworkX community for the core graph library and dispatching support
+- NetworkRepository.com for harmonized dataset access
 - ASV team for benchmark infrastructure
 
 ## Contact

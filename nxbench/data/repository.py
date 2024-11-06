@@ -24,7 +24,7 @@ from multidict import CIMultiDict, CIMultiDictProxy
 from yarl import URL
 
 from nxbench.data.constants import BASE_URL, COLLECTIONS, HEADERS
-from nxbench.data.utils import normalize_name
+from nxbench.data.utils import normalize_name, safe_extract
 
 warnings.filterwarnings("ignore")
 
@@ -215,7 +215,9 @@ class NetworkRepository:
                     f"Unicode decode error for {url}. Attempt {attempt + 1}/{retries}"
                 )
                 if attempt >= retries - 1:
-                    logger.exception(f"Failed to decode {url} after {retries} attempts.")
+                    logger.exception(
+                        f"Failed to decode {url} after {retries} attempts."
+                    )
                     logger.exception(traceback.format_exc())
                     raise
             except aiohttp.ClientResponseError:
@@ -263,7 +265,6 @@ class NetworkRepository:
                     f"Status: {response.status}"
                 )
                 response.raise_for_status()
-                return response
             except aiohttp.ClientResponseError:
                 logger.warning(
                     f"HTTP response error for {url}. Attempt {attempt + 1}/{retries}"
@@ -288,6 +289,8 @@ class NetworkRepository:
                     logger.exception(f"Failed to fetch {url} after {retries} attempts.")
                     logger.exception(traceback.format_exc())
                     raise
+            else:
+                return response
             attempt += 1
             backoff = 2**attempt + random.uniform(0, 1)
             logger.debug(f"Retrying after {backoff:.2f} seconds...")
@@ -316,12 +319,19 @@ class NetworkRepository:
             try:
                 async with aiofiles.open(dest, "rb") as f:
                     data = await f.read()
+
+                def verify_checksum(
+                    data_hash: str, expected: str, filename: str
+                ) -> None:
+                    """Verify file checksum matches expected value."""
+                    if data_hash != expected:
+                        logger.error(
+                            f"Checksum mismatch for '{filename}'. "
+                            f"Expected: {expected}, got: {data_hash}"
+                        )
+
                 file_hash = hashlib.sha256(data).hexdigest()
-                if file_hash != sha256:
-                    raise ValueError(
-                        f"Checksum mismatch for '{dest.name}'. "
-                        f"Expected: {sha256}, got: {file_hash}"
-                    )
+                verify_checksum(file_hash, sha256, dest.name)
                 logger.debug(f"Checksum verification passed for {dest}")
             except Exception:
                 logger.exception(f"Checksum verification failed for '{dest.name}'")
@@ -330,20 +340,57 @@ class NetworkRepository:
         return dest
 
     async def _extract_file(self, filepath: Path) -> Path:
-        """Asynchronously extract compressed files."""
+        """Safely extract compressed files."""
         extracted_path = filepath.with_suffix("")
         try:
             if zipfile.is_zipfile(filepath):
                 loop = asyncio.get_event_loop()
-                await loop.run_in_executor(
-                    None, lambda: zipfile.ZipFile(filepath).extractall(extracted_path)
-                )
+                await loop.run_in_executor(None, safe_extract, filepath, extracted_path)
                 logger.info(f"Extracted ZIP file to '{extracted_path}'")
             elif tarfile.is_tarfile(filepath):
                 loop = asyncio.get_event_loop()
-                await loop.run_in_executor(
-                    None, lambda: tarfile.open(filepath).extractall(extracted_path)
-                )
+
+                def safe_tar_extract():
+                    """Safely extract tar file with path checking."""
+
+                    def validate_member(member):
+                        """Validate tar member paths."""
+                        if member.name.startswith("/") or ".." in member.name:
+                            return None
+                        return member
+
+                    with tarfile.open(filepath) as tar:
+                        valid_members = []
+                        invalid_members = []
+
+                        for member in tar.getmembers():
+                            if validate_member(member) is not None:
+                                valid_members.append(member)
+                            else:
+                                invalid_members.append(member.name)
+
+                        if invalid_members:
+                            logger.warning(
+                                f"Skipping unsafe paths in tar: "
+                                f"{', '.join(invalid_members)}"
+                            )
+
+                        if not valid_members:
+                            logger.warning("No valid members found in tar file")
+                            return
+
+                        extracted_path.mkdir(parents=True, exist_ok=True)
+
+                        tar.extractall(
+                            path=extracted_path,
+                            members=valid_members,
+                            filter="data",
+                        )
+                        logger.debug(
+                            f"Successfully extracted {len(valid_members)} members"
+                        )
+
+                await loop.run_in_executor(None, safe_tar_extract)
                 logger.info(f"Extracted TAR file to '{extracted_path}'")
             else:
                 logger.warning(f"Unsupported archive format for '{filepath}'")
@@ -396,10 +443,11 @@ class NetworkRepository:
             if zipfile.is_zipfile(filepath) or tarfile.is_tarfile(filepath):
                 try:
                     extracted_path = await self._extract_file(filepath)
-                    return extracted_path
                 except Exception:
                     logger.exception(f"Failed to extract '{name}'")
                     raise
+                else:
+                    return extracted_path
 
         return filepath
 
@@ -463,12 +511,14 @@ class NetworkRepository:
 
     async def verify_url(self, url: str) -> bool:
         """Check if the URL is valid and reachable."""
-        try:
-            async with self.session.head(url) as response:
-                return response.status == 200
-        except Exception:
-            logger.exception(f"Error verifying URL '{url}'")
-            return False
+        async with self.session.head(url) as response:
+            try:
+                is_valid_url = response.status == 200
+            except Exception:
+                logger.exception(f"Error verifying URL '{url}'")
+                return False
+            else:
+                return is_valid_url
 
     async def discover_networks_by_category(self) -> dict[str, list[str]]:
         """Asynchronously scrape network names from networkrepository.com for each
@@ -802,7 +852,7 @@ class NetworkRepository:
         """Convert a dictionary of stats into a NetworkStats dataclass."""
 
         def get_numeric(key: str, default: int | float) -> int | float:
-            """Helper function to parse numeric values with defaults."""
+            """Parse numeric values with defaults."""
             value = self._parse_numeric_value(stats_dict.get(key, default))
             if value is None:
                 return default

@@ -3,10 +3,10 @@
 import inspect
 import logging
 import warnings
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any
-from collections.abc import Callable
+from typing import Any, ClassVar
 
 import networkx as nx
 import yaml
@@ -51,7 +51,7 @@ class ValidationConfig:
 class ValidationRegistry:
     """Registry of validation configurations for algorithms."""
 
-    DEFAULT_VALIDATORS = {
+    DEFAULT_VALIDATORS: ClassVar[dict] = {
         "pagerank": ValidationConfig(
             validator=validate_node_scores,
             params={"score_range": (0.0, 1.0), "require_normalized": True},
@@ -171,10 +171,7 @@ class ValidationRegistry:
         self._custom_validators: dict[str, ValidationConfig] = {}
 
     def register_validator(
-        self,
-        algorithm_name: str,
-        validator: Callable | ValidationConfig,
-        **kwargs,
+        self, algorithm_name: str, validator: Callable | ValidationConfig, **kwargs
     ) -> None:
         """Register a new validator for an algorithm.
 
@@ -196,12 +193,12 @@ class ValidationRegistry:
             config = validator
         else:
             if not callable(validator):
-                raise ValueError(f"Validator must be callable, got {type(validator)}")
+                raise TypeError(f"Validator must be callable, got {type(validator)}")
 
             config = ValidationConfig(validator=validator, **kwargs)
 
         if not callable(config.validator):
-            raise ValueError(f"Invalid validator function: {config.validator}")
+            raise TypeError(f"Invalid validator function: {config.validator}")
 
         sig = inspect.signature(config.validator)
         if len(sig.parameters) < 2:
@@ -290,6 +287,11 @@ class BenchmarkValidator:
         """Initialize validator with optional registry."""
         self.registry = registry or ValidationRegistry()
 
+    @staticmethod
+    def _validate_type(result, expected_type):
+        if not isinstance(result, expected_type):
+            raise TypeError(f"Expected result type {expected_type}, got {type(result)}")
+
     def validate_result(
         self,
         result: Any,
@@ -300,42 +302,32 @@ class BenchmarkValidator:
     ) -> bool:
         """Validate algorithm result."""
         try:
-            # Set required=False to avoid raising ValueError when no validator is found
             config = self.registry.get_validator(algorithm_name, required=False)
             if config is None:
                 logger.warning(f"No validator found for algorithm: {algorithm_name}")
-                return True  # Ensure a boolean is returned
+                return True
 
-            if config.expected_type and not isinstance(result, config.expected_type):
-                raise ValidationError(
-                    f"Expected result type {config.expected_type}, "
-                    f"got {type(result)}"
-                )
+            if config.expected_type:
+                self._validate_type(result, config.expected_type)
 
             config.validator(result, graph, **config.params)
 
             logger.debug(f"Validation passed for algorithm: {algorithm_name}")
-            return True
-
-        except Exception as e:
+        except Exception:
             if raise_errors:
-                raise ValidationError(
-                    f"Validation failed for {algorithm_name}: {e!s}"
-                ) from e
+                raise ValidationError(f"Validation failed for {algorithm_name}")
 
-            logger.error(
-                f"Validation failed for {algorithm_name}: {e!s}", exc_info=True
-            )
+            logger.exception(f"Validation failed for {algorithm_name}")
             return False
+        else:
+            return True
 
     def create_validator(
         self, algorithm_name: str, *, raise_errors: bool = True
     ) -> Callable[[Any, nx.Graph | nx.DiGraph], bool]:
         """Create a validator function for use with pytest.mark.benchmark."""
 
-        def validator(
-            benchmark_result: Any, graph: nx.Graph | nx.DiGraph
-        ) -> bool:
+        def validator(benchmark_result: Any, graph: nx.Graph | nx.DiGraph) -> bool:
             return self.validate_result(
                 benchmark_result, algorithm_name, graph, raise_errors=raise_errors
             )

@@ -313,7 +313,8 @@ class TestBenchmarkValidatorIntegration:
         result = "not a float"
         with pytest.raises(
             ValidationError,
-            match=r"Validation failed for local_efficiency: Expected result type <class 'float'>, got <class 'str'>",
+            match=r"Validation failed for local_efficiency: "
+            r"Expected result type <class 'float'>, got <class 'str'>",
         ):
             validator.validate_result(result, "local_efficiency", None)
 

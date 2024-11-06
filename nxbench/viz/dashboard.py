@@ -33,8 +33,8 @@ class BenchmarkDashboard:
                     with env_file.open("r") as f:
                         try:
                             data = json.load(f)
-                        except json.JSONDecodeError as e:
-                            logger.exception(f"Failed to decode JSON from {env_file}: {e}")
+                        except json.JSONDecodeError:
+                            logger.exception(f"Failed to decode JSON from {env_file}")
                             continue
 
                         for bench_name, bench_data in data.get("results", {}).items():
@@ -141,11 +141,11 @@ class BenchmarkDashboard:
                                     )
                                     benchmark_result.metadata = metadata
                                     results.append(benchmark_result)
-                                except Exception as e:
+                                except Exception:
                                     logger.exception(
                                         f"Failed to create BenchmarkResult for "
                                         f"{bench_name} with dataset {dataset} and "
-                                        f"backend {backend}: {e}"
+                                        f"backend {backend}"
                                     )
 
         return results

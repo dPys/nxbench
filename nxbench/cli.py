@@ -1,8 +1,10 @@
 import json
 import logging
 import os
+import shutil
 import subprocess
-import warnings
+import sys
+from collections.abc import Sequence
 from pathlib import Path
 
 import click
@@ -14,9 +16,133 @@ from nxbench.data.loader import BenchmarkDataManager
 from nxbench.data.repository import NetworkRepository
 from nxbench.viz.dashboard import BenchmarkDashboard
 
-warnings.filterwarnings("ignore")
-
 logger = logging.getLogger("nxbench")
+
+
+def validate_executable(path: str | Path) -> Path:
+    """Validate an executable path.
+
+    Parameters
+    ----------
+    path : str or Path
+        Path to executable to validate
+
+    Returns
+    -------
+    Path
+        Validated executable path
+
+    Raises
+    ------
+    ValueError
+        If path is not a valid executable
+    """
+    executable = Path(path).resolve()
+    if not executable.exists():
+        raise ValueError(f"Executable not found: {executable}")
+    if not os.access(executable, os.X_OK):
+        raise ValueError(f"Path is not executable: {executable}")
+    return executable
+
+
+def safe_run(
+    cmd: Sequence[str | Path], check: bool = True, **kwargs
+) -> subprocess.CompletedProcess:
+    """Safely run a subprocess command.
+
+    This function implements several security measures:
+    - Validates executable path exists and is executable
+    - Ensures all arguments are strings or Path objects
+    - Never uses shell=True
+    - Converts all arguments to strings
+    - Runs in a subprocess with captured output
+
+    While this function aims to be secure, callers must ensure input validation
+    at their level for any user-provided values.
+
+    Parameters
+    ----------
+    cmd : sequence of str or Path
+        Command and arguments to run. First item must be path to executable.
+    check : bool, default=True
+        Whether to check return code
+    **kwargs : dict
+        Additional arguments to subprocess.run
+
+    Returns
+    -------
+    subprocess.CompletedProcess
+        Completed process info
+
+    Raises
+    ------
+    ValueError
+        If command is empty
+    TypeError
+        If command contains invalid argument types
+    subprocess.SubprocessError
+        If command fails and check=True
+
+    Notes
+    -----
+    This function is designed for running trusted executables with validated
+    arguments. It should not be used directly with unvalidated user input.
+    # noqa: S603
+    """
+    if not cmd:
+        raise ValueError("Empty command")
+
+    executable = validate_executable(cmd[0])
+    safe_cmd = [str(executable)]
+
+    for arg in cmd[1:]:
+        if not isinstance(arg, (str, Path)):
+            raise TypeError(f"Command argument must be str or Path, got {type(arg)}")
+        safe_cmd.append(str(arg))
+
+    return subprocess.run(  # noqa: S603
+        safe_cmd, capture_output=True, text=True, shell=False, check=check, **kwargs
+    )
+
+
+def get_git_executable() -> Path | None:
+    """Get full path to git executable."""
+    git_path = shutil.which("git")
+    if git_path is None:
+        return None
+    try:
+        return validate_executable(git_path)
+    except ValueError:
+        return None
+
+
+def get_asv_executable() -> Path | None:
+    """Get full path to asv executable."""
+    asv_path = shutil.which("asv")
+    if asv_path is None:
+        return None
+    try:
+        return validate_executable(asv_path)
+    except ValueError:
+        return None
+
+
+def get_python_executable() -> Path:
+    """Get full path to Python executable."""
+    return validate_executable(sys.executable)
+
+
+def get_git_hash() -> str:
+    """Get current git commit hash."""
+    git_path = get_git_executable()
+    if git_path is None:
+        return "unknown"
+
+    try:
+        proc = safe_run([git_path, "rev-parse", "HEAD"])
+        return proc.stdout.strip()
+    except (subprocess.SubprocessError, ValueError):
+        return "unknown"
 
 
 @click.group()
@@ -70,8 +196,8 @@ def download(ctx, name: str, category: str | None):
     try:
         graph, metadata = data_manager.load_network_sync(dataset_config)
         logger.info(f"Successfully downloaded dataset: {name}")
-    except Exception as e:
-        logger.exception(f"Failed to download dataset: {e}")
+    except Exception:
+        logger.exception("Failed to download dataset")
 
 
 @data.command()
@@ -115,6 +241,44 @@ def benchmark(ctx):
     """Benchmark management commands."""
 
 
+def run_asv_command(
+    args: Sequence[str], check: bool = True
+) -> subprocess.CompletedProcess:
+    """Run ASV command with security checks.
+
+    Parameters
+    ----------
+    args : sequence of str
+        Command arguments
+    check : bool, default=True
+        Whether to check return code
+
+    Returns
+    -------
+    subprocess.CompletedProcess
+        Completed process info
+
+    Raises
+    ------
+    click.ClickException
+        If command fails
+    """
+    asv_path = get_asv_executable()
+    if asv_path is None:
+        raise click.ClickException("ASV executable not found")
+
+    safe_args = []
+    for arg in args:
+        if not isinstance(arg, str):
+            raise click.ClickException(f"Invalid argument type: {type(arg)}")
+        safe_args.append(arg)
+
+    try:
+        return safe_run([asv_path, *safe_args], check=check)
+    except (subprocess.SubprocessError, ValueError) as e:
+        raise click.ClickException(str(e))
+
+
 @benchmark.command(name="run")
 @click.option(
     "--backend",
@@ -132,25 +296,16 @@ def run_benchmark(ctx, backend: tuple[str], collection: str):
         logger.debug(f"Config file used for benchmark run: {config}")
 
     try:
-        git_hash = subprocess.check_output(
-            ["git", "rev-parse", "HEAD"], universal_newlines=True
-        ).strip()
-    except subprocess.CalledProcessError as e:
-        logger.exception(f"Failed to get git hash: {e}")
+        git_hash = get_git_hash()
+    except subprocess.CalledProcessError:
+        logger.exception("Failed to get git hash")
         raise click.ClickException("Could not determine git commit hash")
 
-    cmd_parts = [
-        "asv",
-        "run",
-        "--quick",
-        f"--set-commit-hash={git_hash}",
-    ]
+    cmd_args = ["asv", "run", "--quick", f"--set-commit-hash={git_hash}"]
 
-    verbosity_level = package_config.verbosity_level
-    if verbosity_level >= 1:
-        cmd_parts.append("--verbose")
+    if package_config.verbosity_level >= 1:
+        cmd_args.append("--verbose")
 
-    # Handle multiple backends
     if "all" not in backend:
         for b in backend:
             if b:
@@ -158,27 +313,24 @@ def run_benchmark(ctx, backend: tuple[str], collection: str):
                 if collection != "all":
                     benchmark_pattern = f"{benchmark_pattern}.*{collection}"
                 benchmark_pattern = f"{benchmark_pattern}.*{b}"
-                cmd_parts.extend(["-b", f'"{benchmark_pattern}"'])
+                cmd_args.extend(["-b", benchmark_pattern])
     elif collection != "all":
-        cmd_parts.extend(["-b", f'"GraphBenchmark.track_.*{collection}"'])
+        cmd_args.extend(["-b", f"GraphBenchmark.track_.*{collection}"])
 
-    cmd_parts.append("--python=same")
-
-    cmd = " ".join(cmd_parts)
-    logger.info(f"Running command: {cmd}")
+    cmd_args.append("--python=same")
 
     try:
-        subprocess.run(cmd, shell=True, check=True)
-    except subprocess.CalledProcessError as e:
-        logger.exception(f"Benchmark run failed: {e}")
+        run_asv_command(cmd_args)
+    except subprocess.CalledProcessError:
+        logger.exception("Benchmark run failed")
         raise click.ClickException("Benchmark run failed")
 
 
 @benchmark.command()
 @click.argument("result_file", type=Path)
-@click.option("--format", type=click.Choice(["json", "csv"]), default="csv")
+@click.option("--output-format", type=click.Choice(["json", "csv"]), default="csv")
 @click.pass_context
-def export(ctx, result_file: Path, format: str):
+def export(ctx, result_file: Path, output_format: str):
     """Export benchmark results."""
     config = ctx.obj.get("CONFIG")
     if config:
@@ -223,7 +375,6 @@ def export(ctx, result_file: Path, format: str):
             "is_directed": result.is_directed,
             "is_weighted": result.is_weighted,
         }
-        records.append(record)
 
         metadata_exclude = [
             "name",
@@ -250,7 +401,7 @@ def export(ctx, result_file: Path, format: str):
     df["execution_time"] = df["execution_time"].map("{:.6f}".format)
     df["memory_used"] = df["memory_used"].map("{:.2f}".format)
 
-    if format == "csv":
+    if output_format == "csv":
         df.to_csv(result_file, index=False)
     else:
         df.to_json(result_file, orient="records")
@@ -270,7 +421,14 @@ def compare(ctx, baseline: str, comparison: str, threshold: float):
     if config:
         logger.debug(f"Config file used for compare: {config}")
 
-    subprocess.run(["asv", "compare", baseline, comparison, "-f", str(threshold)], check=False)
+    cmd_args = [
+        "compare",
+        baseline,
+        comparison,
+        "-f",
+        str(threshold),
+    ]
+    run_asv_command(cmd_args, check=False)
 
 
 @cli.group()
@@ -302,24 +460,28 @@ def publish(ctx):
     if config:
         logger.debug(f"Config file used for viz publish: {config}")
 
-    # Step 1: Run the results processing script
     try:
-        subprocess.run(
-            [
-                "python",
-                "nxbench/validation/scripts/process_results.py",
-                "--results_dir",
-                "results",
-            ],
-            check=True,
-        )
-        logger.info("Successfully processed results.")
-    except subprocess.CalledProcessError as e:
-        logger.exception(f"Failed to process results: {e}")
-        raise click.ClickException("Result processing failed")
+        python_path = get_python_executable()
+    except ValueError as e:
+        raise click.ClickException(str(e))
 
-    # Step 2: Run asv publish
-    subprocess.run(["asv", "publish", "--verbose"], check=False)
+    process_script = Path("nxbench/validation/scripts/process_results.py").resolve()
+    if not process_script.exists():
+        raise click.ClickException(f"Processing script not found: {process_script}")
+
+    try:
+        process_script.relative_to(Path.cwd())
+    except ValueError:
+        raise click.ClickException("Script path must be within project directory")
+
+    try:
+        safe_run([python_path, process_script, "--results_dir", "results"])
+        logger.info("Successfully processed results.")
+    except (subprocess.SubprocessError, ValueError) as e:
+        logger.exception("Failed to process results")
+        raise click.ClickException(str(e))
+
+    run_asv_command(["publish", "--verbose"], check=False)
     dashboard = BenchmarkDashboard()
     dashboard.generate_static_report()
 
@@ -327,7 +489,7 @@ def publish(ctx):
 @cli.group()
 @click.pass_context
 def validate(ctx):
-    """Validation commands."""
+    """Validate."""
 
 
 @validate.command()
@@ -351,8 +513,8 @@ def check(ctx, result_file: Path):
         try:
             validator.validate_result(result, algorithm_name, graph, raise_errors=True)
             logger.info(f"Validation passed for algorithm '{algorithm_name}'")
-        except Exception as e:
-            logger.exception(f"Validation failed for algorithm '{algorithm_name}': {e}")
+        except Exception:
+            logger.exception(f"Validation failed for algorithm '{algorithm_name}'")
 
 
 def main():

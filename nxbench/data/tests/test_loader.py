@@ -153,7 +153,8 @@ X U
 
         graph, metadata = await data_manager.load_network(config)
 
-        assert isinstance(graph, (nx.Graph, nx.DiGraph)), f"Graph should be NetworkX Graph or DiGraph for {case['filename']}"
+        assert isinstance(graph, (nx.Graph, nx.DiGraph)), "Graph should be NetworkX "
+        f"Graph or DiGraph for {case['filename']}"
         assert (
             graph.number_of_nodes() > 0
         ), f"Graph should have nodes for {case['filename']}"
@@ -198,7 +199,9 @@ E,F
 
     graph, metadata = await data_manager.load_network(config)
 
-    assert isinstance(graph, (nx.Graph, nx.DiGraph)), "Graph should be NetworkX Graph or DiGraph"
+    assert isinstance(
+        graph, (nx.Graph, nx.DiGraph)
+    ), "Graph should be NetworkX Graph or DiGraph"
     assert graph.number_of_nodes() == 4, "Graph should have 4 nodes"
     assert graph.number_of_edges() == 3, "Graph should have 3 edges"
 
@@ -226,7 +229,9 @@ D A four
 
     graph, metadata = await data_manager.load_network(config)
 
-    assert isinstance(graph, (nx.Graph, nx.DiGraph)), "Graph should be NetworkX Graph or DiGraph"
+    assert isinstance(
+        graph, (nx.Graph, nx.DiGraph)
+    ), "Graph should be NetworkX Graph or DiGraph"
     assert graph.number_of_nodes() == 4, "Graph should have 4 nodes"
     assert graph.number_of_edges() == 4, "Graph should have 4 edges"
 
@@ -260,7 +265,9 @@ B C 2.0  # Duplicate edge
 
     graph, metadata = await data_manager.load_network(config)
 
-    assert isinstance(graph, (nx.Graph, nx.DiGraph)), "Graph should be NetworkX Graph or DiGraph"
+    assert isinstance(
+        graph, (nx.Graph, nx.DiGraph)
+    ), "Graph should be NetworkX Graph or DiGraph"
     assert graph.number_of_nodes() == 4, "Graph should have 4 nodes"
     assert (
         graph.number_of_edges() == 4
@@ -296,7 +303,9 @@ node1 node3 4.0
 
     graph, metadata = await data_manager.load_network(config)
 
-    assert isinstance(graph, (nx.Graph, nx.DiGraph)), "Graph should be NetworkX Graph or DiGraph"
+    assert isinstance(
+        graph, (nx.Graph, nx.DiGraph)
+    ), "Graph should be NetworkX Graph or DiGraph"
     assert graph.number_of_nodes() == 6, "Graph should have 6 nodes"
     assert graph.number_of_edges() == 4, "Graph should have 4 edges"
 
@@ -369,8 +378,8 @@ async def test_load_invalid_mtx_graph(data_manager, create_edge_file):
         metadata={"directed": False, "weighted": True},
     )
 
-    with pytest.raises(Exception):
-        graph, metadata = await data_manager.load_network(config)
+    with pytest.raises(ValueError, match="Matrix Market file not in expected format"):
+        await data_manager.load_network(config)
 
 
 @pytest.mark.asyncio
@@ -393,7 +402,9 @@ D A 4.0
 
     graph, metadata = await data_manager.load_network(config)
 
-    assert isinstance(graph, (nx.Graph, nx.DiGraph)), "Graph should be NetworkX Graph or DiGraph"
+    assert isinstance(
+        graph, (nx.Graph, nx.DiGraph)
+    ), "Graph should be NetworkX Graph or DiGraph"
     assert graph.number_of_nodes() == 4, "Graph should have 4 nodes"
     assert graph.number_of_edges() == 4, "Graph should have 4 edges"
 

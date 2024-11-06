@@ -20,14 +20,16 @@ def process_results_file(file_path: Path):
         for benchmark_name, benchmark_data in results.items():
             if not isinstance(benchmark_data, list) or len(benchmark_data) < 1:
                 logger.warning(
-                    f"Unexpected format for benchmark '{benchmark_name}' in file '{file_path}'"
+                    f"Unexpected format for benchmark '{benchmark_name}' in file '"
+                    f"{file_path}'"
                 )
                 continue
 
             runs = benchmark_data[0]
             if not isinstance(runs, list):
                 logger.warning(
-                    f"Unexpected runs format for benchmark '{benchmark_name}' in file '{file_path}'"
+                    f"Unexpected runs format for benchmark '{benchmark_name}' in file '"
+                    f"{file_path}'"
                 )
                 continue
 
@@ -40,12 +42,14 @@ def process_results_file(file_path: Path):
                         modified = True
                     else:
                         logger.warning(
-                            f"No 'execution_time' found in run for benchmark '{benchmark_name}' in file '{file_path}'"
+                            f"No 'execution_time' found in run for benchmark '"
+                            f"{benchmark_name}' in file '{file_path}'"
                         )
                         new_runs.append(None)
                 else:
                     logger.warning(
-                        f"Unexpected run format for benchmark '{benchmark_name}' in file '{file_path}': {run}"
+                        f"Unexpected run format for benchmark '{benchmark_name}' in "
+                        f"file '{file_path}': {run}"
                     )
                     new_runs.append(None)
 
@@ -62,8 +66,8 @@ def process_results_file(file_path: Path):
         else:
             logger.info(f"No modifications needed for file: {file_path}")
 
-    except Exception as e:
-        logger.exception(f"Failed to process file '{file_path}': {e}")
+    except Exception:
+        logger.exception(f"Failed to process file '{file_path}'")
 
 
 def process_all_results(results_dir: Path):

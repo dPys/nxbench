@@ -5,8 +5,9 @@ import os
 import warnings
 import zipfile
 from pathlib import Path
-from typing import Any
+from typing import Any, ClassVar
 
+import aiofiles
 import aiohttp
 import networkx as nx
 import pandas as pd
@@ -22,16 +23,16 @@ logger = logging.getLogger("nxbench")
 class BenchmarkDataManager:
     """Manages loading and caching of networks for benchmarking."""
 
-    SUPPORTED_FORMATS = [".edgelist", ".mtx", ".graphml", ".edges"]
+    SUPPORTED_FORMATS: ClassVar[list[str]] = [".edgelist", ".mtx", ".graphml", ".edges"]
 
     def __init__(self, data_dir: str | Path | None = None):
         self.data_dir = (
             Path(data_dir) if data_dir else Path.home() / ".nxbench" / "data"
         )
         self.data_dir.mkdir(parents=True, exist_ok=True)
-        self._network_cache: dict[
-            str, tuple[nx.Graph | nx.DiGraph, dict[str, Any]]
-        ] = {}
+        self._network_cache: dict[str, tuple[nx.Graph | nx.DiGraph, dict[str, Any]]] = (
+            {}
+        )
         self._metadata_df = self._load_metadata()
 
     def _normalize_name(self, name: str) -> str:
@@ -46,11 +47,9 @@ class BenchmarkDataManager:
                 df["name"] = df["name"].apply(self._normalize_name)
                 logger.debug(f"Loaded metadata names: {df['name'].tolist()}")
                 return df
-        except Exception as e:
+        except Exception:
             logger.exception("Failed to load network metadata from package data")
-            raise RuntimeError(
-                "Failed to load network metadata from package data"
-            ) from e
+            raise RuntimeError("Failed to load network metadata from package data")
 
     def get_metadata(self, name: str) -> dict[str, Any]:
         normalized_name = self._normalize_name(name)
@@ -105,8 +104,13 @@ class BenchmarkDataManager:
     def _load_graph_file(
         self, graph_file: Path, metadata: dict[str, Any]
     ) -> nx.Graph | nx.DiGraph:
+        def handle_unsupported_format(suffix):
+            """Handle unsupported file formats."""
+            raise ValueError(f"Unsupported file format: {suffix}")
+
         try:
-            if graph_file.suffix == ".mtx":
+            suffix = graph_file.suffix.lower()
+            if suffix == ".mtx":
                 logger.info(f"Loading Matrix Market file from {graph_file}")
                 sparse_matrix = mmread(graph_file)
                 graph = nx.from_scipy_sparse_array(
@@ -115,7 +119,7 @@ class BenchmarkDataManager:
                         nx.DiGraph() if metadata.get("directed", False) else nx.Graph()
                     ),
                 )
-            elif graph_file.suffix in [".edgelist", ".edges"]:
+            elif suffix in [".edgelist", ".edges"]:
                 create_using = (
                     nx.DiGraph() if metadata.get("directed", False) else nx.Graph()
                 )
@@ -164,10 +168,10 @@ class BenchmarkDataManager:
                                 create_using=create_using,
                                 data=False,
                             )
-                    except Exception as e:
+                    except Exception:
                         logger.warning(
                             f"Unexpected error while parsing weights from "
-                            f"{graph_file}: {e}. Resuming without weights..."
+                            f"{graph_file}. Resuming without weights..."
                         )
                         with graph_file.open("r") as f:
                             edge_iter = (
@@ -195,9 +199,9 @@ class BenchmarkDataManager:
                                 create_using=create_using,
                                 data=False,
                             )
-                    except Exception as e:
+                    except Exception:
                         logger.exception(
-                            f"Failed to read unweighted edgelist from {graph_file}: {e}"
+                            f"Failed to read unweighted edgelist from {graph_file}"
                         )
                         raise
 
@@ -215,18 +219,17 @@ class BenchmarkDataManager:
                     mapping = {node: str(node) for node in graph.nodes()}
                     graph = nx.relabel_nodes(graph, mapping)
 
-            elif graph_file.suffix == ".graphml":
-                logger.info(f"Loading GraphML from {graph_file}")
+            elif suffix == ".graphml":
                 graph = nx.read_graphml(graph_file)
             else:
-                raise ValueError(f"Unsupported file format: {graph_file.suffix}")
-        except Exception as e:
-            logger.exception(f"Failed to load graph file {graph_file}: {e}")
+                return handle_unsupported_format(suffix)
+        except Exception:
+            logger.exception(f"Failed to load graph file {graph_file}")
             raise
-
-        graph.graph.update(metadata)
-        logger.info(f"Loaded network from '{graph_file}' successfully.")
-        return graph
+        else:
+            graph.graph.update(metadata)
+            logger.info(f"Loaded network from '{graph_file}' successfully.")
+            return graph
 
     async def _load_nr_graph(
         self, name: str, metadata: dict[str, Any]
@@ -272,8 +275,8 @@ class BenchmarkDataManager:
                 with zipfile.ZipFile(zip_path, "r") as zip_ref:
                     zip_ref.extractall(extracted_folder)
                 logger.info(f"Extracted network '{name}' to {extracted_folder}")
-            except zipfile.BadZipFile as e:
-                logger.exception(f"Failed to extract zip file {zip_path}: {e}")
+            except zipfile.BadZipFile:
+                logger.exception(f"Failed to extract zip file {zip_path}")
                 raise
 
         graph_file = self._find_graph_file(extracted_folder)
@@ -291,10 +294,9 @@ class BenchmarkDataManager:
             try:
                 graph_file.rename(target_graph_file)
                 logger.info(f"Moved graph file to {target_graph_file}")
-            except Exception as e:
+            except Exception:
                 logger.exception(
-                    f"Failed to move graph file {graph_file} to {target_graph_file}: "
-                    f"{e}"
+                    f"Failed to move graph file {graph_file} to {target_graph_file}"
                 )
                 raise
 
@@ -310,12 +312,12 @@ class BenchmarkDataManager:
                         f"Failed to download file from {url}. Status code: "
                         f"{response.status}"
                     )
-                with open(dest, "wb") as f:
+                async with aiofiles.open(dest, "wb") as f:
                     while True:
                         chunk = await response.content.read(1024)
                         if not chunk:
                             break
-                        f.write(chunk)
+                        await f.write(chunk)
         logger.info(f"Downloaded file from {url} to {dest}")
 
     def _find_graph_file(self, extracted_folder: Path) -> Path | None:
@@ -379,18 +381,18 @@ class BenchmarkDataManager:
             module_path, func_name = generator_name.rsplit(".", 1)
             module = importlib.import_module(module_path)
             generator = getattr(module, func_name)
-        except Exception as e:
-            raise ValueError(f"Invalid generator {generator_name}: {e}")
+        except Exception:
+            raise ValueError(f"Invalid generator {generator_name}")
 
         gen_params = config.params.copy()
         gen_params.pop("generator", None)
 
         try:
             graph = generator(**gen_params)
-        except Exception as e:
+        except Exception:
             raise ValueError(
                 f"Failed to generate graph with {generator_name} and params "
-                f"{gen_params}: {e}"
+                f"{gen_params}"
             )
 
         directed = config.metadata.get("directed", False)
