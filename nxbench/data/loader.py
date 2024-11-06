@@ -5,7 +5,7 @@ import os
 import warnings
 import zipfile
 from pathlib import Path
-from typing import Any, Dict, Optional, Tuple, Union
+from typing import Any
 
 import aiohttp
 import networkx as nx
@@ -24,13 +24,13 @@ class BenchmarkDataManager:
 
     SUPPORTED_FORMATS = [".edgelist", ".mtx", ".graphml", ".edges"]
 
-    def __init__(self, data_dir: Optional[Union[str, Path]] = None):
+    def __init__(self, data_dir: str | Path | None = None):
         self.data_dir = (
             Path(data_dir) if data_dir else Path.home() / ".nxbench" / "data"
         )
         self.data_dir.mkdir(parents=True, exist_ok=True)
-        self._network_cache: Dict[
-            str, Tuple[Union[nx.Graph, nx.DiGraph], Dict[str, Any]]
+        self._network_cache: dict[
+            str, tuple[nx.Graph | nx.DiGraph, dict[str, Any]]
         ] = {}
         self._metadata_df = self._load_metadata()
 
@@ -47,12 +47,12 @@ class BenchmarkDataManager:
                 logger.debug(f"Loaded metadata names: {df['name'].tolist()}")
                 return df
         except Exception as e:
-            logger.error("Failed to load network metadata from package data")
+            logger.exception("Failed to load network metadata from package data")
             raise RuntimeError(
                 "Failed to load network metadata from package data"
             ) from e
 
-    def get_metadata(self, name: str) -> Dict[str, Any]:
+    def get_metadata(self, name: str) -> dict[str, Any]:
         normalized_name = self._normalize_name(name)
         network = self._metadata_df[self._metadata_df["name"] == normalized_name]
         if len(network) == 0:
@@ -61,7 +61,7 @@ class BenchmarkDataManager:
 
     async def load_network(
         self, config: DatasetConfig
-    ) -> Tuple[Union[nx.Graph, nx.DiGraph], Dict[str, Any]]:
+    ) -> tuple[nx.Graph | nx.DiGraph, dict[str, Any]]:
         """Load or generate a network based on config."""
         source_lower = config.source.lower()
 
@@ -103,8 +103,8 @@ class BenchmarkDataManager:
         return graph, metadata
 
     def _load_graph_file(
-        self, graph_file: Path, metadata: Dict[str, Any]
-    ) -> Union[nx.Graph, nx.DiGraph]:
+        self, graph_file: Path, metadata: dict[str, Any]
+    ) -> nx.Graph | nx.DiGraph:
         try:
             if graph_file.suffix == ".mtx":
                 logger.info(f"Loading Matrix Market file from {graph_file}")
@@ -196,10 +196,10 @@ class BenchmarkDataManager:
                                 data=False,
                             )
                     except Exception as e:
-                        logger.error(
+                        logger.exception(
                             f"Failed to read unweighted edgelist from {graph_file}: {e}"
                         )
-                        raise e
+                        raise
 
                 initial_num_edges = graph.number_of_edges()
                 graph.remove_edges_from(nx.selfloop_edges(graph))
@@ -221,16 +221,16 @@ class BenchmarkDataManager:
             else:
                 raise ValueError(f"Unsupported file format: {graph_file.suffix}")
         except Exception as e:
-            logger.error(f"Failed to load graph file {graph_file}: {e}")
-            raise e
+            logger.exception(f"Failed to load graph file {graph_file}: {e}")
+            raise
 
         graph.graph.update(metadata)
         logger.info(f"Loaded network from '{graph_file}' successfully.")
         return graph
 
     async def _load_nr_graph(
-        self, name: str, metadata: Dict[str, Any]
-    ) -> Union[nx.Graph, nx.DiGraph]:
+        self, name: str, metadata: dict[str, Any]
+    ) -> nx.Graph | nx.DiGraph:
         for ext in self.SUPPORTED_FORMATS:
             graph_file = self.data_dir / f"{name}{ext}"
             if graph_file.exists():
@@ -273,8 +273,8 @@ class BenchmarkDataManager:
                     zip_ref.extractall(extracted_folder)
                 logger.info(f"Extracted network '{name}' to {extracted_folder}")
             except zipfile.BadZipFile as e:
-                logger.error(f"Failed to extract zip file {zip_path}: {e}")
-                raise e
+                logger.exception(f"Failed to extract zip file {zip_path}: {e}")
+                raise
 
         graph_file = self._find_graph_file(extracted_folder)
         if not graph_file:
@@ -292,11 +292,11 @@ class BenchmarkDataManager:
                 graph_file.rename(target_graph_file)
                 logger.info(f"Moved graph file to {target_graph_file}")
             except Exception as e:
-                logger.error(
+                logger.exception(
                     f"Failed to move graph file {graph_file} to {target_graph_file}: "
                     f"{e}"
                 )
-                raise e
+                raise
 
     async def _download_file(self, url: str, dest: Path):
         async with aiohttp.ClientSession() as session:
@@ -318,9 +318,10 @@ class BenchmarkDataManager:
                         f.write(chunk)
         logger.info(f"Downloaded file from {url} to {dest}")
 
-    def _find_graph_file(self, extracted_folder: Path) -> Optional[Path]:
+    def _find_graph_file(self, extracted_folder: Path) -> Path | None:
         """Search for supported graph files within the extracted folder and its
-        immediate files."""
+        immediate files.
+        """
         for file in extracted_folder.glob("*"):
             if file.suffix in self.SUPPORTED_FORMATS:
                 logger.debug(f"Found graph file: {file}")
@@ -340,7 +341,7 @@ class BenchmarkDataManager:
 
     def _load_local_graph(
         self, config: DatasetConfig
-    ) -> Tuple[Union[nx.Graph, nx.DiGraph], Dict[str, Any]]:
+    ) -> tuple[nx.Graph | nx.DiGraph, dict[str, Any]]:
         paths_to_try = [
             Path(config.params["path"]),
             self.data_dir / config.params["path"],
@@ -368,7 +369,7 @@ class BenchmarkDataManager:
 
     def _generate_graph(
         self, config: DatasetConfig
-    ) -> Tuple[Union[nx.Graph, nx.DiGraph], Dict[str, Any]]:
+    ) -> tuple[nx.Graph | nx.DiGraph, dict[str, Any]]:
         """Generate a synthetic network using networkx generator functions."""
         generator_name = config.params.get("generator")
         if not generator_name:
@@ -404,7 +405,7 @@ class BenchmarkDataManager:
 
     def load_network_sync(
         self, config: DatasetConfig
-    ) -> Tuple[Union[nx.Graph, nx.DiGraph], Dict[str, Any]]:
+    ) -> tuple[nx.Graph | nx.DiGraph, dict[str, Any]]:
         import asyncio
 
         loop = asyncio.get_event_loop()

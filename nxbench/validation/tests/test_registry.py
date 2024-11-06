@@ -1,12 +1,13 @@
+import logging
+
 import pytest
 import yaml
-import logging
 
 from nxbench.validation.base import ValidationError
 from nxbench.validation.registry import (
+    BenchmarkValidator,
     ValidationConfig,
     ValidationRegistry,
-    BenchmarkValidator,
 )
 
 
@@ -195,7 +196,7 @@ class TestBenchmarkValidator:
         validator = BenchmarkValidator(registry)
         result = {"node1": 0.5, "node2": 0.5}
         validator.validate_result(result, "custom_algo", simple_graph)
-        mock_validator.assert_called_once_with(result, simple_graph, **{})
+        mock_validator.assert_called_once_with(result, simple_graph)
 
     def test_validate_result_with_custom_validator_params(
         self, simple_graph, mock_validator

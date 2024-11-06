@@ -2,7 +2,6 @@ import itertools
 import json
 import logging
 from pathlib import Path
-from typing import Dict, List
 
 import networkx as nx
 
@@ -21,7 +20,7 @@ class BenchmarkDashboard:
         self.data_manager = BenchmarkDataManager()
         self.benchmark_config = get_benchmark_config()
 
-    def load_results(self) -> List[BenchmarkResult]:
+    def load_results(self) -> list[BenchmarkResult]:
         """Load benchmark results from ASV's results directory."""
         results = []
 
@@ -35,7 +34,7 @@ class BenchmarkDashboard:
                         try:
                             data = json.load(f)
                         except json.JSONDecodeError as e:
-                            logger.error(f"Failed to decode JSON from {env_file}: {e}")
+                            logger.exception(f"Failed to decode JSON from {env_file}: {e}")
                             continue
 
                         for bench_name, bench_data in data.get("results", {}).items():
@@ -143,7 +142,7 @@ class BenchmarkDashboard:
                                     benchmark_result.metadata = metadata
                                     results.append(benchmark_result)
                                 except Exception as e:
-                                    logger.error(
+                                    logger.exception(
                                         f"Failed to create BenchmarkResult for "
                                         f"{bench_name} with dataset {dataset} and "
                                         f"backend {backend}: {e}"
@@ -153,7 +152,7 @@ class BenchmarkDashboard:
 
     def compare_results(
         self, baseline: str, comparison: str, threshold: float
-    ) -> List[Dict]:
+    ) -> list[dict]:
         """Compare benchmark results between two algorithms or datasets.
 
         Parameters

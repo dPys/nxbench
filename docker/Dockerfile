@@ -33,7 +33,7 @@ RUN pip install --no-cache-dir -e .[cuda,scrape] \
 ENV NXBENCH_HOME=/root/.nxbench
 ENV NXBENCH_CONFIG_FILE=/app/configs/example.yaml
 
-CMD ["nxbench", "benchmark", "run", "--backend", "all"]
+CMD ["nxbench"]
 
 LABEL maintainer="Derek Alexander <dpysalexander@example.com>"
 LABEL description="Container image for nxbench graph algorithm benchmarking suite"

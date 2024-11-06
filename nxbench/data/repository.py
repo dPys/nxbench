@@ -10,7 +10,7 @@ import warnings
 import zipfile
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Union
+from typing import Any
 from urllib.parse import urljoin
 
 import aiofiles
@@ -57,29 +57,30 @@ class NetworkMetadata:
 
     name: str
     category: str = "Unknown"
-    description: Optional[str] = None
+    description: str | None = None
     source: str = "Unknown"
     directed: bool = False
     weighted: bool = False
 
-    vertex_type: Optional[str] = "Unknown"
-    edge_type: Optional[str] = "Unknown"
-    collection: Optional[str] = "Unknown"
-    tags: Optional[List[str]] = field(default_factory=list)
+    vertex_type: str | None = "Unknown"
+    edge_type: str | None = "Unknown"
+    collection: str | None = "Unknown"
+    tags: list[str] | None = field(default_factory=list)
 
-    citations: List[str] = field(default_factory=list)
+    citations: list[str] = field(default_factory=list)
 
-    network_statistics: Optional[NetworkStats] = None
-    download_url: Optional[str] = None
+    network_statistics: NetworkStats | None = None
+    download_url: str | None = None
 
 
 class NetworkRepository:
     """Asynchronous interface for downloading and working with networks from the
-    networkrepository"""
+    networkrepository
+    """
 
     def __init__(
         self,
-        data_home: Optional[Union[str, Path]] = None,
+        data_home: str | Path | None = None,
         scrape_delay: float = 1.0,
         timeout: int = 30,
         max_connections: int = 10,
@@ -117,10 +118,10 @@ class NetworkRepository:
             "max_keepalive_connections": max_keepalive_connections,
             "keepalive_timeout": keepalive_timeout,
         }
-        self.session: Optional[ClientSession] = None
-        self.networks_by_category: Dict[str, List[str]] = {}
+        self.session: ClientSession | None = None
+        self.networks_by_category: dict[str, list[str]] = {}
 
-    def _get_data_home(self, data_home: Optional[Union[str, Path]] = None) -> Path:
+    def _get_data_home(self, data_home: str | Path | None = None) -> Path:
         """Return the path of the dataset directory."""
         if data_home is None:
             data_home = Path(os.environ.get("NXBENCH_HOME", "~/nxbench"))
@@ -131,9 +132,9 @@ class NetworkRepository:
         data_home.mkdir(parents=True, exist_ok=True)
         return data_home
 
-    async def _load_metadata_cache(self) -> Dict[str, NetworkMetadata]:
+    async def _load_metadata_cache(self) -> dict[str, NetworkMetadata]:
         if self.cache_file.exists():
-            async with aiofiles.open(self.cache_file, "r") as f:
+            async with aiofiles.open(self.cache_file) as f:
                 data = await f.read()
             data = json.loads(data)
             return {k: NetworkMetadata(**v) for k, v in data.items()}
@@ -146,7 +147,7 @@ class NetworkRepository:
             }
             await f.write(json.dumps(serialized, indent=4))
 
-    def _serialize_metadata(self, metadata: NetworkMetadata) -> Dict[str, Any]:
+    def _serialize_metadata(self, metadata: NetworkMetadata) -> dict[str, Any]:
         """Serialize NetworkMetadata to a dictionary, handling nested dataclasses."""
         data = metadata.__dict__.copy()
         if isinstance(data.get("network_statistics"), NetworkStats):
@@ -177,7 +178,8 @@ class NetworkRepository:
         self, url: str, method: str = "GET", retries: int = 3, **kwargs
     ) -> str:
         """Fetch the text content of a URL using aiohttp with retries and robust
-        encoding handling."""
+        encoding handling.
+        """
         if not self.session:
             raise RuntimeError("HTTP session is not initialized.")
         attempt = 0
@@ -213,8 +215,8 @@ class NetworkRepository:
                     f"Unicode decode error for {url}. Attempt {attempt + 1}/{retries}"
                 )
                 if attempt >= retries - 1:
-                    logger.error(f"Failed to decode {url} after {retries} attempts.")
-                    logger.error(traceback.format_exc())
+                    logger.exception(f"Failed to decode {url} after {retries} attempts.")
+                    logger.exception(traceback.format_exc())
                     raise
             except aiohttp.ClientResponseError:
                 logger.warning(
@@ -222,24 +224,24 @@ class NetworkRepository:
                     f"{attempt + 1}/{retries}"
                 )
                 if attempt >= retries - 1:
-                    logger.error(f"Failed to fetch {url} after {retries} attempts.")
-                    logger.error(traceback.format_exc())
+                    logger.exception(f"Failed to fetch {url} after {retries} attempts.")
+                    logger.exception(traceback.format_exc())
                     raise
             except aiohttp.ClientError:
                 logger.warning(
                     f"HTTP client error for {url}. Attempt {attempt + 1}/{retries}"
                 )
                 if attempt >= retries - 1:
-                    logger.error(f"Failed to fetch {url} after {retries} attempts.")
-                    logger.error(traceback.format_exc())
+                    logger.exception(f"Failed to fetch {url} after {retries} attempts.")
+                    logger.exception(traceback.format_exc())
                     raise
             except Exception:
                 logger.warning(
                     f"Unexpected error for {url}. Attempt {attempt + 1}/{retries}"
                 )
                 if attempt >= retries - 1:
-                    logger.error(f"Failed to fetch {url} after {retries} attempts.")
-                    logger.error(traceback.format_exc())
+                    logger.exception(f"Failed to fetch {url} after {retries} attempts.")
+                    logger.exception(traceback.format_exc())
                     raise
             attempt += 1
             backoff = min(2**attempt + random.uniform(0, 1), 60)
@@ -267,24 +269,24 @@ class NetworkRepository:
                     f"HTTP response error for {url}. Attempt {attempt + 1}/{retries}"
                 )
                 if attempt >= retries - 1:
-                    logger.error(f"Failed to fetch {url} after {retries} attempts.")
-                    logger.error(traceback.format_exc())
+                    logger.exception(f"Failed to fetch {url} after {retries} attempts.")
+                    logger.exception(traceback.format_exc())
                     raise
             except aiohttp.ClientError:
                 logger.warning(
                     f"HTTP client error for {url}. Attempt {attempt + 1}/{retries}"
                 )
                 if attempt >= retries - 1:
-                    logger.error(f"Failed to fetch {url} after {retries} attempts.")
-                    logger.error(traceback.format_exc())
+                    logger.exception(f"Failed to fetch {url} after {retries} attempts.")
+                    logger.exception(traceback.format_exc())
                     raise
             except Exception:
                 logger.warning(
                     f"Unexpected error for {url}. Attempt {attempt + 1}/{retries}"
                 )
                 if attempt >= retries - 1:
-                    logger.error(f"Failed to fetch {url} after {retries} attempts.")
-                    logger.error(traceback.format_exc())
+                    logger.exception(f"Failed to fetch {url} after {retries} attempts.")
+                    logger.exception(traceback.format_exc())
                     raise
             attempt += 1
             backoff = 2**attempt + random.uniform(0, 1)
@@ -292,7 +294,7 @@ class NetworkRepository:
             await asyncio.sleep(backoff)
 
     async def _download_file(
-        self, url: str, dest: Path, sha256: Optional[str] = None
+        self, url: str, dest: Path, sha256: str | None = None
     ) -> Path:
         """Asynchronously download a file from a URL to a destination path."""
         logger.info(f"Starting download from {url} to {dest}")
@@ -303,7 +305,7 @@ class NetworkRepository:
                     await f.write(chunk)
             logger.debug(f"Download completed for {dest}")
         except Exception:
-            logger.error(f"Failed to download '{url}'")
+            logger.exception(f"Failed to download '{url}'")
             if dest.exists():
                 await aiofiles.os.remove(dest)
                 logger.debug(f"Removed incomplete download '{dest}'")
@@ -322,7 +324,7 @@ class NetworkRepository:
                     )
                 logger.debug(f"Checksum verification passed for {dest}")
             except Exception:
-                logger.error(f"Checksum verification failed for '{dest.name}'")
+                logger.exception(f"Checksum verification failed for '{dest.name}'")
                 raise
 
         return dest
@@ -346,7 +348,7 @@ class NetworkRepository:
             else:
                 logger.warning(f"Unsupported archive format for '{filepath}'")
         except Exception:
-            logger.error(f"Failed to extract '{filepath}'")
+            logger.exception(f"Failed to extract '{filepath}'")
             raise
         return extracted_path
 
@@ -354,7 +356,7 @@ class NetworkRepository:
         self,
         name: str,
         url: str,
-        sha256: Optional[str] = None,
+        sha256: str | None = None,
         download_if_missing: bool = True,
     ) -> Path:
         """Download dataset if not present, verify checksum, and handle compressed
@@ -388,7 +390,7 @@ class NetworkRepository:
             try:
                 await self._download_file(url, filepath, sha256)
             except Exception:
-                logger.error(f"Failed to download '{name}' from '{url}'")
+                logger.exception(f"Failed to download '{name}' from '{url}'")
                 raise
 
             if zipfile.is_zipfile(filepath) or tarfile.is_tarfile(filepath):
@@ -396,21 +398,21 @@ class NetworkRepository:
                     extracted_path = await self._extract_file(filepath)
                     return extracted_path
                 except Exception:
-                    logger.error(f"Failed to extract '{name}'")
+                    logger.exception(f"Failed to extract '{name}'")
                     raise
 
         return filepath
 
     async def list_networks(
         self,
-        category: Optional[str] = None,
-        collection: Optional[str] = None,
-        min_nodes: Optional[int] = None,
-        max_nodes: Optional[int] = None,
-        directed: Optional[bool] = None,
-        weighted: Optional[bool] = None,
-        limit: Optional[int] = None,
-    ) -> List[NetworkMetadata]:
+        category: str | None = None,
+        collection: str | None = None,
+        min_nodes: int | None = None,
+        max_nodes: int | None = None,
+        directed: bool | None = None,
+        weighted: bool | None = None,
+        limit: int | None = None,
+    ) -> list[NetworkMetadata]:
         """List available networks matching specified criteria asynchronously."""
         matching_networks = []
         categories = [category] if category else list(self.networks_by_category.keys())
@@ -422,7 +424,7 @@ class NetworkRepository:
                 try:
                     metadata = await self.get_network_metadata(name, cat)
                 except Exception:
-                    logger.error(f"Error fetching metadata for network '{name}'")
+                    logger.exception(f"Error fetching metadata for network '{name}'")
                     continue
 
                 if directed is not None and metadata.directed != directed:
@@ -465,12 +467,13 @@ class NetworkRepository:
             async with self.session.head(url) as response:
                 return response.status == 200
         except Exception:
-            logger.error(f"Error verifying URL '{url}'")
+            logger.exception(f"Error verifying URL '{url}'")
             return False
 
-    async def discover_networks_by_category(self) -> Dict[str, List[str]]:
+    async def discover_networks_by_category(self) -> dict[str, list[str]]:
         """Asynchronously scrape network names from networkrepository.com for each
-        category."""
+        category.
+        """
         networks_by_category = {}
 
         for category in COLLECTIONS:
@@ -502,9 +505,9 @@ class NetworkRepository:
                 await asyncio.sleep(self.scrape_delay)
 
             except aiohttp.ClientError:
-                logger.error(f"Error fetching networks for category '{category}'")
+                logger.exception(f"Error fetching networks for category '{category}'")
             except Exception:
-                logger.error(f"Unexpected error for category '{category}'")
+                logger.exception(f"Unexpected error for category '{category}'")
 
         return networks_by_category
 
@@ -527,9 +530,7 @@ class NetworkRepository:
         return "Unknown"
 
     async def fetch_with_retry(self, name: str) -> str | None:
-        """
-        Attempt to fetch the metadata URL using alternative naming patterns.
-        """
+        """Attempt to fetch the metadata URL using alternative naming patterns."""
         alternative_patterns = [
             f"{name}.php",
             f"{name.replace('-', '_')}.php",
@@ -541,8 +542,7 @@ class NetworkRepository:
             if await self.verify_url(url):
                 logger.debug(f"Alternative pattern matched for '{name}': {url}")
                 return url
-            else:
-                logger.debug(f"Alternative pattern did not match for '{name}': {url}")
+            logger.debug(f"Alternative pattern did not match for '{name}': {url}")
 
         logger.error(f"No valid alternative URLs found for network '{name}'.")
         return None
@@ -627,7 +627,7 @@ class NetworkRepository:
             html_content = await self._fetch_text(url, method="GET")
             logger.debug(f"Fetched metadata content for '{name}'")
         except aiohttp.ClientError:
-            logger.error(f"Failed to fetch metadata for '{name}' from '{url}'")
+            logger.exception(f"Failed to fetch metadata for '{name}' from '{url}'")
             raise
 
         soup = BeautifulSoup(html_content, "lxml")
@@ -719,7 +719,7 @@ class NetworkRepository:
                         data[label] = value_cell.get_text(strip=True)
             logger.debug(f"Extracted metadata fields for '{name}': {data}")
         except Exception:
-            logger.error(f"Error parsing metadata table for '{name}'")
+            logger.exception(f"Error parsing metadata table for '{name}'")
 
         citations = []
         acknowledgements_section = soup.find("div", id="collapse_ack")
@@ -747,7 +747,7 @@ class NetworkRepository:
         metadata = NetworkMetadata(
             name=name,
             category=data.get("Category", category),
-            description=data.get("Description", None),
+            description=data.get("Description"),
             directed=directed,
             weighted=weighted,
             vertex_type=data.get("Vertex type", "Unknown"),
@@ -768,7 +768,7 @@ class NetworkRepository:
 
         return metadata
 
-    def _parse_numeric_value(self, value: str) -> Optional[Union[int, float]]:
+    def _parse_numeric_value(self, value: str) -> int | float | None:
         """Parse a numeric value that may include suffixes like K, M, etc.
 
         Returns None if the value cannot be parsed into a number.
@@ -794,15 +794,14 @@ class NetworkRepository:
         try:
             if "." in value:
                 return float(value) * multiplier
-            else:
-                return int(value) * multiplier
+            return int(value) * multiplier
         except ValueError:
             return None
 
-    def _parse_network_stats(self, stats_dict: Dict[str, Any]) -> NetworkStats:
+    def _parse_network_stats(self, stats_dict: dict[str, Any]) -> NetworkStats:
         """Convert a dictionary of stats into a NetworkStats dataclass."""
 
-        def get_numeric(key: str, default: Union[int, float]) -> Union[int, float]:
+        def get_numeric(key: str, default: int | float) -> int | float:
             """Helper function to parse numeric values with defaults."""
             value = self._parse_numeric_value(stats_dict.get(key, default))
             if value is None:

@@ -1,16 +1,16 @@
-import pytest
-import yaml
 import os
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
 
 import networkx as nx
+import pytest
+import yaml
 
 from nxbench.benchmarks.config import (
     AlgorithmConfig,
-    DatasetConfig,
     BenchmarkConfig,
-    BenchmarkResult,
     BenchmarkMetrics,
+    BenchmarkResult,
+    DatasetConfig,
 )
 from nxbench.benchmarks.utils import (
     configure_benchmarks,
@@ -35,7 +35,7 @@ class TestAlgorithmConfig:
             mock_module = MagicMock()
             mock_func = MagicMock()
             mock_import.return_value = mock_module
-            setattr(mock_module, "pagerank", mock_func)
+            mock_module.pagerank = mock_func
 
             algo = AlgorithmConfig(
                 name="pagerank",
@@ -63,7 +63,7 @@ class TestAlgorithmConfig:
             mock_module = MagicMock()
             mock_val_func = MagicMock()
             mock_import.return_value = mock_module
-            setattr(mock_module, "validate_func", mock_val_func)
+            mock_module.validate_func = mock_val_func
 
             algo = AlgorithmConfig(
                 name="pagerank",

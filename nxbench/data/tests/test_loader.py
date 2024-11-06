@@ -1,7 +1,9 @@
 import warnings
-import pytest
-import networkx as nx
 from pathlib import Path
+
+import networkx as nx
+import pytest
+
 from nxbench.benchmarks.config import DatasetConfig
 
 warnings.filterwarnings("ignore")
@@ -48,7 +50,7 @@ D A 4.0
     )
     graph, metadata = await data_manager.load_network(config)
 
-    assert isinstance(graph, nx.Graph) or isinstance(graph, nx.DiGraph)
+    assert isinstance(graph, (nx.Graph, nx.DiGraph))
     assert graph.number_of_nodes() == 4, "Graph should have 4 nodes"
     assert graph.number_of_edges() == 4, "Graph should have 4 edges"
     assert not graph.is_directed(), "Graph should be undirected"
@@ -76,7 +78,7 @@ async def test_load_08blocks(data_manager, create_edge_file):
     )
     graph, metadata = await data_manager.load_network(config)
 
-    assert isinstance(graph, nx.Graph) or isinstance(graph, nx.DiGraph)
+    assert isinstance(graph, (nx.Graph, nx.DiGraph))
     assert graph.number_of_nodes() == 4, "Graph should have 4 nodes"
     assert graph.number_of_edges() == 4, "Graph should have 4 edges"
     assert not graph.is_directed(), "Graph should be undirected"
@@ -151,9 +153,7 @@ X U
 
         graph, metadata = await data_manager.load_network(config)
 
-        assert isinstance(graph, nx.Graph) or isinstance(
-            graph, nx.DiGraph
-        ), f"Graph should be NetworkX Graph or DiGraph for {case['filename']}"
+        assert isinstance(graph, (nx.Graph, nx.DiGraph)), f"Graph should be NetworkX Graph or DiGraph for {case['filename']}"
         assert (
             graph.number_of_nodes() > 0
         ), f"Graph should have nodes for {case['filename']}"
@@ -198,9 +198,7 @@ E,F
 
     graph, metadata = await data_manager.load_network(config)
 
-    assert isinstance(graph, nx.Graph) or isinstance(
-        graph, nx.DiGraph
-    ), "Graph should be NetworkX Graph or DiGraph"
+    assert isinstance(graph, (nx.Graph, nx.DiGraph)), "Graph should be NetworkX Graph or DiGraph"
     assert graph.number_of_nodes() == 4, "Graph should have 4 nodes"
     assert graph.number_of_edges() == 3, "Graph should have 3 edges"
 
@@ -228,9 +226,7 @@ D A four
 
     graph, metadata = await data_manager.load_network(config)
 
-    assert isinstance(graph, nx.Graph) or isinstance(
-        graph, nx.DiGraph
-    ), "Graph should be NetworkX Graph or DiGraph"
+    assert isinstance(graph, (nx.Graph, nx.DiGraph)), "Graph should be NetworkX Graph or DiGraph"
     assert graph.number_of_nodes() == 4, "Graph should have 4 nodes"
     assert graph.number_of_edges() == 4, "Graph should have 4 edges"
 
@@ -264,9 +260,7 @@ B C 2.0  # Duplicate edge
 
     graph, metadata = await data_manager.load_network(config)
 
-    assert isinstance(graph, nx.Graph) or isinstance(
-        graph, nx.DiGraph
-    ), "Graph should be NetworkX Graph or DiGraph"
+    assert isinstance(graph, (nx.Graph, nx.DiGraph)), "Graph should be NetworkX Graph or DiGraph"
     assert graph.number_of_nodes() == 4, "Graph should have 4 nodes"
     assert (
         graph.number_of_edges() == 4
@@ -302,9 +296,7 @@ node1 node3 4.0
 
     graph, metadata = await data_manager.load_network(config)
 
-    assert isinstance(graph, nx.Graph) or isinstance(
-        graph, nx.DiGraph
-    ), "Graph should be NetworkX Graph or DiGraph"
+    assert isinstance(graph, (nx.Graph, nx.DiGraph)), "Graph should be NetworkX Graph or DiGraph"
     assert graph.number_of_nodes() == 6, "Graph should have 6 nodes"
     assert graph.number_of_edges() == 4, "Graph should have 4 edges"
 
@@ -401,9 +393,7 @@ D A 4.0
 
     graph, metadata = await data_manager.load_network(config)
 
-    assert isinstance(graph, nx.Graph) or isinstance(
-        graph, nx.DiGraph
-    ), "Graph should be NetworkX Graph or DiGraph"
+    assert isinstance(graph, (nx.Graph, nx.DiGraph)), "Graph should be NetworkX Graph or DiGraph"
     assert graph.number_of_nodes() == 4, "Graph should have 4 nodes"
     assert graph.number_of_edges() == 4, "Graph should have 4 edges"
 

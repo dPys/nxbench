@@ -3,7 +3,8 @@
 import logging
 import warnings
 from collections import defaultdict
-from typing import Any, Dict, Iterable, List, Optional, Set, Tuple, Type, Union
+from typing import Any
+from collections.abc import Iterable
 
 import networkx as nx
 import numpy as np
@@ -29,7 +30,6 @@ __all__ = [
 class ValidationError(Exception):
     """Custom exception for validation failures."""
 
-    pass
 
 
 def validate_graph_result(
@@ -51,12 +51,12 @@ def validate_graph_result(
 
 
 def validate_node_scores(
-    result: Dict[Any, float],
-    graph: Union[nx.Graph, nx.DiGraph],
-    score_range: Tuple[float, float] = (0.0, 1.0),
+    result: dict[Any, float],
+    graph: nx.Graph | nx.DiGraph,
+    score_range: tuple[float, float] = (0.0, 1.0),
     require_normalized: bool = True,
     tolerance: float = 1e-6,
-    normalization_factor: Optional[float] = None,
+    normalization_factor: float | None = None,
     scale_by_n: bool = False,
 ) -> None:
     """Validate node-based scoring algorithms (e.g. centrality measures).
@@ -151,10 +151,10 @@ def validate_node_scores(
 
 
 def validate_communities(
-    result: List[Set],
-    graph: Union[nx.Graph, nx.DiGraph],
+    result: list[set],
+    graph: nx.Graph | nx.DiGraph,
     allow_overlap: bool = False,
-    min_community_size: Optional[int] = None,
+    min_community_size: int | None = None,
     check_connectivity: bool = True,
 ) -> None:
     """Validate community detection results.
@@ -219,8 +219,8 @@ def validate_communities(
 
 
 def validate_path_lengths(
-    result: Dict[Any, Dict[Any, float]],
-    graph: Union[nx.Graph, nx.DiGraph],
+    result: dict[Any, dict[Any, float]],
+    graph: nx.Graph | nx.DiGraph,
     check_symmetry: bool = False,
     allow_infinity: bool = True,
 ) -> None:
@@ -243,7 +243,6 @@ def validate_path_lengths(
     ValidationError
         If validation fails
     """
-
     if not isinstance(result, dict):
         result = dict(result)
 
@@ -287,8 +286,8 @@ def validate_path_lengths(
 
 
 def validate_flow(
-    result: Tuple[float, Dict[Any, Dict[Any, float]]],
-    graph: Union[nx.Graph, nx.DiGraph],
+    result: tuple[float, dict[Any, dict[Any, float]]],
+    graph: nx.Graph | nx.DiGraph,
     check_conservation: bool = True,
     tolerance: float = 1e-6,
 ) -> None:
@@ -360,7 +359,7 @@ def validate_flow(
 
 def validate_edge_scores(
     edge_scores: dict,
-    graph: Union[nx.Graph, nx.DiGraph],
+    graph: nx.Graph | nx.DiGraph,
     score_range: tuple = (0.0, 1.0),
 ) -> None:
     """Validate edge scores for a given graph.
@@ -397,9 +396,9 @@ def validate_edge_scores(
 
 
 def validate_similarity_scores(
-    result: Iterable[Tuple[Any, Any, float]],
-    graph: Union[nx.Graph, nx.DiGraph],
-    score_range: Tuple[float, float] = (0.0, 1.0),
+    result: Iterable[tuple[Any, Any, float]],
+    graph: nx.Graph | nx.DiGraph,
+    score_range: tuple[float, float] = (0.0, 1.0),
     require_symmetric: bool = True,
     tolerance: float = 1e-6,
 ) -> None:
@@ -468,18 +467,7 @@ def validate_similarity_scores(
         symmetric_scores[u][v] = score
 
     if require_symmetric:
-        if isinstance(graph, nx.Graph):
-            for u in symmetric_scores:
-                for v, score in symmetric_scores[u].items():
-                    if v in symmetric_scores and u in symmetric_scores[v]:
-                        if not np.isclose(
-                            score, symmetric_scores[v][u], rtol=tolerance
-                        ):
-                            raise ValidationError(
-                                f"Asymmetric scores: {u}->{v}={score}, "
-                                f"{v}->{u}={symmetric_scores[v][u]}"
-                            )
-        elif isinstance(graph, nx.DiGraph):
+        if isinstance(graph, (nx.Graph, nx.DiGraph)):
             for u in symmetric_scores:
                 for v, score in symmetric_scores[u].items():
                     if v in symmetric_scores and u in symmetric_scores[v]:
@@ -494,10 +482,10 @@ def validate_similarity_scores(
 
 def validate_scalar_result(
     result: Any,
-    graph: Union[nx.Graph, nx.DiGraph],
-    expected_type: Type = float,
-    min_value: Optional[float] = None,
-    max_value: Optional[float] = None,
+    graph: nx.Graph | nx.DiGraph,
+    expected_type: type = float,
+    min_value: float | None = None,
+    max_value: float | None = None,
 ) -> None:
     """Validate scalar result (e.g., float, int)."""
     if not isinstance(result, expected_type):

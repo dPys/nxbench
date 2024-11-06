@@ -1,7 +1,8 @@
+from unittest.mock import MagicMock
+
+import networkx as nx
 import pytest
 import yaml
-import networkx as nx
-from unittest.mock import MagicMock
 
 
 @pytest.fixture

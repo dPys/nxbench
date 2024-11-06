@@ -4,7 +4,6 @@ import os
 import subprocess
 import warnings
 from pathlib import Path
-from typing import Optional
 
 import click
 import pandas as pd
@@ -28,7 +27,7 @@ logger = logging.getLogger("nxbench")
     help="Path to config file.",
 )
 @click.pass_context
-def cli(ctx, verbose: int, config: Optional[Path]):
+def cli(ctx, verbose: int, config: Path | None):
     """NetworkX Benchmarking Suite CLI."""
     if verbose >= 2:
         verbosity_level = 2
@@ -54,14 +53,13 @@ def cli(ctx, verbose: int, config: Optional[Path]):
 @click.pass_context
 def data(ctx):
     """Dataset management commands."""
-    pass
 
 
 @data.command()
 @click.argument("name")
 @click.option("--category", type=str, help="Dataset category.")
 @click.pass_context
-def download(ctx, name: str, category: Optional[str]):
+def download(ctx, name: str, category: str | None):
     """Download a specific dataset."""
     config = ctx.obj.get("CONFIG")
     if config:
@@ -73,7 +71,7 @@ def download(ctx, name: str, category: Optional[str]):
         graph, metadata = data_manager.load_network_sync(dataset_config)
         logger.info(f"Successfully downloaded dataset: {name}")
     except Exception as e:
-        logger.error(f"Failed to download dataset: {e}")
+        logger.exception(f"Failed to download dataset: {e}")
 
 
 @data.command()
@@ -84,10 +82,10 @@ def download(ctx, name: str, category: Optional[str]):
 @click.pass_context
 def list_datasets(
     ctx,
-    category: Optional[str],
-    min_nodes: Optional[int],
-    max_nodes: Optional[int],
-    directed: Optional[bool],
+    category: str | None,
+    min_nodes: int | None,
+    max_nodes: int | None,
+    directed: bool | None,
 ):
     """List available datasets."""
     import asyncio
@@ -115,7 +113,6 @@ def list_datasets(
 @click.pass_context
 def benchmark(ctx):
     """Benchmark management commands."""
-    pass
 
 
 @benchmark.command(name="run")
@@ -139,7 +136,7 @@ def run_benchmark(ctx, backend: tuple[str], collection: str):
             ["git", "rev-parse", "HEAD"], universal_newlines=True
         ).strip()
     except subprocess.CalledProcessError as e:
-        logger.error(f"Failed to get git hash: {e}")
+        logger.exception(f"Failed to get git hash: {e}")
         raise click.ClickException("Could not determine git commit hash")
 
     cmd_parts = [
@@ -162,9 +159,8 @@ def run_benchmark(ctx, backend: tuple[str], collection: str):
                     benchmark_pattern = f"{benchmark_pattern}.*{collection}"
                 benchmark_pattern = f"{benchmark_pattern}.*{b}"
                 cmd_parts.extend(["-b", f'"{benchmark_pattern}"'])
-    else:
-        if collection != "all":
-            cmd_parts.extend(["-b", f'"GraphBenchmark.track_.*{collection}"'])
+    elif collection != "all":
+        cmd_parts.extend(["-b", f'"GraphBenchmark.track_.*{collection}"'])
 
     cmd_parts.append("--python=same")
 
@@ -174,7 +170,7 @@ def run_benchmark(ctx, backend: tuple[str], collection: str):
     try:
         subprocess.run(cmd, shell=True, check=True)
     except subprocess.CalledProcessError as e:
-        logger.error(f"Benchmark run failed: {e}")
+        logger.exception(f"Benchmark run failed: {e}")
         raise click.ClickException("Benchmark run failed")
 
 
@@ -274,14 +270,13 @@ def compare(ctx, baseline: str, comparison: str, threshold: float):
     if config:
         logger.debug(f"Config file used for compare: {config}")
 
-    subprocess.run(["asv", "compare", baseline, comparison, "-f", str(threshold)])
+    subprocess.run(["asv", "compare", baseline, comparison, "-f", str(threshold)], check=False)
 
 
 @cli.group()
 @click.pass_context
 def viz(ctx):
     """Visualization commands."""
-    pass
 
 
 @viz.command()
@@ -320,11 +315,11 @@ def publish(ctx):
         )
         logger.info("Successfully processed results.")
     except subprocess.CalledProcessError as e:
-        logger.error(f"Failed to process results: {e}")
+        logger.exception(f"Failed to process results: {e}")
         raise click.ClickException("Result processing failed")
 
     # Step 2: Run asv publish
-    subprocess.run(["asv", "publish", "--verbose"])
+    subprocess.run(["asv", "publish", "--verbose"], check=False)
     dashboard = BenchmarkDashboard()
     dashboard.generate_static_report()
 
@@ -333,7 +328,6 @@ def publish(ctx):
 @click.pass_context
 def validate(ctx):
     """Validation commands."""
-    pass
 
 
 @validate.command()
@@ -358,7 +352,7 @@ def check(ctx, result_file: Path):
             validator.validate_result(result, algorithm_name, graph, raise_errors=True)
             logger.info(f"Validation passed for algorithm '{algorithm_name}'")
         except Exception as e:
-            logger.error(f"Validation failed for algorithm '{algorithm_name}': {e}")
+            logger.exception(f"Validation failed for algorithm '{algorithm_name}': {e}")
 
 
 def main():

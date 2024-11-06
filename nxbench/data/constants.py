@@ -38,7 +38,7 @@ COLLECTIONS = {
     "rec",  # Recommendation Networks
     "rt",  # Retweet Networks
     "road",  # Road Networks
-    "rt",  # Retweet Networks
+    # Retweet Networks
     "sc",  # Small-World Networks
     "soc",  # Social Networks
     "socfb",  # Facebook Networks

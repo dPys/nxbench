@@ -4,10 +4,10 @@ import logging
 import warnings
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Union
+from typing import Any
 
-import yaml
 import networkx as nx
+import yaml
 
 warnings.filterwarnings("ignore")
 
@@ -28,12 +28,12 @@ class AlgorithmConfig:
 
     name: str
     func: str
-    params: Dict[str, Any] = field(default_factory=dict)
+    params: dict[str, Any] = field(default_factory=dict)
     requires_directed: bool = False
     requires_undirected: bool = False
     requires_weighted: bool = False
-    validate_result: Optional[str] = None
-    groups: List[str] = field(default_factory=lambda: ["default"])
+    validate_result: str | None = None
+    groups: list[str] = field(default_factory=lambda: ["default"])
     min_rounds: int = 3
     warmup: bool = True
     warmup_iterations: int = 1
@@ -45,7 +45,7 @@ class AlgorithmConfig:
             module = __import__(module_path, fromlist=[func_name])
             self.func_ref = getattr(module, func_name)
         except (ImportError, AttributeError) as e:
-            logger.error(
+            logger.exception(
                 f"Failed to import function '{self.func}' for algorithm '{self.name}': {e}"
             )
             self.func_ref = None
@@ -56,7 +56,7 @@ class AlgorithmConfig:
                 module = __import__(mod_path, fromlist=[val_func])
                 self.validate_ref = getattr(module, val_func)
             except (ImportError, AttributeError) as e:
-                logger.error(
+                logger.exception(
                     f"Failed to import validation function '{self.validate_result}' "
                     f"for algorithm '{self.name}': {e}"
                 )
@@ -69,21 +69,21 @@ class AlgorithmConfig:
 class DatasetConfig:
     name: str
     source: str
-    params: Dict[str, Any] = field(default_factory=dict)
-    metadata: Optional[Dict[str, Any]] = field(default=None)
+    params: dict[str, Any] = field(default_factory=dict)
+    metadata: dict[str, Any] | None = field(default=None)
 
 
 @dataclass
 class BenchmarkConfig:
     """Complete benchmark suite configuration."""
 
-    algorithms: List[AlgorithmConfig]
-    datasets: List[DatasetConfig]
-    machine_info: Dict[str, Any] = field(default_factory=dict)
+    algorithms: list[AlgorithmConfig]
+    datasets: list[DatasetConfig]
+    machine_info: dict[str, Any] = field(default_factory=dict)
     output_dir: Path = field(default_factory=lambda: Path("../results"))
 
     @classmethod
-    def from_yaml(cls, path: Union[str, Path]) -> "BenchmarkConfig":
+    def from_yaml(cls, path: str | Path) -> "BenchmarkConfig":
         """Load configuration from YAML file.
 
         Parameters
@@ -126,7 +126,7 @@ class BenchmarkConfig:
             output_dir=Path(data.get("output_dir", "../results")),
         )
 
-    def to_yaml(self, path: Union[str, Path]) -> None:
+    def to_yaml(self, path: str | Path) -> None:
         """Save configuration to YAML file.
 
         Parameters
@@ -143,7 +143,7 @@ class BenchmarkConfig:
                 for algo in self.algorithms
             ],
             "datasets": [
-                {k: v for k, v in ds.__dict__.items()} for ds in self.datasets
+                dict(ds.__dict__.items()) for ds in self.datasets
             ],
             "machine_info": self.machine_info,
             "output_dir": str(self.output_dir),
@@ -166,11 +166,11 @@ class BenchmarkResult:
     is_directed: bool
     is_weighted: bool
     backend: str
-    metadata: Dict[str, Any]
+    metadata: dict[str, Any]
 
     @classmethod
     def from_asv_result(
-        cls, asv_result: Dict[str, Any], graph: Union[nx.Graph, nx.DiGraph, None] = None
+        cls, asv_result: dict[str, Any], graph: nx.Graph | nx.DiGraph | None = None
     ):
         """Create BenchmarkResult from ASV benchmark output."""
         execution_time = asv_result.get("execution_time", 0.0)

@@ -1,8 +1,8 @@
 import os
 from pathlib import Path
-from typing import Optional, Union
+from typing import Optional
 
-from nxbench.benchmarks.config import BenchmarkConfig, AlgorithmConfig, DatasetConfig
+from nxbench.benchmarks.config import AlgorithmConfig, BenchmarkConfig, DatasetConfig
 
 _BENCHMARK_CONFIG: Optional["BenchmarkConfig"] = None
 
@@ -34,7 +34,7 @@ def is_nx_parallel_available():
         return False
 
 
-def configure_benchmarks(config: Union[BenchmarkConfig, Path, str]) -> None:
+def configure_benchmarks(config: BenchmarkConfig | Path | str) -> None:
     """Configure the benchmark suite.
 
     Parameters
@@ -80,11 +80,9 @@ def get_benchmark_config() -> BenchmarkConfig:
         if config_file.exists():
             _BENCHMARK_CONFIG = BenchmarkConfig.from_yaml(config_file)
             return _BENCHMARK_CONFIG
-        else:
-            raise FileNotFoundError(f"Configuration file not found: {config_file}")
-    else:
-        _BENCHMARK_CONFIG = load_default_config()
-        return _BENCHMARK_CONFIG
+        raise FileNotFoundError(f"Configuration file not found: {config_file}")
+    _BENCHMARK_CONFIG = load_default_config()
+    return _BENCHMARK_CONFIG
 
 
 def load_default_config() -> BenchmarkConfig:

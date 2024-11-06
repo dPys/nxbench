@@ -1,6 +1,5 @@
 import dash
 import dash_bootstrap_components as dbc
-import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
 from dash import dcc, html
@@ -122,13 +121,13 @@ def run_server(port=8050, debug=False):
             fig.update_layout(
                 title="No Data Available",
                 annotations=[
-                    dict(
-                        text="No data available for the selected algorithm.",
-                        x=0.5,
-                        y=0.5,
-                        showarrow=False,
-                        font=dict(size=20),
-                    )
+                    {
+                        "text": "No data available for the selected algorithm.",
+                        "x": 0.5,
+                        "y": 0.5,
+                        "showarrow": False,
+                        "font": {"size": 20},
+                    }
                 ],
             )
             return fig
@@ -138,13 +137,13 @@ def run_server(port=8050, debug=False):
             fig.update_layout(
                 title="No Data Available",
                 annotations=[
-                    dict(
-                        text="No data available for the selected algorithm.",
-                        x=0.5,
-                        y=0.5,
-                        showarrow=False,
-                        font=dict(size=20),
-                    )
+                    {
+                        "text": "No data available for the selected algorithm.",
+                        "x": 0.5,
+                        "y": 0.5,
+                        "showarrow": False,
+                        "font": {"size": 20},
+                    }
                 ],
             )
             return fig
@@ -191,12 +190,12 @@ def run_server(port=8050, debug=False):
 
         parcats = go.Parcats(
             dimensions=dimensions,
-            line=dict(
-                color=color_values,
-                colorscale="Tealrose",
-                showscale=True,
-                colorbar=dict(title=colorbar_title),
-            ),
+            line={
+                "color": color_values,
+                "colorscale": "Tealrose",
+                "showscale": True,
+                "colorbar": {"title": colorbar_title},
+            },
             counts=counts,
             hoverinfo="count",
         )

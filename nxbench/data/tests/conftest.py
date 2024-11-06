@@ -1,7 +1,8 @@
 import tempfile
-import pytest
 import textwrap
 from pathlib import Path
+
+import pytest
 
 from nxbench.data.loader import BenchmarkDataManager
 
@@ -9,8 +10,10 @@ from nxbench.data.loader import BenchmarkDataManager
 @pytest.fixture
 def mock_metadata():
     """Fixture to mock the _load_metadata method of BenchmarkDataManager."""
-    import pandas as pd
     from unittest.mock import patch
+
+    import pandas as pd
+
     from nxbench.data.loader import BenchmarkDataManager
 
     def _mock_load_metadata(self):

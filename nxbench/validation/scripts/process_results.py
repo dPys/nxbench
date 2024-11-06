@@ -1,7 +1,6 @@
 import argparse
 import json
 import logging
-import os
 import shutil
 from pathlib import Path
 
@@ -10,9 +9,7 @@ logger = logging.getLogger(__name__)
 
 
 def process_results_file(file_path: Path):
-    """
-    Process a single asv results JSON file to extract only execution_time.
-    """
+    """Process a single asv results JSON file to extract only execution_time."""
     try:
         with file_path.open("r") as f:
             data = json.load(f)
@@ -66,13 +63,11 @@ def process_results_file(file_path: Path):
             logger.info(f"No modifications needed for file: {file_path}")
 
     except Exception as e:
-        logger.error(f"Failed to process file '{file_path}': {e}")
+        logger.exception(f"Failed to process file '{file_path}': {e}")
 
 
 def process_all_results(results_dir: Path):
-    """
-    Traverse the results directory and process all JSON files.
-    """
+    """Traverse the results directory and process all JSON files."""
     if not results_dir.exists() or not results_dir.is_dir():
         logger.error(
             f"Results directory '{results_dir}' does not exist or is not a directory."

@@ -5,7 +5,8 @@ import logging
 import warnings
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Callable, Dict, Optional, Set, Type, Union
+from typing import Any
+from collections.abc import Callable
 
 import networkx as nx
 import yaml
@@ -38,13 +39,13 @@ class ValidationConfig:
 
     validator: Callable
 
-    params: Dict[str, Any] = field(default_factory=dict)
+    params: dict[str, Any] = field(default_factory=dict)
 
-    expected_type: Optional[Type] = None
+    expected_type: type | None = None
 
     required: bool = True
 
-    extra_checks: Set[str] = field(default_factory=set)
+    extra_checks: set[str] = field(default_factory=set)
 
 
 class ValidationRegistry:
@@ -166,13 +167,13 @@ class ValidationRegistry:
 
     def __init__(self):
         """Initialize the registry with default validators."""
-        self._validators: Dict[str, ValidationConfig] = self.DEFAULT_VALIDATORS.copy()
-        self._custom_validators: Dict[str, ValidationConfig] = {}
+        self._validators: dict[str, ValidationConfig] = self.DEFAULT_VALIDATORS.copy()
+        self._custom_validators: dict[str, ValidationConfig] = {}
 
     def register_validator(
         self,
         algorithm_name: str,
-        validator: Union[Callable, ValidationConfig],
+        validator: Callable | ValidationConfig,
         **kwargs,
     ) -> None:
         """Register a new validator for an algorithm.
@@ -214,7 +215,7 @@ class ValidationRegistry:
 
     def get_validator(
         self, algorithm_name: str, *, required: bool = True
-    ) -> Optional[ValidationConfig]:
+    ) -> ValidationConfig | None:
         """Get validator configuration for an algorithm.
 
         Parameters
@@ -247,7 +248,7 @@ class ValidationRegistry:
 
         return None
 
-    def load_config(self, path: Union[str, Path]) -> None:
+    def load_config(self, path: str | Path) -> None:
         """Load validator configurations from YAML file.
 
         Parameters
@@ -285,7 +286,7 @@ class ValidationRegistry:
 class BenchmarkValidator:
     """Handles validation for benchmark results."""
 
-    def __init__(self, registry: Optional[ValidationRegistry] = None):
+    def __init__(self, registry: ValidationRegistry | None = None):
         """Initialize validator with optional registry."""
         self.registry = registry or ValidationRegistry()
 
@@ -293,7 +294,7 @@ class BenchmarkValidator:
         self,
         result: Any,
         algorithm_name: str,
-        graph: Union[nx.Graph, nx.DiGraph],
+        graph: nx.Graph | nx.DiGraph,
         *,
         raise_errors: bool = True,
     ) -> bool:
@@ -319,21 +320,21 @@ class BenchmarkValidator:
         except Exception as e:
             if raise_errors:
                 raise ValidationError(
-                    f"Validation failed for {algorithm_name}: {str(e)}"
+                    f"Validation failed for {algorithm_name}: {e!s}"
                 ) from e
 
             logger.error(
-                f"Validation failed for {algorithm_name}: {str(e)}", exc_info=True
+                f"Validation failed for {algorithm_name}: {e!s}", exc_info=True
             )
             return False
 
     def create_validator(
         self, algorithm_name: str, *, raise_errors: bool = True
-    ) -> Callable[[Any, Union[nx.Graph, nx.DiGraph]], bool]:
+    ) -> Callable[[Any, nx.Graph | nx.DiGraph], bool]:
         """Create a validator function for use with pytest.mark.benchmark."""
 
         def validator(
-            benchmark_result: Any, graph: Union[nx.Graph, nx.DiGraph]
+            benchmark_result: Any, graph: nx.Graph | nx.DiGraph
         ) -> bool:
             return self.validate_result(
                 benchmark_result, algorithm_name, graph, raise_errors=raise_errors

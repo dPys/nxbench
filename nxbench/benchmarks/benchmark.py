@@ -6,20 +6,20 @@ import traceback
 import tracemalloc
 import warnings
 from functools import partial
-from typing import Any, Dict, List, Tuple
+from typing import Any
 
 import networkx as nx
 
 from _nxbench.config import _config as package_config
 from nxbench.benchmarks.config import AlgorithmConfig
-from nxbench.data.loader import BenchmarkDataManager
-from nxbench.validation.registry import BenchmarkValidator
 from nxbench.benchmarks.utils import (
+    get_benchmark_config,
     is_cugraph_available,
     is_graphblas_available,
     is_nx_parallel_available,
-    get_benchmark_config,
 )
+from nxbench.data.loader import BenchmarkDataManager
+from nxbench.validation.registry import BenchmarkValidator
 
 warnings.filterwarnings("ignore")
 
@@ -110,7 +110,7 @@ class GraphBenchmark:
                     f"Cached dataset '{dataset_name}' with {graph.number_of_nodes()} nodes"
                 )
             except Exception as e:
-                logger.error(f"Failed to load dataset '{dataset_name}': {e}")
+                logger.exception(f"Failed to load dataset '{dataset_name}': {e}")
 
     def setup(self, dataset_name: str, backend: str) -> bool:
         """Setup for each benchmark iteration."""
@@ -149,10 +149,10 @@ class GraphBenchmark:
                 return False
             return True
         except ImportError as e:
-            logger.error(f"Backend '{backend}' import failed: {e}")
+            logger.exception(f"Backend '{backend}' import failed: {e}")
             return False
         except Exception as e:
-            logger.error(f"Error setting up backend '{backend}': {e}")
+            logger.exception(f"Error setting up backend '{backend}': {e}")
             logger.debug(traceback.format_exc())
             return False
 
@@ -172,7 +172,7 @@ class GraphBenchmark:
                 f"Got algorithm function: {algo_func.func.__name__ if hasattr(algo_func, 'func') else algo_func.__name__}"
             )
         except (ImportError, AttributeError) as e:
-            logger.error(f"Function not available for backend {backend}: {e}")
+            logger.exception(f"Function not available for backend {backend}: {e}")
             logger.debug(traceback.format_exc())
             return {"execution_time": float("nan"), "memory_used": float("nan")}
 
@@ -213,7 +213,7 @@ class GraphBenchmark:
             return metrics
 
         except Exception as e:
-            logger.error(f"Error running algorithm '{algo_config.name}': {str(e)}")
+            logger.exception(f"Error running algorithm '{algo_config.name}': {e!s}")
             logger.debug(traceback.format_exc())
             return {"execution_time": float("nan"), "memory_used": float("nan")}
 
@@ -227,13 +227,12 @@ def get_algorithm_function(algo_config: AlgorithmConfig, backend_name: str) -> A
         )
     if backend_name != "networkx":
         return partial(algo_config.func_ref, backend=backend_name)
-    else:
-        return algo_config.func_ref
+    return algo_config.func_ref
 
 
 def process_algorithm_params(
-    params: Dict[str, Any],
-) -> Tuple[List[Any], Dict[str, Any]]:
+    params: dict[str, Any],
+) -> tuple[list[Any], dict[str, Any]]:
     pos_args = []
     kwargs = {}
     for key, value in params.items():

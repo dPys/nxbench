@@ -30,7 +30,7 @@ pip install -e .[cuda]
 
 ## Quick Start
 
-1. Configure your benchmarks in `configs/example.yaml`:
+1. Configure your benchmarks in a yaml file (see `configs/example.yaml`):
 
 ```yaml
 algorithms:
@@ -45,19 +45,26 @@ datasets:
     source: "networkrepository"
 ```
 
-2. Run benchmarks:
+2. Run benchmarks based on the configuration:
 
 ```bash
-nxbench benchmark run --backend networkx
+nxbench --config 'configs/example.yaml' benchmark run
 ```
 
-3. View results:
+3. Export results:
+
+```bash
+nxbench export 'results/results.csv'  # Convert benchmarked results into csv format.
+```
+
+
+4. View results:
 
 ```bash
 nxbench viz serve  # Launch interactive dashboard
 ```
 
-## Command Line Interface
+## Advanced Command Line Interface
 
 The CLI provides comprehensive management of benchmarks, datasets, and visualization:
 
@@ -67,9 +74,10 @@ nxbench data download karate  # Download specific dataset
 nxbench data list --category social  # List available datasets
 
 # Benchmarking
-nxbench --config 'configs/example.yaml' -vv benchmark run  # Run configured benchmarks
-nxbench benchmark export 'results/results.csv'  # Export results
+nxbench --config 'configs/example.yaml' -vvv benchmark run  # Debug benchmark runs
+nxbench export sql  # Export the results into a sql database (In construction)
 nxbench benchmark compare HEAD HEAD~1  # Compare with previous commit
+
 
 # Visualization
 nxbench viz serve  # Launch parallel categories dashboard
@@ -98,7 +106,7 @@ datasets:
 ## Supported Backends
 
 - NetworkX (default)
-- CuGraph (optional, requires CUDA)
+- CuGraph (requires separate CUDA installation and supported GPU hardware)
 - GraphBLAS (optional)
 - nx-parallel (optional)
 
@@ -109,10 +117,26 @@ datasets:
 pip install -e .[test,scrape,doc] # testing, scraping of real-world graph data, and documentation
 
 # Run tests
-pytest
+make test
+```
 
-# Build documentation
-cd docs && make html
+## Reproducible benchmarking through containerization
+
+```bash
+# Run benchmarks with GPU
+docker-compose up nxbench
+
+# Run benchmarks CPU-only
+NUM_GPU=0 docker-compose up nxbench
+
+# Start visualization dashboard
+docker-compose up dashboard
+
+# Run specific backend
+docker-compose run --rm nxbench benchmark run --backend networkx
+
+# View results
+docker-compose run --rm nxbench benchmark export results.csv
 ```
 
 ## Contributing

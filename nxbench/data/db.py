@@ -4,7 +4,7 @@ from contextlib import contextmanager
 from dataclasses import asdict
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, Generator, List, Optional, Union
+from collections.abc import Generator
 
 import pandas as pd
 
@@ -43,7 +43,7 @@ CREATE INDEX IF NOT EXISTS idx_timestamp ON benchmarks(timestamp);
 class BenchmarkDB:
     """Database interface for storing and querying benchmark results."""
 
-    def __init__(self, db_path: Union[str, Path] = None):
+    def __init__(self, db_path: str | Path | None = None):
         """Initialize the database connection.
 
         Parameters
@@ -75,11 +75,11 @@ class BenchmarkDB:
 
     def save_results(
         self,
-        results: Union[BenchmarkResult, List[BenchmarkResult]],
-        git_commit: Optional[str] = None,
-        machine_info: Optional[Dict] = None,
-        python_version: Optional[str] = None,
-        package_versions: Optional[Dict] = None,
+        results: BenchmarkResult | list[BenchmarkResult],
+        git_commit: str | None = None,
+        machine_info: dict | None = None,
+        python_version: str | None = None,
+        package_versions: dict | None = None,
     ) -> None:
         """Save benchmark results to database.
 
@@ -125,13 +125,13 @@ class BenchmarkDB:
 
     def get_results(
         self,
-        algorithm: Optional[str] = None,
-        backend: Optional[str] = None,
-        dataset: Optional[str] = None,
-        start_date: Optional[str] = None,
-        end_date: Optional[str] = None,
+        algorithm: str | None = None,
+        backend: str | None = None,
+        dataset: str | None = None,
+        start_date: str | None = None,
+        end_date: str | None = None,
         as_pandas: bool = True,
-    ) -> Union[pd.DataFrame, List[Dict]]:
+    ) -> pd.DataFrame | list[dict]:
         """Query benchmark results with optional filters.
 
         Parameters
@@ -181,7 +181,7 @@ class BenchmarkDB:
             columns = [desc[0] for desc in cursor.description]
             return [dict(zip(columns, row)) for row in cursor.fetchall()]
 
-    def get_unique_values(self, column: str) -> List[str]:
+    def get_unique_values(self, column: str) -> list[str]:
         """Get unique values for a given column.
 
         Parameters
@@ -200,10 +200,10 @@ class BenchmarkDB:
 
     def delete_results(
         self,
-        algorithm: Optional[str] = None,
-        backend: Optional[str] = None,
-        dataset: Optional[str] = None,
-        before_date: Optional[str] = None,
+        algorithm: str | None = None,
+        backend: str | None = None,
+        dataset: str | None = None,
+        before_date: str | None = None,
     ) -> int:
         """Delete benchmark results matching criteria.
 

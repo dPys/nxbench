@@ -64,7 +64,7 @@ async def main(
                         raise
                     delay = min(2**attempt + random.uniform(0, 1), 60)
                     logger.warning(
-                        f"Attempt {attempt + 1} failed, retrying in {delay:.2f}s: {str(e)}"
+                        f"Attempt {attempt + 1} failed, retrying in {delay:.2f}s: {e!s}"
                     )
                     await asyncio.sleep(delay)
 
@@ -84,7 +84,7 @@ async def main(
                 networks_data.append(data)
                 logger.info(f"Processed network '{name}' in category '{category}'")
             except Exception as e:
-                logger.error(
+                logger.exception(
                     f"Error processing network '{name}' in category '{category}': {e}"
                 )
 
@@ -122,4 +122,3 @@ async def main(
 
 if __name__ == "__main__":
     df = asyncio.run(main(test_mode=False, test_limit=5, max_concurrent_tasks=3))
-    print(df.head())

@@ -1,7 +1,7 @@
-import pytest
 import networkx as nx
-from nxbench.data.utils import normalize_name, get_connected_components, lcc
+import pytest
 
+from nxbench.data.utils import get_connected_components, lcc, normalize_name
 
 # ========================
 # Tests for normalize_name
@@ -9,7 +9,7 @@ from nxbench.data.utils import normalize_name, get_connected_components, lcc
 
 
 @pytest.mark.parametrize(
-    "input_name,expected",
+    ("input_name", "expected"),
     [
         ("My Network", "My-Network"),
         ("Network@2024", "Network-2024"),

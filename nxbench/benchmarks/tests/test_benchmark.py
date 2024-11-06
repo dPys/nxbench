@@ -1,18 +1,16 @@
-import pytest
-import math
 import importlib
-import networkx as nx
+import math
 from unittest.mock import MagicMock, patch
 
+import networkx as nx
+import pytest
 
-from nxbench.benchmarks.config import DatasetConfig, AlgorithmConfig
+from nxbench.benchmarks.config import AlgorithmConfig, DatasetConfig
 
 
 @pytest.fixture(scope="module")
 def mock_benchmark():
-    """
-    Fixture to create a mocked GraphBenchmark instance.
-    """
+    """Fixture to create a mocked GraphBenchmark instance."""
     with (
         patch("nxbench.benchmarks.benchmark.get_benchmark_config") as mock_get_config,
         patch("nxbench.benchmarks.benchmark.is_cugraph_available", return_value=False),
@@ -135,8 +133,8 @@ def test_do_benchmark_setup_failure(mock_benchmark):
 
 def test_get_algorithm_function_networkx(mock_benchmark):
     """Test get_algorithm_function for the networkx backend."""
-    from nxbench.benchmarks.config import AlgorithmConfig
     from nxbench.benchmarks.benchmark import get_algorithm_function
+    from nxbench.benchmarks.config import AlgorithmConfig
 
     algo_config = AlgorithmConfig(name="dummy_algo", func="dummy.module.func")
     algo_config.func_ref = MagicMock(name="dummy_func_ref")
@@ -147,8 +145,8 @@ def test_get_algorithm_function_networkx(mock_benchmark):
 
 def test_get_algorithm_function_other_backend(mock_benchmark):
     """Test get_algorithm_function for non-networkx backends."""
-    from nxbench.benchmarks.config import AlgorithmConfig
     from nxbench.benchmarks.benchmark import get_algorithm_function
+    from nxbench.benchmarks.config import AlgorithmConfig
 
     algo_config = AlgorithmConfig(name="dummy_algo", func="dummy.module.func")
     algo_config.func_ref = MagicMock(name="dummy_func_ref")
@@ -183,7 +181,7 @@ def test_process_algorithm_params_with_function(mock_benchmark):
 
 
 @pytest.mark.parametrize(
-    "backend_name, expected",
+    ("backend_name", "expected"),
     [
         ("networkx", True),
         ("parallel", True),

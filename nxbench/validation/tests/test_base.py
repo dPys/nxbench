@@ -1,17 +1,17 @@
-import pytest
 import networkx as nx
 import numpy as np
+import pytest
 
 from nxbench.validation.base import (
     ValidationError,
+    validate_communities,
+    validate_edge_scores,
+    validate_flow,
     validate_graph_result,
     validate_node_scores,
-    validate_communities,
     validate_path_lengths,
-    validate_flow,
-    validate_similarity_scores,
-    validate_edge_scores,
     validate_scalar_result,
+    validate_similarity_scores,
 )
 
 
