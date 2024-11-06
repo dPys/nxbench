@@ -112,13 +112,22 @@ class BenchmarkDataManager:
             suffix = graph_file.suffix.lower()
             if suffix == ".mtx":
                 logger.info(f"Loading Matrix Market file from {graph_file}")
-                sparse_matrix = mmread(graph_file)
-                graph = nx.from_scipy_sparse_array(
-                    sparse_matrix,
-                    create_using=(
-                        nx.DiGraph() if metadata.get("directed", False) else nx.Graph()
-                    ),
-                )
+                try:
+                    sparse_matrix = mmread(graph_file)
+                    graph = nx.from_scipy_sparse_array(
+                        sparse_matrix,
+                        create_using=(
+                            nx.DiGraph()
+                            if metadata.get("directed", False)
+                            else nx.Graph()
+                        ),
+                    )
+                except ValueError:
+                    logger.exception(f"Failed to load Matrix Market file {graph_file}")
+                    raise ValueError("Matrix Market file not in expected format")
+                except Exception:
+                    logger.exception(f"Failed to load Matrix Market file {graph_file}")
+                    raise
             elif suffix in [".edgelist", ".edges"]:
                 create_using = (
                     nx.DiGraph() if metadata.get("directed", False) else nx.Graph()

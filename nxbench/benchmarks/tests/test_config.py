@@ -1,4 +1,5 @@
 import os
+import textwrap
 from unittest.mock import MagicMock, patch
 
 import networkx as nx
@@ -20,7 +21,7 @@ from nxbench.benchmarks.utils import (
 
 
 @pytest.fixture(autouse=True)
-def reset_benchmark_config():
+def _reset_benchmark_config():
     import nxbench.benchmarks.config
 
     original_config = nxbench.benchmarks.utils._BENCHMARK_CONFIG
@@ -200,19 +201,21 @@ class TestGlobalConfiguration:
         assert current_config == config
 
     def test_configure_with_yaml(self, tmp_path):
-        yaml_content = """
-algorithms:
-  - name: louvain_communities
-    func: networkx.algorithms.community.louvain.louvain_communities
-    requires_undirected: true
-datasets:
-  - name: 08blocks
-    source: networkrepository
-"""
+        yaml_content = textwrap.dedent(
+            """
+            algorithms:
+              - name: louvain_communities
+                func: networkx.algorithms.community.louvain.louvain_communities
+                requires_undirected: true
+            datasets:
+              - name: 08blocks
+                source: networkrepository
+        """
+        )
         config_file = tmp_path / "config.yaml"
         config_file.write_text(yaml_content)
 
-        configure_benchmarks(config_file)
+        configure_benchmarks(str(config_file))
         current_config = get_benchmark_config()
 
         assert len(current_config.algorithms) == 1

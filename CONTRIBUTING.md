@@ -80,6 +80,7 @@ git checkout -b feature-or-fix-name
 3. Run pre-commit hooks:
 
 ```bash
+pre-commit install
 pre-commit run --all-files
 ```
 

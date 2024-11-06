@@ -313,11 +313,15 @@ class BenchmarkValidator:
             config.validator(result, graph, **config.params)
 
             logger.debug(f"Validation passed for algorithm: {algorithm_name}")
-        except Exception:
+        except Exception as e:
             if raise_errors:
-                raise ValidationError(f"Validation failed for {algorithm_name}")
+                raise ValidationError(
+                    f"Validation failed for {algorithm_name}: {e}"
+                ) from e
 
-            logger.exception(f"Validation failed for {algorithm_name}")
+            logger.exception(
+                f"Validation failed for {algorithm_name}: {e}"  # noqa: TRY401
+            )
             return False
         else:
             return True

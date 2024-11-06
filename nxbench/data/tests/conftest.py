@@ -31,6 +31,7 @@ def _mock_metadata():
                 "example",
                 "extra_columns",
                 "twitter",
+                "invalid_example",
             ],
             "download_url": [
                 "http://example.com/jazz.zip",
@@ -45,8 +46,10 @@ def _mock_metadata():
                 "http://example.com/example.zip",
                 "http://example.com/extra_columns.zip",
                 "http://example.com/twitter.zip",
+                "http://example.com/invalid_example.zip",
             ],
             "directed": [
+                False,
                 False,
                 False,
                 False,
@@ -73,6 +76,7 @@ def _mock_metadata():
                 True,
                 True,
                 False,
+                True,
             ],
         }
         df = pd.DataFrame(data)

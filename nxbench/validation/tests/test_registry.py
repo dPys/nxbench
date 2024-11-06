@@ -39,7 +39,7 @@ class TestValidationRegistry:
 
     def test_register_validator_invalid_callable(self):
         registry = ValidationRegistry()
-        with pytest.raises(ValueError, match=r"Validator must be callable"):
+        with pytest.raises(TypeError, match=r"Validator must be callable"):
             registry.register_validator("invalid_algo", "not_callable")
 
     def test_register_validator_non_callable_validation_config(self):
@@ -47,7 +47,7 @@ class TestValidationRegistry:
         config = ValidationConfig(
             validator="not_callable",
         )
-        with pytest.raises(ValueError, match=r"Invalid validator function"):
+        with pytest.raises(TypeError, match=r"Invalid validator function"):
             registry.register_validator("invalid_config", config)
 
     def test_register_validator_invalid_signature(self, mock_validator):
