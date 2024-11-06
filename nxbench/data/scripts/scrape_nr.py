@@ -1,9 +1,10 @@
+import asyncio
 import logging
 import os
 import random
 
 import pandas as pd
-import asyncio
+
 from nxbench.data.repository import NetworkRepository, NetworkStats
 
 logger = logging.getLogger("nxbench")

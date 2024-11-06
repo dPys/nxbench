@@ -3,7 +3,7 @@
 import logging
 import warnings
 from collections import defaultdict
-from typing import Any, Dict, Iterable, List, Optional, Set, Tuple, Union, Type
+from typing import Any, Dict, Iterable, List, Optional, Set, Tuple, Type, Union
 
 import networkx as nx
 import numpy as np
@@ -119,12 +119,14 @@ def validate_node_scores(
 
     if np.any(scores < min_score - tolerance):
         raise ValidationError(
-            f"Scores below minimum {min_score}: {scores[scores < min_score - tolerance]}"
+            f"Scores below minimum {min_score}: "
+            f"{scores[scores < min_score - tolerance]}"
         )
 
     if np.any(scores > max_score + tolerance):
         raise ValidationError(
-            f"Scores above maximum {max_score}: {scores[scores > max_score + tolerance]}"
+            f"Scores above maximum {max_score}: "
+            f"{scores[scores > max_score + tolerance]}"
         )
 
     if require_normalized:
@@ -133,14 +135,13 @@ def validate_node_scores(
 
         if normalization_factor is not None:
             expected_sum = normalization_factor
+            normalized_sum = score_sum / normalization_factor
         elif scale_by_n:
             expected_sum = float(n)
+            normalized_sum = score_sum / expected_sum
         else:
             expected_sum = 1.0
-
-        normalized_sum = score_sum
-        if normalization_factor is not None:
-            normalized_sum = score_sum / normalization_factor
+            normalized_sum = score_sum
 
         if not np.isclose(normalized_sum, 1.0, rtol=tolerance):
             raise ValidationError(
@@ -228,7 +229,8 @@ def validate_path_lengths(
     Parameters
     ----------
     result : dict of dict
-        Dictionary mapping source nodes to dictionaries mapping target nodes to distances
+        Dictionary mapping source nodes to dictionaries mapping target nodes to
+        distances
     graph : networkx.nx.Graph or networkx.nx.DiGraph
         Original graph
     check_symmetry : bool, default=False
@@ -441,7 +443,11 @@ def validate_similarity_scores(
         if u == v:
             raise ValidationError(f"Self-loop in result: {u}")
 
-        pair = tuple(sorted([u, v]))
+        if isinstance(graph, nx.DiGraph):
+            pair = (u, v)
+        else:
+            pair = tuple(sorted([u, v]))
+
         if pair in seen_pairs:
             raise ValidationError(f"Duplicate node pair in result: {pair}")
         seen_pairs.add(pair)
@@ -462,14 +468,28 @@ def validate_similarity_scores(
         symmetric_scores[u][v] = score
 
     if require_symmetric:
-        for u in symmetric_scores:
-            for v, score in symmetric_scores[u].items():
-                if v in symmetric_scores and u in symmetric_scores[v]:
-                    if not np.isclose(score, symmetric_scores[v][u], rtol=tolerance):
-                        raise ValidationError(
-                            f"Asymmetric scores: {u}->{v}={score}, "
-                            f"{v}->{u}={symmetric_scores[v][u]}"
-                        )
+        if isinstance(graph, nx.Graph):
+            for u in symmetric_scores:
+                for v, score in symmetric_scores[u].items():
+                    if v in symmetric_scores and u in symmetric_scores[v]:
+                        if not np.isclose(
+                            score, symmetric_scores[v][u], rtol=tolerance
+                        ):
+                            raise ValidationError(
+                                f"Asymmetric scores: {u}->{v}={score}, "
+                                f"{v}->{u}={symmetric_scores[v][u]}"
+                            )
+        elif isinstance(graph, nx.DiGraph):
+            for u in symmetric_scores:
+                for v, score in symmetric_scores[u].items():
+                    if v in symmetric_scores and u in symmetric_scores[v]:
+                        if not np.isclose(
+                            score, symmetric_scores[v][u], rtol=tolerance
+                        ):
+                            raise ValidationError(
+                                f"Asymmetric scores: {u}->{v}={score}, "
+                                f"{v}->{u}={symmetric_scores[v][u]}"
+                            )
 
 
 def validate_scalar_result(

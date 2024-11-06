@@ -1,26 +1,32 @@
 import re
+
 import networkx as nx
 
 
 def normalize_name(name: str) -> str:
     """Normalize the network name for URL construction.
     Preserves the original casing and replaces special characters with hyphens.
+    Collapses multiple hyphens into a single hyphen and strips leading/trailing hyphens.
     """
     normalized = re.sub(r"[^a-zA-Z0-9\-]+", "-", name)
+    normalized = re.sub(r"-{2,}", "-", normalized)
     normalized = normalized.strip("-")
     return normalized
 
 
 def get_connected_components(G: nx.Graph) -> list:
+    """Retrieve connected components of a graph."""
     if nx.is_directed(G):
         if nx.is_strongly_connected(G):
-            return [G.nodes()]
-        return nx.weakly_connected_components(G)
-    return nx.connected_components(G)
+            return [set(G.nodes())]
+        return list(nx.weakly_connected_components(G))
+    return list(nx.connected_components(G))
 
 
 def lcc(G: nx.Graph) -> nx.Graph:
     """Extract the largest connected component (LCC) of the graph.
+
+    Removes self-loops from the extracted subgraph.
 
     Parameters
     ----------
@@ -30,12 +36,14 @@ def lcc(G: nx.Graph) -> nx.Graph:
     Returns
     -------
     nx.Graph
-        A subgraph containing the largest connected component. If the input graph
-        has no nodes, it returns the input graph.
+        A subgraph containing the largest connected component without self-loops.
+        If the input graph has no nodes, it returns the input graph.
     """
     if G.number_of_nodes() == 0:
         return G
 
     connected_components = get_connected_components(G)
     largest_cc = max(connected_components, key=len)
-    return G.subgraph(largest_cc).copy()
+    subgraph = G.subgraph(largest_cc).copy()
+    subgraph.remove_edges_from(nx.selfloop_edges(subgraph))
+    return subgraph

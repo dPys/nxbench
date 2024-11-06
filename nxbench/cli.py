@@ -1,19 +1,19 @@
+import json
 import logging
 import os
-import json
+import subprocess
 import warnings
 from pathlib import Path
 from typing import Optional
-import subprocess
 
 import click
 import pandas as pd
 
+from _nxbench.config import _config as package_config
+from nxbench.benchmarks.config import DatasetConfig
 from nxbench.data.loader import BenchmarkDataManager
-from nxbench.config import DatasetConfig
 from nxbench.data.repository import NetworkRepository
 from nxbench.viz.dashboard import BenchmarkDashboard
-from _nxbench.config import _config as package_config
 
 warnings.filterwarnings("ignore")
 

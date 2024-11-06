@@ -1,18 +1,18 @@
+import importlib
+import importlib.resources as importlib_resources
 import logging
-import zipfile
-import aiohttp
 import os
 import warnings
-import importlib.util
-import importlib.resources as importlib_resources
-import pandas as pd
-import networkx as nx
+import zipfile
 from pathlib import Path
-from typing import Dict, Optional, Tuple, Any, Union
+from typing import Any, Dict, Optional, Tuple, Union
 
+import aiohttp
+import networkx as nx
+import pandas as pd
 from scipy.io import mmread
 
-from nxbench.config import DatasetConfig
+from nxbench.benchmarks.config import DatasetConfig
 
 warnings.filterwarnings("ignore")
 
@@ -90,9 +90,7 @@ class BenchmarkDataManager:
 
         source_lower = config.source.lower()
         if source_lower == "networkrepository":
-            graph, metadata = await self._load_networkrepository_graph(
-                config.name, metadata
-            )
+            graph, metadata = await self._load_nr_graph(config.name, metadata)
         elif source_lower == "local":
             graph, metadata = self._load_local_graph(config)
         elif source_lower == "generator":
@@ -123,31 +121,100 @@ class BenchmarkDataManager:
                 )
                 weighted = metadata.get("weighted", False)
                 logger.info(f"Loading edgelist from {graph_file}")
-                if weighted:
+
+                has_weights = False
+                with graph_file.open("r") as f:
+                    for line in f:
+                        line = line.strip()
+                        if not line or line.startswith(("#", "%")):
+                            continue
+                        parts = line.split()
+                        if len(parts) >= 3:
+                            has_weights = True
+                        break
+
+                if has_weights and weighted:
+                    logger.debug("Detected weights in the edge list.")
                     try:
-                        graph = nx.read_edgelist(
-                            graph_file,
-                            nodetype=str,
-                            create_using=create_using,
-                            data=[("weight", float)],
+                        with graph_file.open("r") as f:
+
+                            def edge_parser():
+                                for line in f:
+                                    line = line.strip()
+                                    if not line or line.startswith(("#", "%")):
+                                        continue
+                                    parts = line.split()
+                                    u, v, w = parts[:3]
+                                    yield u, v, float(w)
+
+                            graph = create_using
+                            graph.add_weighted_edges_from(edge_parser())
+                    except ValueError as ve:
+                        logger.warning(
+                            f"ValueError while parsing weights from {graph_file}: "
+                            f"{ve}. Resuming without weights..."
                         )
+                        with graph_file.open("r") as f:
+                            edge_iter = (
+                                line for line in f if not line.startswith(("#", "%"))
+                            )
+                            graph = nx.read_edgelist(
+                                edge_iter,
+                                nodetype=str,
+                                create_using=create_using,
+                                data=False,
+                            )
                     except Exception as e:
                         logger.warning(
-                            f"Could not parse weights from {graph_file}: {e}. Resuming without weights..."
+                            f"Unexpected error while parsing weights from "
+                            f"{graph_file}: {e}. Resuming without weights..."
                         )
-                        graph = nx.read_edgelist(
-                            graph_file,
-                            nodetype=str,
-                            create_using=create_using,
-                            data=False,
-                        )
+                        with graph_file.open("r") as f:
+                            edge_iter = (
+                                line for line in f if not line.startswith(("#", "%"))
+                            )
+                            graph = nx.read_edgelist(
+                                edge_iter,
+                                nodetype=str,
+                                create_using=create_using,
+                                data=False,
+                            )
                 else:
-                    graph = nx.read_edgelist(
-                        graph_file,
-                        nodetype=str,
-                        create_using=create_using,
-                        data=False,
+                    logger.debug(
+                        "No weights detected or weights not required. Reading as "
+                        "unweighted."
                     )
+                    try:
+                        with graph_file.open("r") as f:
+                            edge_iter = (
+                                line for line in f if not line.startswith(("#", "%"))
+                            )
+                            graph = nx.read_edgelist(
+                                edge_iter,
+                                nodetype=str,
+                                create_using=create_using,
+                                data=False,
+                            )
+                    except Exception as e:
+                        logger.error(
+                            f"Failed to read unweighted edgelist from {graph_file}: {e}"
+                        )
+                        raise e
+
+                initial_num_edges = graph.number_of_edges()
+                graph.remove_edges_from(nx.selfloop_edges(graph))
+                final_num_edges = graph.number_of_edges()
+                if initial_num_edges != final_num_edges:
+                    logger.debug(
+                        f"Removed {initial_num_edges - final_num_edges} self-loop(s) "
+                        f"from {graph_file}"
+                    )
+
+                if not all(isinstance(node, str) for node in graph.nodes()):
+                    logger.debug("Converting node IDs to strings.")
+                    mapping = {node: str(node) for node in graph.nodes()}
+                    graph = nx.relabel_nodes(graph, mapping)
+
             elif graph_file.suffix == ".graphml":
                 logger.info(f"Loading GraphML from {graph_file}")
                 graph = nx.read_graphml(graph_file)
@@ -161,7 +228,7 @@ class BenchmarkDataManager:
         logger.info(f"Loaded network from '{graph_file}' successfully.")
         return graph
 
-    async def _load_networkrepository_graph(
+    async def _load_nr_graph(
         self, name: str, metadata: Dict[str, Any]
     ) -> Union[nx.Graph, nx.DiGraph]:
         for ext in self.SUPPORTED_FORMATS:
@@ -174,7 +241,8 @@ class BenchmarkDataManager:
             raise ValueError(f"No download URL found for network {name}")
 
         logger.info(
-            f"Network '{name}' not found in local cache. Attempting to download from repository."
+            f"Network '{name}' not found in local cache. Attempting to download from "
+            f"repository."
         )
         await self._download_and_extract_network(name, url)
 
@@ -185,7 +253,8 @@ class BenchmarkDataManager:
 
         logger.error(f"No suitable graph file found after downloading '{name}'")
         raise FileNotFoundError(
-            f"No suitable graph file found after downloading '{name}'. Ensure the download was successful and the graph file exists."
+            f"No suitable graph file found after downloading '{name}'. Ensure the "
+            f"download was successful and the graph file exists."
         )
 
     async def _download_and_extract_network(self, name: str, url: str):
@@ -224,7 +293,8 @@ class BenchmarkDataManager:
                 logger.info(f"Moved graph file to {target_graph_file}")
             except Exception as e:
                 logger.error(
-                    f"Failed to move graph file {graph_file} to {target_graph_file}: {e}"
+                    f"Failed to move graph file {graph_file} to {target_graph_file}: "
+                    f"{e}"
                 )
                 raise e
 
@@ -233,10 +303,12 @@ class BenchmarkDataManager:
             async with session.get(url) as response:
                 if response.status != 200:
                     logger.error(
-                        f"Failed to download file from {url}. Status code: {response.status}"
+                        f"Failed to download file from {url}. Status code: "
+                        f"{response.status}"
                     )
                     raise ConnectionError(
-                        f"Failed to download file from {url}. Status code: {response.status}"
+                        f"Failed to download file from {url}. Status code: "
+                        f"{response.status}"
                     )
                 with open(dest, "wb") as f:
                     while True:
@@ -247,7 +319,8 @@ class BenchmarkDataManager:
         logger.info(f"Downloaded file from {url} to {dest}")
 
     def _find_graph_file(self, extracted_folder: Path) -> Optional[Path]:
-        """Search for supported graph files within the extracted folder and its immediate files."""
+        """Search for supported graph files within the extracted folder and its
+        immediate files."""
         for file in extracted_folder.glob("*"):
             if file.suffix in self.SUPPORTED_FORMATS:
                 logger.debug(f"Found graph file: {file}")
@@ -282,7 +355,8 @@ class BenchmarkDataManager:
 
         if path is None:
             raise FileNotFoundError(
-                f"Network file not found in any location: {[str(p) for p in paths_to_try]}"
+                f"Network file not found in any location: "
+                f"{[str(p) for p in paths_to_try]}"
             )
 
         _format = config.params.get("format", path.suffix[1:])
@@ -314,7 +388,8 @@ class BenchmarkDataManager:
             graph = generator(**gen_params)
         except Exception as e:
             raise ValueError(
-                f"Failed to generate graph with {generator_name} and params {gen_params}: {e}"
+                f"Failed to generate graph with {generator_name} and params "
+                f"{gen_params}: {e}"
             )
 
         directed = config.metadata.get("directed", False)

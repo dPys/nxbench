@@ -4,6 +4,7 @@ from dataclasses import dataclass, field
 from typing import Any
 
 from networkx.utils.configs import Config
+
 from _nxbench.logging import LoggerConfig, LoggingConfig, LoggingHandlerConfig
 
 __all__ = ["_config", "NxBenchConfig"]

@@ -12,13 +12,13 @@ import yaml
 
 from nxbench.validation.base import (
     ValidationError,
-    validate_node_scores,
     validate_communities,
-    validate_path_lengths,
-    validate_flow,
-    validate_similarity_scores,
     validate_edge_scores,
+    validate_flow,
+    validate_node_scores,
+    validate_path_lengths,
     validate_scalar_result,
+    validate_similarity_scores,
 )
 
 warnings.filterwarnings("ignore")
@@ -286,13 +286,7 @@ class BenchmarkValidator:
     """Handles validation for benchmark results."""
 
     def __init__(self, registry: Optional[ValidationRegistry] = None):
-        """Initialize validator with optional registry.
-
-        Parameters
-        ----------
-        registry : ValidationRegistry, optional
-            Registry of validators. If None, uses default registry.
-        """
+        """Initialize validator with optional registry."""
         self.registry = registry or ValidationRegistry()
 
     def validate_result(
@@ -303,34 +297,13 @@ class BenchmarkValidator:
         *,
         raise_errors: bool = True,
     ) -> bool:
-        """Validate algorithm result.
-
-        Parameters
-        ----------
-        result : Any
-            Result to validate
-        algorithm_name : str
-            Name of algorithm that produced result
-        graph : networkx.nx.Graph or networkx.nx.DiGraph
-            nx.Graph used to generate result
-        raise_errors : bool, default=True
-            Whether to raise ValidationError on failure
-
-        Returns
-        -------
-        bool
-            True if validation passed
-
-        Raises
-        ------
-        ValidationError
-            If validation fails and raise_errors=True
-        """
+        """Validate algorithm result."""
         try:
-            config = self.registry.get_validator(algorithm_name)
+            # Set required=False to avoid raising ValueError when no validator is found
+            config = self.registry.get_validator(algorithm_name, required=False)
             if config is None:
                 logger.warning(f"No validator found for algorithm: {algorithm_name}")
-                return True
+                return True  # Ensure a boolean is returned
 
             if config.expected_type and not isinstance(result, config.expected_type):
                 raise ValidationError(
@@ -356,26 +329,13 @@ class BenchmarkValidator:
 
     def create_validator(
         self, algorithm_name: str, *, raise_errors: bool = True
-    ) -> Callable:
-        """Create a validator function for use with pytest.mark.benchmark.
-
-        Parameters
-        ----------
-        algorithm_name : str
-            Name of algorithm to validate
-        raise_errors : bool, default=True
-            Whether to raise ValidationError on failure
-
-        Returns
-        -------
-        callable
-            Validator function for pytest-benchmark
-        """
+    ) -> Callable[[Any, Union[nx.Graph, nx.DiGraph]], bool]:
+        """Create a validator function for use with pytest.mark.benchmark."""
 
         def validator(
             benchmark_result: Any, graph: Union[nx.Graph, nx.DiGraph]
-        ) -> None:
-            self.validate_result(
+        ) -> bool:
+            return self.validate_result(
                 benchmark_result, algorithm_name, graph, raise_errors=raise_errors
             )
 

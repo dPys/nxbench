@@ -1,30 +1,30 @@
 import asyncio
 import hashlib
+import json
 import logging
 import os
-import json
-import warnings
-import traceback
+import random
 import tarfile
+import traceback
+import warnings
 import zipfile
-from pathlib import Path
 from dataclasses import dataclass, field
-from typing import Dict, Optional, Union, Any, List
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Union
 from urllib.parse import urljoin
 
-import aiohttp
 import aiofiles
+import aiohttp
 import chardet
-import random
 from aiohttp import ClientSession, ClientTimeout
-from bs4 import BeautifulSoup
 from aiohttp.client_exceptions import ClientResponseError
 from aiohttp.client_reqrep import RequestInfo
-from multidict import CIMultiDictProxy, CIMultiDict
+from bs4 import BeautifulSoup
+from multidict import CIMultiDict, CIMultiDictProxy
 from yarl import URL
 
+from nxbench.data.constants import BASE_URL, COLLECTIONS, HEADERS
 from nxbench.data.utils import normalize_name
-from nxbench.data.constants import COLLECTIONS, HEADERS, BASE_URL
 
 warnings.filterwarnings("ignore")
 
@@ -550,7 +550,6 @@ class NetworkRepository:
     async def extract_download_url(
         self, soup: BeautifulSoup, name: str, base_url: str = BASE_URL
     ) -> str | None:
-
         archive_extensions = [
             ".zip",
             ".7z",

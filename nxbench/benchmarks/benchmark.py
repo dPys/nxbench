@@ -1,20 +1,25 @@
 """Core benchmark functionality and result handling."""
 
 import logging
-import warnings
-import traceback
 import time
+import traceback
 import tracemalloc
+import warnings
 from functools import partial
-from dataclasses import dataclass
-from typing import Any, Dict, Union, List, Any, Tuple
+from typing import Any, Dict, List, Tuple
 
 import networkx as nx
 
 from _nxbench.config import _config as package_config
+from nxbench.benchmarks.config import AlgorithmConfig
 from nxbench.data.loader import BenchmarkDataManager
-from nxbench.config import get_benchmark_config, AlgorithmConfig
 from nxbench.validation.registry import BenchmarkValidator
+from nxbench.benchmarks.utils import (
+    is_cugraph_available,
+    is_graphblas_available,
+    is_nx_parallel_available,
+    get_benchmark_config,
+)
 
 warnings.filterwarnings("ignore")
 
@@ -22,62 +27,27 @@ logger = logging.getLogger("nxbench")
 
 
 __all__ = [
-    "BenchmarkResult",
+    "generate_benchmark_methods",
     "GraphBenchmark",
-    "BenchmarkMetrics",
     "get_algorithm_function",
     "process_algorithm_params",
 ]
 
 
-@dataclass
-class BenchmarkResult:
-    """Container for benchmark execution results."""
+config = get_benchmark_config()
+datasets = [ds.name for ds in config.datasets]
 
-    algorithm: str
-    dataset: str
-    execution_time: float
-    memory_used: float
-    num_nodes: int
-    num_edges: int
-    is_directed: bool
-    is_weighted: bool
-    backend: str
-    metadata: Dict[str, Any]
 
-    @classmethod
-    def from_asv_result(
-        cls, asv_result: Dict[str, Any], graph: Union[nx.Graph, nx.DiGraph, None] = None
-    ):
-        """Create BenchmarkResult from ASV benchmark output."""
-        execution_time = asv_result.get("execution_time", 0.0)
-        memory_used = asv_result.get("memory_used", 0.0)
-        dataset = asv_result.get("dataset", "Unknown")
-        backend = asv_result.get("backend", "Unknown")
-        algorithm = asv_result.get("algorithm", "Unknown")
+backends = ["networkx"]
 
-        logger.debug(f"execution_time: {execution_time}, type: {type(execution_time)}")
-        logger.debug(f"memory_used: {memory_used}, type: {type(memory_used)}")
+if is_cugraph_available():
+    backends.append("cugraph")
 
-        if not isinstance(execution_time, (int, float)):
-            logger.error(f"Non-numeric execution_time: {execution_time}")
-            execution_time = float("nan")
-        if not isinstance(memory_used, (int, float)):
-            logger.error(f"Non-numeric memory_used: {memory_used}")
-            memory_used = float("nan")
+if is_graphblas_available():
+    backends.append("graphblas")
 
-        return cls(
-            algorithm=algorithm,
-            dataset=dataset,
-            execution_time=execution_time,
-            memory_used=memory_used,
-            num_nodes=graph.number_of_nodes(),
-            num_edges=graph.number_of_edges(),
-            is_directed=graph.is_directed(),
-            is_weighted=nx.is_weighted(graph),
-            backend=backend,
-            metadata={},
-        )
+if is_nx_parallel_available():
+    backends.append("parallel")
 
 
 def generate_benchmark_methods(cls):
@@ -103,57 +73,6 @@ def generate_benchmark_methods(cls):
         setattr(cls, track_method.__name__, track_method)
 
     return cls
-
-
-config = get_benchmark_config()
-datasets = [ds.name for ds in config.datasets]
-
-
-def is_cugraph_available():
-    try:
-        import cugraph
-
-        return True
-    except ImportError:
-        return False
-
-
-def is_graphblas_available():
-    try:
-        import graphblas
-
-        return True
-    except ImportError:
-        return False
-
-
-def is_nx_parallel_available():
-    try:
-        import nx_parallel
-
-        return True
-    except ImportError:
-        return False
-
-
-backends = ["networkx"]
-
-if is_cugraph_available():
-    backends.append("cugraph")
-
-if is_graphblas_available():
-    backends.append("graphblas")
-
-if is_nx_parallel_available():
-    backends.append("parallel")
-
-
-@dataclass
-class BenchmarkMetrics:
-    """Container for benchmark metrics."""
-
-    execution_time: float
-    memory_used: float
 
 
 @generate_benchmark_methods

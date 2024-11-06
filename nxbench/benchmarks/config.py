@@ -1,27 +1,24 @@
 """Benchmark configuration handling."""
 
 import logging
-import os
 import warnings
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
 
 import yaml
+import networkx as nx
 
 warnings.filterwarnings("ignore")
 
 logger = logging.getLogger("nxbench")
 
-_BENCHMARK_CONFIG: Optional["BenchmarkConfig"] = None
-
 __all__ = [
     "AlgorithmConfig",
     "DatasetConfig",
     "BenchmarkConfig",
-    "configure_benchmarks",
-    "get_benchmark_config",
-    "load_default_config",
+    "BenchmarkResult",
+    "BenchmarkMetrics",
 ]
 
 
@@ -60,7 +57,8 @@ class AlgorithmConfig:
                 self.validate_ref = getattr(module, val_func)
             except (ImportError, AttributeError) as e:
                 logger.error(
-                    f"Failed to import validation function '{self.validate_result}' for algorithm '{self.name}': {e}"
+                    f"Failed to import validation function '{self.validate_result}' "
+                    f"for algorithm '{self.name}': {e}"
                 )
                 self.validate_ref = None
         else:
@@ -82,6 +80,7 @@ class BenchmarkConfig:
     algorithms: List[AlgorithmConfig]
     datasets: List[DatasetConfig]
     machine_info: Dict[str, Any] = field(default_factory=dict)
+    output_dir: Path = field(default_factory=lambda: Path("../results"))
 
     @classmethod
     def from_yaml(cls, path: Union[str, Path]) -> "BenchmarkConfig":
@@ -124,6 +123,7 @@ class BenchmarkConfig:
             algorithms=algorithms,
             datasets=datasets,
             machine_info=data.get("machine_info", {}),
+            output_dir=Path(data.get("output_dir", "../results")),
         )
 
     def to_yaml(self, path: Union[str, Path]) -> None:
@@ -137,7 +137,6 @@ class BenchmarkConfig:
         path = Path(path)
         path.parent.mkdir(parents=True, exist_ok=True)
 
-        # Convert dataclasses to dictionaries
         data = {
             "algorithms": [
                 {k: v for k, v in algo.__dict__.items() if not k.endswith("_ref")}
@@ -147,97 +146,66 @@ class BenchmarkConfig:
                 {k: v for k, v in ds.__dict__.items()} for ds in self.datasets
             ],
             "machine_info": self.machine_info,
+            "output_dir": str(self.output_dir),
         }
 
         with path.open("w") as f:
             yaml.dump(data, f, default_flow_style=False)
 
 
-def configure_benchmarks(config: Union[BenchmarkConfig, Path, str]) -> None:
-    """Configure the benchmark suite.
+@dataclass
+class BenchmarkResult:
+    """Container for benchmark execution results."""
 
-    Parameters
-    ----------
-    config : BenchmarkConfig or Path or str
-        Either a BenchmarkConfig instance or path to a YAML config file
+    algorithm: str
+    dataset: str
+    execution_time: float
+    memory_used: float
+    num_nodes: int
+    num_edges: int
+    is_directed: bool
+    is_weighted: bool
+    backend: str
+    metadata: Dict[str, Any]
 
-    Raises
-    ------
-    ValueError
-        If configuration is invalid or already set
-    """
-    global _BENCHMARK_CONFIG
+    @classmethod
+    def from_asv_result(
+        cls, asv_result: Dict[str, Any], graph: Union[nx.Graph, nx.DiGraph, None] = None
+    ):
+        """Create BenchmarkResult from ASV benchmark output."""
+        execution_time = asv_result.get("execution_time", 0.0)
+        memory_used = asv_result.get("memory_used", 0.0)
+        dataset = asv_result.get("dataset", "Unknown")
+        backend = asv_result.get("backend", "Unknown")
+        algorithm = asv_result.get("algorithm", "Unknown")
 
-    if _BENCHMARK_CONFIG is not None:
-        raise ValueError("Benchmark configuration already set")
+        logger.debug(f"execution_time: {execution_time}, type: {type(execution_time)}")
+        logger.debug(f"memory_used: {memory_used}, type: {type(memory_used)}")
 
-    if isinstance(config, (str, Path)):
-        config = BenchmarkConfig.from_yaml(config)
-    elif not isinstance(config, BenchmarkConfig):
-        raise ValueError(f"Invalid config type: {type(config)}")
+        if not isinstance(execution_time, (int, float)):
+            logger.error(f"Non-numeric execution_time: {execution_time}")
+            execution_time = float("nan")
+        if not isinstance(memory_used, (int, float)):
+            logger.error(f"Non-numeric memory_used: {memory_used}")
+            memory_used = float("nan")
 
-    _BENCHMARK_CONFIG = config
-
-    # Set up output directory
-    config.output_dir.mkdir(parents=True, exist_ok=True)
-
-
-def get_benchmark_config() -> BenchmarkConfig:
-    """Get the current benchmark configuration.
-
-    Returns
-    -------
-    BenchmarkConfig
-        Current configuration
-    """
-    global _BENCHMARK_CONFIG
-    if _BENCHMARK_CONFIG is not None:
-        return _BENCHMARK_CONFIG
-
-    config_path = os.environ.get("NXBENCH_CONFIG_FILE")
-    if config_path:
-        config_file = Path(config_path)
-        if config_file.exists():
-            _BENCHMARK_CONFIG = BenchmarkConfig.from_yaml(config_file)
-            return _BENCHMARK_CONFIG
-        else:
-            raise FileNotFoundError(f"Configuration file not found: {config_file}")
-    else:
-        _BENCHMARK_CONFIG = load_default_config()
-        return _BENCHMARK_CONFIG
+        return cls(
+            algorithm=algorithm,
+            dataset=dataset,
+            execution_time=execution_time,
+            memory_used=memory_used,
+            num_nodes=graph.number_of_nodes(),
+            num_edges=graph.number_of_edges(),
+            is_directed=graph.is_directed(),
+            is_weighted=nx.is_weighted(graph),
+            backend=backend,
+            metadata={},
+        )
 
 
-def load_default_config() -> BenchmarkConfig:
-    """Load the default benchmark configuration.
+@dataclass
+class BenchmarkMetrics:
+    """Container for benchmark metrics."""
 
-    Returns
-    -------
-    BenchmarkConfig
-        Default configuration with common algorithms and datasets
-    """
-    return BenchmarkConfig(
-        algorithms=[
-            AlgorithmConfig(
-                name="pagerank",
-                func="networkx.algorithms.link_analysis.pagerank_alg.pagerank",
-                params={"alpha": 0.85},
-                groups=["centrality"],
-            ),
-            AlgorithmConfig(
-                name="louvain_communities",
-                func="networkx.algorithms.community.louvain.louvain_communities",
-                requires_undirected=True,
-                groups=["community"],
-            ),
-        ],
-        datasets=[
-            DatasetConfig(
-                name="08blocks",
-                source="networkrepository",
-            ),
-            DatasetConfig(
-                name="jazz",
-                source="networkrepository",
-            ),
-        ],
-    )
+    execution_time: float
+    memory_used: float

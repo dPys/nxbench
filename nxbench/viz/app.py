@@ -1,10 +1,10 @@
 import dash
-import numpy as np
-from dash import dcc, html
-import plotly.graph_objects as go
-import pandas as pd
-from dash.dependencies import Input, Output
 import dash_bootstrap_components as dbc
+import numpy as np
+import pandas as pd
+import plotly.graph_objects as go
+from dash import dcc, html
+from dash.dependencies import Input, Output
 
 
 def run_server(port=8050, debug=False):
@@ -219,7 +219,8 @@ def run_server(port=8050, debug=False):
                 tooltips.forEach(tooltip => {
                     const textNode = tooltip.querySelector('text');
                     if (textNode && textNode.textContent.includes('Count:')) {
-                        textNode.textContent = textNode.textContent.replace('Count:', 'Mean:');
+                        textNode.textContent = textNode.textContent.replace('Count:',
+                        'Mean:');
                     }
                 });
             }, 10);  // Delay to ensure tooltips are rendered

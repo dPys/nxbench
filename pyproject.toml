@@ -127,16 +127,14 @@ testpaths = ["nxbench"]
 xfail_strict = true
 markers = [
     "slow: Skipped unless --runslow passed",
-    "benchmark: mark test as benchmark",
     "asyncio: mark test as async",
 ]
 asyncio_mode = "auto"
 log_cli = true
 log_cli_format = "%(message)s"
-log_cli_level = "info"
-addopts = "-v --benchmark-only"
+log_cli_level = "debug"
+addopts = "-v"
 required_plugins = [
-    "pytest-benchmark",
     "pytest-asyncio"
 ]
 filterwarnings = [
@@ -145,7 +143,7 @@ filterwarnings = [
     # "error",
 ]
 python_files = [
-    "test_*.py",
+    "nxbench/benchmarks/tests/test_*.py", "nxbench/data/tests/test_*.py", "nxbench/validation/tests/test_*.py", "nxbench/viz/tests/test_*.py",
 ]
 python_functions = [
     "test_*",

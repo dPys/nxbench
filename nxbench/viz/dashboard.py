@@ -1,14 +1,14 @@
-import json
 import itertools
+import json
 import logging
 from pathlib import Path
 from typing import Dict, List
 
 import networkx as nx
 
-from nxbench.benchmarks.benchmark import BenchmarkResult
+from nxbench.benchmarks.config import BenchmarkResult
+from nxbench.benchmarks.utils import get_benchmark_config
 from nxbench.data.loader import BenchmarkDataManager
-from nxbench.config import get_benchmark_config
 
 logger = logging.getLogger("nxbench")
 
@@ -65,8 +65,10 @@ class BenchmarkDashboard:
 
                             if len(measurements) != len(param_combinations):
                                 logger.warning(
-                                    f"Number of measurements ({len(measurements)}) does not match "
-                                    f"number of parameter combinations ({len(param_combinations)}) "
+                                    f"Number of measurements ({len(measurements)}) "
+                                    f"does not match "
+                                    f"number of parameter combinations "
+                                    f"({len(param_combinations)}) "
                                     f"for benchmark {bench_name}"
                                 )
                                 continue
@@ -94,7 +96,8 @@ class BenchmarkDashboard:
                                     memory_used = 0.0
                                 else:
                                     logger.warning(
-                                        f"Unsupported measurement type for {bench_name}: {type(measurement)}"
+                                        f"Unsupported measurement type for "
+                                        f"{bench_name}: {type(measurement)}"
                                     )
                                     execution_time = float("nan")
                                     memory_used = float("nan")
@@ -113,7 +116,8 @@ class BenchmarkDashboard:
                                 )
                                 if dataset_config is None:
                                     logger.warning(
-                                        f"No DatasetConfig found for dataset '{dataset}'"
+                                        f"No DatasetConfig found for dataset "
+                                        f"'{dataset}'"
                                     )
                                     graph = nx.Graph()
                                     graph.graph["name"] = dataset
@@ -140,8 +144,9 @@ class BenchmarkDashboard:
                                     results.append(benchmark_result)
                                 except Exception as e:
                                     logger.error(
-                                        f"Failed to create BenchmarkResult for {bench_name} "
-                                        f"with dataset {dataset} and backend {backend}: {e}"
+                                        f"Failed to create BenchmarkResult for "
+                                        f"{bench_name} with dataset {dataset} and "
+                                        f"backend {backend}: {e}"
                                     )
 
         return results

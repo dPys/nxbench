@@ -3,7 +3,12 @@ import sys
 from logging.handlers import TimedRotatingFileHandler
 from typing import Any
 
-from _nxbench.config import LoggerConfig, LoggingConfig, LoggingHandlerConfig, _config
+from _nxbench.config import (
+    LoggerConfig,
+    LoggingConfig,
+    LoggingHandlerConfig,
+    _config,
+)
 
 __all__ = [
     "setup_logger",
