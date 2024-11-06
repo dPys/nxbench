@@ -1,0 +1,45 @@
+version: "3.8"
+
+services:
+  nxbench:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: nxbench:latest
+    container_name: nxbench
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    volumes:
+      - ./configs:/app/configs
+      - nxbench_data:/root/.nxbench
+      - nxbench_results:/app/results
+    environment:
+      - NXBENCH_HOME=/root/.nxbench
+      - NXBENCH_CONFIG_FILE=/app/configs/example.yaml
+      - NUM_THREAD=8
+      - NUM_GPU=1
+    command: nxbench benchmark run --backend all
+    # command: ipython
+
+  dashboard:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: nxbench:latest
+    container_name: nxbench_dashboard
+    ports:
+      - "8050:8050"
+    volumes:
+      - nxbench_results:/app/results:ro
+    command: nxbench viz serve --port 8050 --host 0.0.0.0
+    depends_on:
+      - nxbench
+
+volumes:
+  nxbench_data:
+  nxbench_results:
