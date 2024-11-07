@@ -1,3 +1,4 @@
+import math
 import os
 import textwrap
 from unittest.mock import MagicMock, patch
@@ -114,6 +115,16 @@ algorithms:
 datasets:
   - name: jazz
     source: networkrepository
+matrix:
+  req:
+    networkx: ["3.3"]
+    nx_parallel: ["0.2"]
+    python-graphblas: ["2024.2.0"]
+  env:
+    NUM_THREAD: ["1", "4", "8"]
+    OMP_NUM_THREADS: ["1"]
+    MKL_NUM_THREADS: ["1"]
+    OPENBLAS_NUM_THREADS: ["1"]
 machine_info:
   cpu: "Intel i7"
   ram: "16GB"
@@ -132,6 +143,20 @@ machine_info:
         assert config.datasets[0].name == "jazz"
         assert config.datasets[0].source == "networkrepository"
 
+        assert config.matrix == {
+            "req": {
+                "networkx": ["3.3"],
+                "nx_parallel": ["0.2"],
+                "python-graphblas": ["2024.2.0"],
+            },
+            "env": {
+                "NUM_THREAD": ["1", "4", "8"],
+                "OMP_NUM_THREADS": ["1"],
+                "MKL_NUM_THREADS": ["1"],
+                "OPENBLAS_NUM_THREADS": ["1"],
+            },
+        }
+
         assert config.machine_info == {"cpu": "Intel i7", "ram": "16GB"}
 
     def test_load_from_nonexistent_yaml(self):
@@ -146,6 +171,7 @@ algorithms:
 datasets:
   - name: jazz
     source: networkrepository
+matrix: not_a_dict
 """
         config_file = tmp_path / "invalid_config.yaml"
         config_file.write_text(yaml_content)
@@ -156,6 +182,20 @@ datasets:
         assert "should be a list" in caplog.text
 
     def test_to_yaml(self, tmp_path):
+        matrix_data = {
+            "req": {
+                "networkx": ["3.3"],
+                "nx_parallel": ["0.2"],
+                "python-graphblas": ["2024.2.0"],
+            },
+            "env": {
+                "NUM_THREAD": ["1", "4", "8"],
+                "OMP_NUM_THREADS": ["1"],
+                "MKL_NUM_THREADS": ["1"],
+                "OPENBLAS_NUM_THREADS": ["1"],
+            },
+        }
+
         config = BenchmarkConfig(
             algorithms=[
                 AlgorithmConfig(
@@ -171,6 +211,7 @@ datasets:
                     source="networkrepository",
                 )
             ],
+            matrix=matrix_data,
             machine_info={"cpu": "Intel i7", "ram": "16GB"},
         )
 
@@ -189,6 +230,9 @@ datasets:
         assert len(loaded_data["datasets"]) == 1
         assert loaded_data["datasets"][0]["name"] == "jazz"
         assert loaded_data["datasets"][0]["source"] == "networkrepository"
+
+        assert "matrix" in loaded_data
+        assert loaded_data["matrix"] == matrix_data
 
         assert loaded_data["machine_info"] == {"cpu": "Intel i7", "ram": "16GB"}
 
@@ -210,7 +254,17 @@ class TestGlobalConfiguration:
             datasets:
               - name: 08blocks
                 source: networkrepository
-        """
+            matrix:
+              req:
+                networkx: ["3.3"]
+                nx_parallel: ["0.2"]
+                python-graphblas: ["2024.2.0"]
+              env:
+                NUM_THREAD: ["1", "4", "8"]
+                OMP_NUM_THREADS: ["1"]
+                MKL_NUM_THREADS: ["1"]
+                OPENBLAS_NUM_THREADS: ["1"]
+            """
         )
         config_file = tmp_path / "config.yaml"
         config_file.write_text(yaml_content)
@@ -239,6 +293,16 @@ algorithms:
 datasets:
   - name: jazz
     source: networkrepository
+matrix:
+  req:
+    networkx: ["3.3"]
+    nx_parallel: ["0.2"]
+    python-graphblas: ["2024.2.0"]
+  env:
+    NUM_THREAD: ["1", "4", "8"]
+    OMP_NUM_THREADS: ["1"]
+    MKL_NUM_THREADS: ["1"]
+    OPENBLAS_NUM_THREADS: ["1"]
 """
         config_file = tmp_path / "env_config.yaml"
         config_file.write_text(yaml_content)
@@ -318,10 +382,8 @@ class TestBenchmarkResult:
 
         result = BenchmarkResult.from_asv_result(asv_result, graph)
 
-        assert result.execution_time != "fast"
-        assert result.execution_time != 0.0
-        assert result.memory_used != "low"
-        assert result.memory_used != 0.0
+        assert math.isnan(result.execution_time)
+        assert math.isnan(result.memory_used)
         assert "Non-numeric execution_time" in caplog.text
         assert "Non-numeric memory_used" in caplog.text
 

@@ -69,6 +69,9 @@ nxbench viz serve  # Launch interactive dashboard
 The CLI provides comprehensive management of benchmarks, datasets, and visualization:
 
 ```bash
+# Validating asv configuration
+asv check
+
 # Data Management
 nxbench data download karate  # Download specific dataset
 nxbench data list --category social  # List available datasets
@@ -77,7 +80,6 @@ nxbench data list --category social  # List available datasets
 nxbench --config 'configs/example.yaml' -vvv benchmark run  # Debug benchmark runs
 nxbench benchmark export 'results/benchmarks.sqlite' --output-format sql # Export the results into a sql database
 nxbench benchmark compare HEAD HEAD~1  # Compare with previous commit
-
 
 # Visualization
 nxbench viz serve  # Launch parallel categories dashboard

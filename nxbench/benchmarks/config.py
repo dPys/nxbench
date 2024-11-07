@@ -92,6 +92,7 @@ class BenchmarkConfig:
 
     algorithms: list[AlgorithmConfig]
     datasets: list[DatasetConfig]
+    matrix: dict[str, Any]
     machine_info: dict[str, Any] = field(default_factory=dict)
     output_dir: Path = field(default_factory=lambda: Path("../results"))
 
@@ -119,6 +120,7 @@ class BenchmarkConfig:
 
         algorithms_data = data.get("algorithms") or []
         datasets_data = data.get("datasets") or []
+        matrix_data = data.get("matrix") or {}
 
         if not isinstance(algorithms_data, list):
             logger.error(f"'algorithms' should be a list in the config file: {path}")
@@ -128,6 +130,10 @@ class BenchmarkConfig:
             logger.error(f"'datasets' should be a list in the config file: {path}")
             datasets_data = []
 
+        if not isinstance(matrix_data, dict):
+            logger.error(f"'matrix' should be a dict in the config file: {path}")
+            matrix_data = {}
+
         algorithms = [AlgorithmConfig(**algo_data) for algo_data in algorithms_data]
 
         datasets = [DatasetConfig(**ds_data) for ds_data in datasets_data]
@@ -135,6 +141,7 @@ class BenchmarkConfig:
         return cls(
             algorithms=algorithms,
             datasets=datasets,
+            matrix=matrix_data,
             machine_info=data.get("machine_info", {}),
             output_dir=Path(data.get("output_dir", "../results")),
         )
@@ -156,6 +163,7 @@ class BenchmarkConfig:
                 for algo in self.algorithms
             ],
             "datasets": [dict(ds.__dict__.items()) for ds in self.datasets],
+            "matrix": self.matrix,
             "machine_info": self.machine_info,
             "output_dir": str(self.output_dir),
         }

@@ -13,13 +13,6 @@ def mock_benchmark():
     """Fixture to create a mocked GraphBenchmark instance."""
     with (
         patch("nxbench.benchmarks.benchmark.get_benchmark_config") as mock_get_config,
-        patch("nxbench.benchmarks.benchmark.is_cugraph_available", return_value=False),
-        patch(
-            "nxbench.benchmarks.benchmark.is_graphblas_available", return_value=False
-        ),
-        patch(
-            "nxbench.benchmarks.benchmark.is_nx_parallel_available", return_value=True
-        ),
         patch("nxbench.benchmarks.benchmark.BenchmarkDataManager") as MockDataManager,
     ):
         mock_dataset1 = DatasetConfig(name="test_dataset1", source="mock_source")
@@ -31,24 +24,39 @@ def mock_benchmark():
         mock_algo.params = {}
         algorithms = [mock_algo]
 
+        mock_matrix = {
+            "req": {
+                "networkx": ["3.3"],
+                "nx_parallel": ["0.2"],
+                "python-graphblas": ["2024.2.0"],
+            },
+            "env": {
+                "NUM_THREAD": ["1", "4", "8"],
+                "OMP_NUM_THREADS": ["1"],
+                "MKL_NUM_THREADS": ["1"],
+                "OPENBLAS_NUM_THREADS": ["1"],
+            },
+        }
+
         mock_config = MagicMock()
         mock_config.datasets = datasets
         mock_config.algorithms = algorithms
+        mock_config.matrix = mock_matrix
 
-        mock_get_config.return_value = mock_config
-
-        mock_manager = MockDataManager.return_value
-        mock_manager.load_network_sync.return_value = (nx.Graph(), {"metadata": "test"})
+        MockDataManager.return_value.load_network_sync.return_value = (
+            nx.Graph(),
+            {"metadata": "test"},
+        )
 
         import nxbench.benchmarks.benchmark
 
         importlib.reload(nxbench.benchmarks.benchmark)
-
         from nxbench.benchmarks.benchmark import GraphBenchmark
 
         GraphBenchmark.params = [
             [ds.name for ds in datasets],
             ["networkx", "parallel"],
+            [1, 4, 8],
         ]
 
         benchmark_instance = GraphBenchmark()
@@ -57,25 +65,23 @@ def mock_benchmark():
         return benchmark_instance
 
 
+@pytest.fixture(scope="module")
+def mock_backends():
+    with patch("nxbench.benchmarks.utils.get_available_backends") as mock:
+        mock.return_value = ["networkx", "parallel"]
+        yield mock
+
+
+def test_backend_selection(mock_backends, mock_benchmark):
+    assert "networkx" in mock_benchmark.params[1]
+    assert "parallel" in mock_benchmark.params[1]
+    assert "cugraph" not in mock_benchmark.params[1]
+
+
 def test_graph_benchmark_initialization(mock_benchmark):
     """Test that the GraphBenchmark class initializes properly."""
     assert mock_benchmark.data_manager is not None
     assert mock_benchmark.graphs == {}
-
-
-# def test_setup_success(mock_benchmark):
-#     """Test the setup method for a successful setup."""
-#     dataset_name = "test_dataset1"
-#     mock_benchmark.graphs[dataset_name] = (nx.Graph(), {"metadata": "test"})
-
-#     with patch(
-#         "nxbench.benchmarks.benchmark.get_algorithm_function",
-#         return_value=MagicMock(),
-#     ):
-#         result = mock_benchmark.setup(dataset_name, "parallel")
-#         assert result is True
-#         assert isinstance(mock_benchmark.current_graph, nx.Graph)
-#         assert mock_benchmark.current_backend == "parallel"
 
 
 def test_setup_cache(mock_benchmark):
@@ -117,7 +123,7 @@ def test_do_benchmark_setup_failure(mock_benchmark):
     mock_algo_config = mock_benchmark.config.algorithms[0]
 
     metrics = mock_benchmark.do_benchmark(
-        mock_algo_config, "non_existent_dataset", "networkx"
+        mock_algo_config, "non_existent_dataset", "networkx", 1
     )
     assert math.isnan(metrics["execution_time"])
     assert math.isnan(metrics["memory_used"])

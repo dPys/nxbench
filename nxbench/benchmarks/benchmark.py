@@ -2,6 +2,7 @@
 
 import gc
 import logging
+import os
 import time
 import traceback
 import tracemalloc
@@ -12,14 +13,8 @@ from typing import Any, ClassVar
 
 import networkx as nx
 
-from _nxbench.config import _config as package_config
 from nxbench.benchmarks.config import AlgorithmConfig
-from nxbench.benchmarks.utils import (
-    get_benchmark_config,
-    is_cugraph_available,
-    is_graphblas_available,
-    is_nx_parallel_available,
-)
+from nxbench.benchmarks.utils import get_available_backends, get_benchmark_config
 from nxbench.data.loader import BenchmarkDataManager
 from nxbench.validation.registry import BenchmarkValidator
 
@@ -30,6 +25,7 @@ logger = logging.getLogger("nxbench")
 
 __all__ = [
     "generate_benchmark_methods",
+    "memory_tracker",
     "GraphBenchmark",
     "get_algorithm_function",
     "process_algorithm_params",
@@ -38,18 +34,15 @@ __all__ = [
 
 config = get_benchmark_config()
 datasets = [ds.name for ds in config.datasets]
-
-
-backends = ["networkx"]
-
-if is_cugraph_available():
-    backends.append("cugraph")
-
-if is_graphblas_available():
-    backends.append("graphblas")
-
-if is_nx_parallel_available():
-    backends.append("parallel")
+available_backends = get_available_backends()
+backends = [
+    backend
+    for backend, version_list in config.matrix.get("req", {"networkx": ["3.3"]}).items()
+    if backend in available_backends
+]
+num_thread_values = [
+    int(v) for v in config.matrix.get("env", {}).get("NUM_THREAD", ["1"])
+]
 
 
 @contextmanager
@@ -72,9 +65,9 @@ def generate_benchmark_methods(cls):
     def make_benchmark_method(algo_config):
         algo_name = algo_config.name
 
-        def track_method(self, dataset_name: str, backend: str):
+        def track_method(self, dataset_name: str, backend: str, num_thread: int = 1):
             """Run benchmark and return metrics."""
-            metrics = self.do_benchmark(algo_config, dataset_name, backend)
+            metrics = self.do_benchmark(algo_config, dataset_name, backend, num_thread)
             logger.debug(f"Track {algo_name} results: {metrics}")
             return metrics
 
@@ -94,8 +87,8 @@ def generate_benchmark_methods(cls):
 class GraphBenchmark:
     """Base class for all graph algorithm benchmarks."""
 
-    param_names: ClassVar[list[str]] = ["dataset_name", "backend"]
-    params: ClassVar[list[Any]] = [datasets, backends]
+    param_names: ClassVar[list[str]] = ["dataset_name", "backend", "num_thread"]
+    params: ClassVar[list[Any]] = [datasets, backends, num_thread_values]
 
     def __init__(self):
         self.data_manager = BenchmarkDataManager()
@@ -126,7 +119,7 @@ class GraphBenchmark:
             except Exception:
                 logger.exception(f"Failed to load dataset '{dataset_name}'")
 
-    def setup(self, dataset_name: str, backend: str) -> Any:
+    def setup(self, dataset_name: str, backend: str, num_thread: int = 1) -> Any:
         """Initialize the dataset and backend, returning the converted graph."""
         if not self.graphs:
             self.setup_cache()
@@ -143,18 +136,23 @@ class GraphBenchmark:
         try:
             if backend == "networkx":
                 converted_graph = original_graph
-            elif backend == "parallel":
+            elif "parallel" in backend:
+                os.environ["NUM_THREAD"] = str(num_thread)
+                os.environ["OMP_NUM_THREADS"] = str(num_thread)
+                os.environ["MKL_NUM_THREADS"] = str(num_thread)
+                os.environ["OPENBLAS_NUM_THREADS"] = str(num_thread)
+
                 nx.config.backends.parallel.active = True
-                nx.config.backends.parallel.n_jobs = package_config.num_thread
+                nx.config.backends.parallel.n_jobs = num_thread
                 converted_graph = original_graph
-            elif backend == "cugraph":
+            elif "cugraph" in backend:
                 import cugraph
 
                 edge_attr = "weight" if nx.is_weighted(original_graph) else None
                 converted_graph = cugraph.from_networkx(
                     original_graph, edge_attrs=edge_attr
                 )
-            elif backend == "graphblas":
+            elif "graphblas" in backend:
                 import graphblas_algorithms as ga
 
                 converted_graph = ga.Graph.from_networkx(original_graph)
@@ -172,13 +170,18 @@ class GraphBenchmark:
             return converted_graph
 
     def do_benchmark(
-        self, algo_config: AlgorithmConfig, dataset_name: str, backend: str
+        self,
+        algo_config: AlgorithmConfig,
+        dataset_name: str,
+        backend: str,
+        num_thread: int,
     ) -> dict:
         logger.debug(
-            f"Running benchmark for {algo_config.name} on {dataset_name} with {backend}"
+            f"Running benchmark for {algo_config.name} on {dataset_name} with "
+            f"{backend} using {num_thread} threads"
         )
 
-        converted_graph = self.setup(dataset_name, backend)
+        converted_graph = self.setup(dataset_name, backend, num_thread)
         if converted_graph is None:
             return {"execution_time": float("nan"), "memory_used": float("nan")}
 
@@ -236,10 +239,16 @@ class GraphBenchmark:
         return metrics
 
     def teardown(self, dataset_name: str, backend: str):
-        """Reset any backend-specific configurations to avoid state carryover."""
+        """Reset any backend-specific configurations to avoid state leakage."""
         if backend == "parallel":
             nx.config.backends.parallel.active = False
             nx.config.backends.parallel.n_jobs = 1
+
+            # reset env vars
+            os.environ["NUM_THREAD"] = "1"
+            os.environ["OMP_NUM_THREADS"] = "1"
+            os.environ["MKL_NUM_THREADS"] = "1"
+            os.environ["OPENBLAS_NUM_THREADS"] = "1"
 
 
 def get_algorithm_function(algo_config: AlgorithmConfig, backend_name: str) -> Any:

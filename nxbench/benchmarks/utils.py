@@ -60,11 +60,23 @@ def load_default_config() -> BenchmarkConfig:
         DatasetConfig(name="enron", source="networkrepository"),
         DatasetConfig(name="twitter", source="networkrepository"),
     ]
+
+    default_matrix = {
+        "req": {
+            "networkx": ["3.4.2"],
+            "nx-parallel": ["0.3"],
+            "python-graphblas": ["2024.2.0"],
+        },
+        "env": {
+            "NUM_THREAD": ["1", "4", "8"],
+        },
+    }
     return BenchmarkConfig(
         algorithms=default_algorithms,
         datasets=default_datasets,
+        matrix=default_matrix,
         machine_info={},
-        output_dir="results",
+        output_dir=Path("../results"),
     )
 
 
@@ -99,3 +111,19 @@ def get_python_version() -> str:
     """Get formatted Python version string."""
     version_info = sys.version_info
     return f"{version_info.major}.{version_info.minor}.{version_info.micro}"
+
+
+def get_available_backends() -> list[str]:
+    backends = ["networkx"]
+
+    if is_cugraph_available():
+        backends.append("cugraph")
+
+    if is_graphblas_available():
+        backends.append("graphblas")
+
+    if is_nx_parallel_available():
+        backends.append("parallel")
+
+    logger.debug(f"Available backends: {backends}")
+    return backends
