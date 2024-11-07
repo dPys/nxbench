@@ -1,11 +1,7 @@
-import itertools
-import json
 import logging
 from pathlib import Path
 
-import networkx as nx
-
-from nxbench.benchmarks.config import BenchmarkResult
+from nxbench.benchmarks.export import ResultsExporter
 from nxbench.benchmarks.utils import get_benchmark_config
 from nxbench.data.loader import BenchmarkDataManager
 
@@ -16,139 +12,17 @@ class BenchmarkDashboard:
     """Dashboard for visualizing benchmark results."""
 
     def __init__(self, results_dir: str = "results"):
+        """Initialize the dashboard.
+
+        Parameters
+        ----------
+        results_dir : str
+            Directory containing benchmark results
+        """
         self.results_dir = Path(results_dir)
         self.data_manager = BenchmarkDataManager()
         self.benchmark_config = get_benchmark_config()
-
-    def load_results(self) -> list[BenchmarkResult]:
-        """Load benchmark results from ASV's results directory."""
-        results = []
-
-        for commit_dir in self.results_dir.iterdir():
-            if commit_dir.is_dir() and commit_dir.name not in {
-                "machine.json",
-                "benchmarks.json",
-            }:
-                for env_file in commit_dir.glob("*.json"):
-                    with env_file.open("r") as f:
-                        try:
-                            data = json.load(f)
-                        except json.JSONDecodeError:
-                            logger.exception(f"Failed to decode JSON from {env_file}")
-                            continue
-
-                        for bench_name, bench_data in data.get("results", {}).items():
-                            if not isinstance(bench_data, list) or len(bench_data) < 2:
-                                logger.warning(
-                                    f"Unexpected bench_data format for {bench_name}"
-                                )
-                                continue
-
-                            measurements = bench_data[0]
-                            params_info = bench_data[1]
-
-                            if not (
-                                isinstance(params_info, list) and len(params_info) == 2
-                            ):
-                                logger.warning(
-                                    f"Unexpected params_info format for {bench_name}"
-                                )
-                                continue
-
-                            datasets = [name.strip("'") for name in params_info[0]]
-                            backends = [name.strip("'") for name in params_info[1]]
-
-                            param_combinations = list(
-                                itertools.product(datasets, backends)
-                            )
-
-                            if len(measurements) != len(param_combinations):
-                                logger.warning(
-                                    f"Number of measurements ({len(measurements)}) "
-                                    f"does not match "
-                                    f"number of parameter combinations "
-                                    f"({len(param_combinations)}) "
-                                    f"for benchmark {bench_name}"
-                                )
-                                continue
-
-                            for (dataset, backend), measurement in zip(
-                                param_combinations, measurements
-                            ):
-                                if isinstance(measurement, dict):
-                                    execution_time = measurement.get(
-                                        "execution_time", float("nan")
-                                    )
-                                    memory_used = measurement.get(
-                                        "memory_used", float("nan")
-                                    )
-                                    if execution_time is None or isinstance(
-                                        execution_time, str
-                                    ):
-                                        execution_time = float("nan")
-                                    if memory_used is None or isinstance(
-                                        memory_used, str
-                                    ):
-                                        memory_used = float("nan")
-                                elif isinstance(measurement, (int, float)):
-                                    execution_time = float(measurement)
-                                    memory_used = 0.0
-                                else:
-                                    logger.warning(
-                                        f"Unsupported measurement type for "
-                                        f"{bench_name}: {type(measurement)}"
-                                    )
-                                    execution_time = float("nan")
-                                    memory_used = float("nan")
-
-                                algorithm = bench_name.split(".")[-1].replace(
-                                    "track_", ""
-                                )
-
-                                dataset_config = next(
-                                    (
-                                        ds
-                                        for ds in self.benchmark_config.datasets
-                                        if ds.name == dataset
-                                    ),
-                                    None,
-                                )
-                                if dataset_config is None:
-                                    logger.warning(
-                                        f"No DatasetConfig found for dataset "
-                                        f"'{dataset}'"
-                                    )
-                                    graph = nx.Graph()
-                                    graph.graph["name"] = dataset
-                                else:
-                                    graph, metadata = (
-                                        self.data_manager.load_network_sync(
-                                            dataset_config
-                                        )
-                                    )
-
-                                asv_result = {
-                                    "algorithm": algorithm,
-                                    "dataset": dataset,
-                                    "backend": backend,
-                                    "execution_time": execution_time,
-                                    "memory_used": memory_used,
-                                }
-
-                                try:
-                                    benchmark_result = BenchmarkResult.from_asv_result(
-                                        asv_result, graph
-                                    )
-                                    benchmark_result.metadata = metadata
-                                    results.append(benchmark_result)
-                                except Exception:
-                                    logger.exception(
-                                        f"Failed to create BenchmarkResult for "
-                                        f"{bench_name} with dataset {dataset} and "
-                                        f"backend {backend}"
-                                    )
-
-        return results
+        self.exporter = ResultsExporter(results_dir)
 
     def compare_results(
         self, baseline: str, comparison: str, threshold: float
@@ -158,23 +32,23 @@ class BenchmarkDashboard:
         Parameters
         ----------
         baseline : str
-            The name of the baseline algorithm or dataset.
+            The name of the baseline algorithm or dataset
         comparison : str
-            The name of the algorithm or dataset to compare against the baseline.
+            The name of the algorithm or dataset to compare against the baseline
         threshold : float
-            The threshold for highlighting significant differences.
+            The threshold for highlighting significant differences
 
         Returns
         -------
-        List[Dict]
-            A list of dictionaries containing comparison results.
+        list[dict]
+            A list of dictionaries containing comparison results
         """
-        results = self.load_results()
-        comparisons = []
+        results = self.exporter.load_results()
 
         baseline_results = [res for res in results if res.algorithm == baseline]
         comparison_results = [res for res in results if res.algorithm == comparison]
 
+        comparisons = []
         for base_res in baseline_results:
             for comp_res in comparison_results:
                 if (
@@ -188,6 +62,8 @@ class BenchmarkDashboard:
                         else 0.0
                     )
                     significant = abs(percent_change) >= (threshold * 100)
+
+                    machine_info = self.exporter.get_machine_info()
                     comparisons.append(
                         {
                             "algorithm": base_res.algorithm,
@@ -197,29 +73,97 @@ class BenchmarkDashboard:
                             "comparison_time": comp_res.execution_time,
                             "percent_change": percent_change,
                             "significant": significant,
+                            "machine": machine_info.get("machine", "unknown"),
+                            "cpu": machine_info.get("cpu", "unknown"),
+                            "os": machine_info.get("os", "unknown"),
                         }
                     )
         return comparisons
 
     def generate_static_report(self):
         """Generate a static HTML report of benchmark results."""
-        results = self.load_results()
+        results = self.exporter.load_results()
+        machine_info = self.exporter.get_machine_info()
 
         report_path = self.results_dir / "report.html"
         with report_path.open("w") as f:
-            f.write("<html><head><title>Benchmark Report</title></head><body>")
-            f.write("<h1>Benchmark Report</h1>")
-            for res in results:
-                f.write(f"<h2>Algorithm: {res.algorithm}</h2>")
-                f.write(f"<p>Dataset: {res.dataset}</p>")
-                f.write(f"<p>Backend: {res.backend}</p>")
+            f.write(
+                """
+                <html>
+                <head>
+                    <title>Benchmark Report</title>
+                    <style>
+                        body { font-family: Arial, sans-serif; margin: 40px; }
+                        .header { background: #f5f5f5; padding: 20px; margin-bottom:
+                        30px; }
+                        .result { border: 1px solid #ddd; padding: 15px; margin: 10px
+                        0; }
+                        .metric { margin: 5px 0; }
+                        hr { margin: 30px 0; }
+                    </style>
+                </head>
+                <body>
+                """
+            )
 
-                f.write(f"<p>Execution Time: {res.execution_time:.6f} seconds</p>")
-                f.write(f"<p>Memory Used: {res.memory_used:.6f} MB</p>")
-                f.write(f"<p>Number of Nodes: {res.num_nodes}</p>")
-                f.write(f"<p>Number of Edges: {res.num_edges}</p>")
-                f.write(f"<p>Directed: {res.is_directed}</p>")
-                f.write(f"<p>Weighted: {res.is_weighted}</p>")
-                f.write("<hr>")
+            f.write('<div class="header">')
+            f.write("<h1>Benchmark Report</h1>")
+            f.write("<h2>System Information</h2>")
+            f.write(f"<p>Machine: {machine_info.get('machine', 'unknown')}</p>")
+            f.write(f"<p>CPU: {machine_info.get('cpu', 'unknown')}</p>")
+            f.write(f"<p>OS: {machine_info.get('os', 'unknown')}</p>")
+            f.write(f"<p>RAM: {machine_info.get('ram', 'unknown')}</p>")
+            f.write("</div>")
+
+            for res in results:
+                f.write('<div class="result">')
+                f.write(f"<h2>Algorithm: {res.algorithm}</h2>")
+                f.write(f'<div class="metric">Dataset: {res.dataset}</div>')
+                f.write(f'<div class="metric">Backend: {res.backend}</div>')
+                f.write(
+                    f'<div class="metric">Execution Time: {res.execution_time:.6f} '
+                    f"seconds</div>"
+                )
+                f.write(
+                    f'<div class="metric">Memory Used: {res.memory_used:.6f} MB</div>'
+                )
+                f.write(f'<div class="metric">Number of Nodes: {res.num_nodes}</div>')
+                f.write(f'<div class="metric">Number of Edges: {res.num_edges}</div>')
+                f.write(f'<div class="metric">Directed: {res.is_directed}</div>')
+                f.write(f'<div class="metric">Weighted: {res.is_weighted}</div>')
+                f.write("</div>")
+
             f.write("</body></html>")
+
         logger.info(f"Static report generated at {report_path}")
+
+    def export_results(
+        self, export_format: str = "csv", output_path: Path | None = None
+    ):
+        """Export benchmark results in the specified format.
+
+        Parameters
+        ----------
+        export_format : str
+            Export format ('csv' or 'sql')
+        output_path : Path, optional
+            Path for output file (for CSV export)
+        """
+        if export_format.lower() == "csv":
+            if output_path is None:
+                output_path = self.results_dir / "benchmark_results.csv"
+            self.exporter.to_csv(output_path)
+        elif export_format.lower() == "sql":
+            self.exporter.to_sql(output_path)
+        else:
+            raise ValueError(f"Unsupported export format: {export_format}")
+
+    def get_results_df(self):
+        """Get benchmark results as a pandas DataFrame.
+
+        Returns
+        -------
+        pd.DataFrame
+            DataFrame containing benchmark results
+        """
+        return self.exporter.to_dataframe()

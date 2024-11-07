@@ -1,5 +1,6 @@
 import logging
 import os
+import sys
 from pathlib import Path
 
 from nxbench.benchmarks.config import AlgorithmConfig, BenchmarkConfig, DatasetConfig
@@ -92,3 +93,9 @@ def is_nx_parallel_available():
         return False
     else:
         return importlib.util.find_spec("nx_parallel") is not None
+
+
+def get_python_version() -> str:
+    """Get formatted Python version string."""
+    version_info = sys.version_info
+    return f"{version_info.major}.{version_info.minor}.{version_info.micro}"

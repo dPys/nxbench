@@ -122,13 +122,22 @@ class BenchmarkDB:
         with self._connection() as conn:
             for result in results:
                 result_dict = asdict(result)
+
+                result_dict["timing"] = result_dict.pop("execution_time")
+                result_dict["memory_usage"] = result_dict.pop("memory_used")
+
+                result_dict["directed"] = int(result_dict.pop("is_directed"))
+                result_dict["weighted"] = int(result_dict.pop("is_weighted"))
+
                 result_dict.update(
                     {
                         "timestamp": datetime.now(timezone.utc).isoformat(),
                         "git_commit": git_commit,
-                        "machine_info": str(machine_info),
+                        "machine_info": str(machine_info) if machine_info else None,
                         "python_version": python_version,
-                        "package_versions": str(package_versions),
+                        "package_versions": (
+                            str(package_versions) if package_versions else None
+                        ),
                     }
                 )
 

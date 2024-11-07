@@ -74,6 +74,19 @@ class DatasetConfig:
 
 
 @dataclass
+class MachineInfo:
+    """Container for machine information."""
+
+    arch: str
+    cpu: str
+    machine: str
+    num_cpu: str
+    os: str
+    ram: str
+    version: int
+
+
+@dataclass
 class BenchmarkConfig:
     """Complete benchmark suite configuration."""
 

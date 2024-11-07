@@ -1,4 +1,3 @@
-import json
 import logging
 import os
 import shutil
@@ -322,86 +321,57 @@ def run_benchmark(ctx, backend: tuple[str], collection: str):
 
 @benchmark.command()
 @click.argument("result_file", type=Path)
-@click.option("--output-format", type=click.Choice(["json", "csv"]), default="csv")
+@click.option(
+    "--output-format",
+    type=click.Choice(["json", "csv", "sql"]),
+    default="csv",
+    help="Format to export results in",
+)
 @click.pass_context
 def export(ctx, result_file: Path, output_format: str):
-    """Export benchmark results."""
+    """Export benchmark results.
+
+    Parameters
+    ----------
+    result_file : Path
+        Output file path for results
+    output_format : str
+        Format to export results in (json, csv, or sql)
+    """
     config = ctx.obj.get("CONFIG")
     if config:
         logger.debug(f"Using config file for export: {config}")
 
     dashboard = BenchmarkDashboard(results_dir="results")
-    results = dashboard.load_results()
 
-    if not results:
-        logger.error("No benchmark results found.")
-        click.echo("No benchmark results found.")
-        return
+    try:
+        if output_format == "sql":
+            dashboard.export_results(format="sql", output_path=result_file)
+        else:
+            df = dashboard.get_results_df()
 
-    records = []
-    for result in results:
-        dataset = result.dataset.strip("'")
-        backend = result.backend.strip("'")
+            if df.empty:
+                logger.error("No benchmark results found.")
+                click.echo("No benchmark results found.")
+                return
 
-        algo_name = result.algorithm.split(".")[-1]
-        if algo_name.startswith("track_"):
-            algo_name = algo_name[6:]
+            df = df.sort_values(["algorithm", "dataset", "backend"])
 
-        execution_time = (
-            result.execution_time
-            if isinstance(result.execution_time, (int, float))
-            else float("nan")
-        )
-        memory_used = (
-            result.memory_used
-            if isinstance(result.memory_used, (int, float))
-            else float("nan")
-        )
+            df["execution_time"] = df["execution_time"].map("{:.6f}".format)
+            df["memory_used"] = df["memory_used"].map("{:.2f}".format)
 
-        record = {
-            "algorithm": algo_name,
-            "dataset": dataset,
-            "backend": backend,
-            "execution_time": execution_time,
-            "memory_used": memory_used,
-            "num_nodes": result.num_nodes,
-            "num_edges": result.num_edges,
-            "is_directed": result.is_directed,
-            "is_weighted": result.is_weighted,
-        }
+            if output_format == "csv":
+                df.to_csv(result_file, index=False)
+            else:
+                df.to_json(result_file, orient="records")
 
-        metadata_exclude = [
-            "name",
-            "directed",
-            "weighted",
-            "n_nodes",
-            "n_edges",
-            "download_url",
-        ]
-        for key, value in result.metadata.items():
-            if key in metadata_exclude:
-                continue
-            if isinstance(value, (list, dict)):
-                value = json.dumps(value)
-            if key == "source" and value == "Unknown":
-                value = result.metadata.get("download_url", "Unknown")
-            record[f"{key}"] = value
+        logger.info(f"Exported results to {result_file}")
+        click.echo(f"Exported results to {result_file}")
 
-        records.append(record)
-
-    df = pd.DataFrame(records)
-    df = df.sort_values(["algorithm", "dataset", "backend"])
-
-    df["execution_time"] = df["execution_time"].map("{:.6f}".format)
-    df["memory_used"] = df["memory_used"].map("{:.2f}".format)
-
-    if output_format == "csv":
-        df.to_csv(result_file, index=False)
-    else:
-        df.to_json(result_file, orient="records")
-
-    logger.info(f"Exported results to {result_file}")
-    click.echo(f"Exported results to {result_file}")
+    except Exception as e:
+        logger.exception("Failed to export results")
+        click.echo(f"Error exporting results: {e!s}", err=True)
+        raise click.Abort
 
 
 @benchmark.command()

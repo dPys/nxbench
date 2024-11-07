@@ -6,6 +6,7 @@ import time
 import traceback
 import tracemalloc
 import warnings
+from contextlib import contextmanager
 from functools import partial
 from typing import Any, ClassVar
 
@@ -49,6 +50,17 @@ if is_graphblas_available():
 
 if is_nx_parallel_available():
     backends.append("parallel")
+
+
+@contextmanager
+def memory_tracker():
+    tracemalloc.start()
+    try:
+        yield
+    finally:
+        current, peak = tracemalloc.get_traced_memory()
+        tracemalloc.stop()
+        tracemalloc.reset_peak()
 
 
 def generate_benchmark_methods(cls):
@@ -166,7 +178,8 @@ class GraphBenchmark:
             f"Running benchmark for {algo_config.name} on {dataset_name} with {backend}"
         )
 
-        if not self.setup(dataset_name, backend):
+        converted_graph = self.setup(dataset_name, backend)
+        if converted_graph is None:
             return {"execution_time": float("nan"), "memory_used": float("nan")}
 
         try:
@@ -180,23 +193,23 @@ class GraphBenchmark:
         except (ImportError, AttributeError):
             logger.exception(f"Function not available for backend {backend}")
             logger.debug(traceback.format_exc())
+            self.teardown(backend)
             return {"execution_time": float("nan"), "memory_used": float("nan")}
 
         try:
             pos_args, kwargs = process_algorithm_params(algo_config.params)
-            tracemalloc.start()
 
-            start_time = time.perf_counter()
+            with memory_tracker() as mem:
+                start_time = time.perf_counter()
+                result = algo_func(converted_graph, *pos_args, **kwargs)
+                end_time = time.perf_counter()
 
-            result = algo_func(self.current_graph, *pos_args, **kwargs)
+            execution_time = end_time - start_time
+            current, peak = mem
 
-            end_time = time.perf_counter()
-
-            current, peak = tracemalloc.get_traced_memory()
-            tracemalloc.stop()
             gc.collect()
 
-            if not isinstance(result, float) and not isinstance(result, int):
+            if not isinstance(result, (float, int)):
                 result = dict(result)
 
             original_graph, _ = self.graphs[dataset_name]
@@ -210,8 +223,6 @@ class GraphBenchmark:
             except Exception:
                 logger.warning(f"Validation warning for '{algo_config.name}'")
 
-            execution_time = end_time - start_time
-
             metrics = {
                 "execution_time": execution_time,
                 "memory_used": peak / (1024 * 1024),  # bytes to MB
@@ -220,9 +231,17 @@ class GraphBenchmark:
         except Exception:
             logger.exception(f"Error running algorithm '{algo_config.name}'")
             logger.debug(traceback.format_exc())
-            return {"execution_time": float("nan"), "memory_used": float("nan")}
-        else:
-            return metrics
+            metrics = {"execution_time": float("nan"), "memory_used": float("nan")}
+        finally:
+            self.teardown(backend)
+
+        return metrics
+
+    def teardown(self, backend: str):
+        """Reset any backend-specific configurations to avoid state carryover."""
+        if backend == "parallel":
+            nx.config.backends.parallel.active = False
+            nx.config.backends.parallel.n_jobs = 1
 
 
 def get_algorithm_function(algo_config: AlgorithmConfig, backend_name: str) -> Any:

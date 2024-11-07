@@ -11,7 +11,7 @@
 - **Validation Framework**: Comprehensive result validation for correctness across implementations
 - **Performance Monitoring**: Track execution time and memory usage with detailed metrics
 - **Interactive Visualization**: Dynamic dashboard for exploring benchmark results using Plotly Dash
-- **Flexible Storage**: SQLite-based result storage with pandas integration for analysis (In construction)
+- **Flexible Storage**: SQLite-based result storage with pandas integration for analysis
 - **CI Integration**: Support for automated benchmarking through ASV (Airspeed Velocity)
 
 ## Installation
@@ -54,7 +54,7 @@ nxbench --config 'configs/example.yaml' benchmark run
 3. Export results:
 
 ```bash
-nxbench export 'results/results.csv'  # Convert benchmarked results into csv format.
+nxbench benchmark export 'results/benchmarks.csv' --output-format csv  # Convert benchmarked results into csv format.
 ```
 
 
@@ -75,7 +75,7 @@ nxbench data list --category social  # List available datasets
 
 # Benchmarking
 nxbench --config 'configs/example.yaml' -vvv benchmark run  # Debug benchmark runs
-nxbench export sql  # Export the results into a sql database (In construction)
+nxbench benchmark export 'results/benchmarks.sqlite' --output-format sql # Export the results into a sql database
 nxbench benchmark compare HEAD HEAD~1  # Compare with previous commit
 
 
