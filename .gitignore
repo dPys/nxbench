@@ -193,3 +193,6 @@ results/*
 
 # html
 html/*
+
+# envs
+env/*

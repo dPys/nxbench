@@ -37,11 +37,13 @@ datasets = [ds.name for ds in config.datasets]
 available_backends = get_available_backends()
 backends = [
     backend
-    for backend, version_list in config.matrix.get("req", {"networkx": ["3.3"]}).items()
+    for backend, version_list in config.matrix.get(
+        "req", {"networkx": ["3.4.2"]}
+    ).items()
     if backend in available_backends
 ]
 num_thread_values = [
-    int(v) for v in config.matrix.get("env", {}).get("NUM_THREAD", ["1"])
+    int(v) for v in config.matrix.get("env_nobuild", {}).get("NUM_THREAD", ["1"])
 ]
 
 
@@ -196,7 +198,7 @@ class GraphBenchmark:
         except (ImportError, AttributeError):
             logger.exception(f"Function not available for backend {backend}")
             logger.debug(traceback.format_exc())
-            self.teardown(dataset_name, backend)
+            self.teardown(dataset_name, backend, num_thread)
             return {"execution_time": float("nan"), "memory_used": float("nan")}
 
         try:
@@ -234,11 +236,11 @@ class GraphBenchmark:
             logger.debug(traceback.format_exc())
             metrics = {"execution_time": float("nan"), "memory_used": float("nan")}
         finally:
-            self.teardown(dataset_name, backend)
+            self.teardown(dataset_name, backend, num_thread)
 
         return metrics
 
-    def teardown(self, dataset_name: str, backend: str):
+    def teardown(self, dataset_name: str, backend: str, num_thread: int = 1):
         """Reset any backend-specific configurations to avoid state leakage."""
         if backend == "parallel":
             nx.config.backends.parallel.active = False

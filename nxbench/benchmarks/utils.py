@@ -67,7 +67,7 @@ def load_default_config() -> BenchmarkConfig:
             "nx-parallel": ["0.3"],
             "python-graphblas": ["2024.2.0"],
         },
-        "env": {
+        "env_nobuild": {
             "NUM_THREAD": ["1", "4", "8"],
         },
     }

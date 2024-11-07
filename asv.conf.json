@@ -7,7 +7,7 @@
     "branches": [
         "main"
     ],
-    "environment_type": "virtualenv",
+    "environment_type": "existing",
     "show_commit_url": "https://github.com/dpys/nxbench/commit/",
     "pythons": [
         "3.11"
@@ -24,7 +24,7 @@
                 "2024.2.0"
             ]
         },
-        "env": {
+        "env_nobuild": {
             "NUM_THREAD": [
                 "1",
                 "4",
@@ -50,7 +50,7 @@
         "asv_runner"
     ],
     "build_command": [
-        "python -m pip install ."
+        "PIP_NO_BUILD_ISOLATION=false python -m pip install ."
     ],
     "install_command": [
         "python -m pip install {wheel_file}"

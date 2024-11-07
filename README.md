@@ -116,7 +116,7 @@ datasets:
 
 ```bash
 # Install development dependencies
-pip install -e .[test,scrape,doc] # testing, scraping of real-world graph data, and documentation
+pip install -e .[test,doc] # testing and documentation
 
 # Run tests
 make test
