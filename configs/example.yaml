@@ -154,15 +154,7 @@ datasets:
     source: "networkrepository"
     params: {}
 
-  - name: "IMDB"
-    source: "networkrepository"
-    params: {}
-
   - name: "citeseer"
-    source: "networkrepository"
-    params: {}
-
-  - name: "enron"
     source: "networkrepository"
     params: {}
 

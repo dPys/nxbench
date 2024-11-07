@@ -1,20 +1,21 @@
 """Core benchmark functionality and result handling."""
 
-import gc
 import logging
 import os
 import time
 import traceback
-import tracemalloc
 import warnings
-from contextlib import contextmanager
 from functools import partial
 from typing import Any, ClassVar
 
 import networkx as nx
 
 from nxbench.benchmarks.config import AlgorithmConfig
-from nxbench.benchmarks.utils import get_available_backends, get_benchmark_config
+from nxbench.benchmarks.utils import (
+    get_available_backends,
+    get_benchmark_config,
+    memory_tracker,
+)
 from nxbench.data.loader import BenchmarkDataManager
 from nxbench.validation.registry import BenchmarkValidator
 
@@ -25,7 +26,6 @@ logger = logging.getLogger("nxbench")
 
 __all__ = [
     "generate_benchmark_methods",
-    "memory_tracker",
     "GraphBenchmark",
     "get_algorithm_function",
     "process_algorithm_params",
@@ -45,19 +45,6 @@ backends = [
 num_thread_values = [
     int(v) for v in config.matrix.get("env_nobuild", {}).get("NUM_THREAD", ["1"])
 ]
-
-
-@contextmanager
-def memory_tracker():
-    tracemalloc.start()
-    mem = {}
-    try:
-        yield mem
-    finally:
-        mem["current"], mem["peak"] = tracemalloc.get_traced_memory()
-        tracemalloc.stop()
-        tracemalloc.reset_peak()
-        gc.collect()
 
 
 def generate_benchmark_methods(cls):

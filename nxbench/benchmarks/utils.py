@@ -1,6 +1,9 @@
+import gc
 import logging
 import os
 import sys
+import tracemalloc
+from contextlib import contextmanager
 from pathlib import Path
 
 from nxbench.benchmarks.config import AlgorithmConfig, BenchmarkConfig, DatasetConfig
@@ -127,3 +130,56 @@ def get_available_backends() -> list[str]:
 
     logger.debug(f"Available backends: {backends}")
     return backends
+
+
+class MemorySnapshot:
+    """Class to store and diff memory snapshots."""
+
+    def __init__(self, snapshot=None):
+        """Initialize with optional tracemalloc snapshot."""
+        self.snapshot = snapshot
+
+    def take(self):
+        """Take a new snapshot."""
+        self.snapshot = tracemalloc.take_snapshot()
+
+    def compare_to(self, other: "MemorySnapshot") -> tuple[int, int]:
+        """Compare this snapshot to another and return (current, peak) memory diff in
+        bytes.
+        """
+        if not self.snapshot or not other.snapshot:
+            return 0, 0
+
+        stats = self.snapshot.compare_to(other.snapshot, "lineno")
+        current = sum(stat.size_diff for stat in stats)
+        peak = sum(stat.size for stat in stats)
+        return current, peak
+
+
+@contextmanager
+def memory_tracker():
+    """Track memory usage of code block.
+
+    Returns dict with 'current' and 'peak' memory usage in bytes.
+    Memory usage is measured as the difference between before and after execution.
+    """
+    gc.collect()
+    tracemalloc.start()
+
+    baseline = MemorySnapshot()
+    baseline.take()
+
+    mem = {}
+    try:
+        yield mem
+        gc.collect()
+
+        end = MemorySnapshot()
+        end.take()
+        current, peak = end.compare_to(baseline)
+
+        mem["current"] = current
+        mem["peak"] = peak
+
+    finally:
+        tracemalloc.stop()
