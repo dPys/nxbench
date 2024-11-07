@@ -61,8 +61,6 @@ def test_graph_benchmark_initialization(mock_benchmark):
     """Test that the GraphBenchmark class initializes properly."""
     assert mock_benchmark.data_manager is not None
     assert mock_benchmark.graphs == {}
-    assert mock_benchmark.current_graph is None
-    assert mock_benchmark.current_backend is None
 
 
 # def test_setup_success(mock_benchmark):
@@ -101,23 +99,17 @@ def test_setup_cache(mock_benchmark):
 
 def test_setup_failure(mock_benchmark):
     """Test the setup method for failure when the dataset is not found."""
-    mock_benchmark.current_graph = None
-    mock_benchmark.current_backend = None
     mock_benchmark.graphs = {}
 
     result = mock_benchmark.setup("non_existent_dataset", "networkx")
-    assert result is False
-    assert mock_benchmark.current_graph is None
-    assert mock_benchmark.current_backend is None
+    assert result is None
 
 
 def test_setup_unsupported_backend(mock_benchmark):
     """Test the setup method with an unsupported backend."""
     dataset_name = "test_dataset1"
     result = mock_benchmark.setup(dataset_name, "unsupported_backend")
-    assert result is False
-    assert mock_benchmark.current_graph is None
-    assert mock_benchmark.current_backend is None
+    assert result is None
 
 
 def test_do_benchmark_setup_failure(mock_benchmark):

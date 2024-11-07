@@ -55,12 +55,14 @@ if is_nx_parallel_available():
 @contextmanager
 def memory_tracker():
     tracemalloc.start()
+    mem = {}
     try:
-        yield
+        yield mem
     finally:
-        current, peak = tracemalloc.get_traced_memory()
+        mem["current"], mem["peak"] = tracemalloc.get_traced_memory()
         tracemalloc.stop()
         tracemalloc.reset_peak()
+        gc.collect()
 
 
 def generate_benchmark_methods(cls):
@@ -98,8 +100,6 @@ class GraphBenchmark:
     def __init__(self):
         self.data_manager = BenchmarkDataManager()
         self.graphs = {}
-        self.current_graph = None
-        self.current_backend = None
 
     def setup_cache(self):
         """Cache graph data for benchmarks."""
@@ -120,14 +120,14 @@ class GraphBenchmark:
                 graph, metadata = self.data_manager.load_network_sync(dataset_config)
                 self.graphs[dataset_name] = (graph, metadata)
                 logger.debug(
-                    f"Cached dataset '{dataset_name}' with {graph.number_of_nodes()} "
-                    f"nodes"
+                    f"Cached dataset '{dataset_name}' with "
+                    f"{graph.number_of_nodes()} nodes"
                 )
             except Exception:
                 logger.exception(f"Failed to load dataset '{dataset_name}'")
 
-    def setup(self, dataset_name: str, backend: str) -> bool:
-        """Initialize the dataset and backend."""
+    def setup(self, dataset_name: str, backend: str) -> Any:
+        """Initialize the dataset and backend, returning the converted graph."""
         if not self.graphs:
             self.setup_cache()
 
@@ -136,40 +136,40 @@ class GraphBenchmark:
         graph_data = self.graphs.get(dataset_name)
         if graph_data is None:
             logger.error(f"Graph for dataset '{dataset_name}' not found in cache.")
-            return False
+            return None
 
-        self.current_graph, metadata = graph_data
-        self.current_backend = backend
+        original_graph, metadata = graph_data
 
         try:
             if backend == "networkx":
-                pass
+                converted_graph = original_graph
             elif backend == "parallel":
                 nx.config.backends.parallel.active = True
                 nx.config.backends.parallel.n_jobs = package_config.num_thread
+                converted_graph = original_graph
             elif backend == "cugraph":
                 import cugraph
 
-                edge_attr = "weight" if nx.is_weighted(self.current_graph) else None
-                self.current_graph = cugraph.from_networkx(
-                    self.current_graph, edge_attrs=edge_attr
+                edge_attr = "weight" if nx.is_weighted(original_graph) else None
+                converted_graph = cugraph.from_networkx(
+                    original_graph, edge_attrs=edge_attr
                 )
             elif backend == "graphblas":
                 import graphblas_algorithms as ga
 
-                self.current_graph = ga.Graph.from_networkx(self.current_graph)
+                converted_graph = ga.Graph.from_networkx(original_graph)
             else:
                 logger.error(f"Unsupported backend: {backend}")
-                return False
+                return None
         except ImportError:
             logger.exception(f"Backend '{backend}' import failed")
-            return False
+            return None
         except Exception:
             logger.exception(f"Error setting up backend '{backend}'")
             logger.debug(traceback.format_exc())
-            return False
+            return None
         else:
-            return True
+            return converted_graph
 
     def do_benchmark(
         self, algo_config: AlgorithmConfig, dataset_name: str, backend: str
@@ -205,9 +205,7 @@ class GraphBenchmark:
                 end_time = time.perf_counter()
 
             execution_time = end_time - start_time
-            current, peak = mem
-
-            gc.collect()
+            current, peak = mem["current"], mem["peak"]
 
             if not isinstance(result, (float, int)):
                 result = dict(result)
@@ -245,7 +243,27 @@ class GraphBenchmark:
 
 
 def get_algorithm_function(algo_config: AlgorithmConfig, backend_name: str) -> Any:
-    """Retrieve the algorithm function for the specified backend."""
+    """Retrieve the algorithm function for the specified backend.
+
+    Parameters
+    ----------
+    algo_config : AlgorithmConfig
+        Configuration object containing details about the algorithm, including its
+        function reference.
+    backend_name : str
+        The name of the backend for which the algorithm function is being retrieved.
+
+    Returns
+    -------
+    Any
+        The algorithm function or a partially applied function for the specified
+        backend.
+
+    Raises
+    ------
+    ImportError
+        If the function reference for the algorithm is not found.
+    """
     if algo_config.func_ref is None:
         raise ImportError(
             f"Function '{algo_config.func}' could not be imported for algorithm "
@@ -259,6 +277,26 @@ def get_algorithm_function(algo_config: AlgorithmConfig, backend_name: str) -> A
 def process_algorithm_params(
     params: dict[str, Any],
 ) -> tuple[list[Any], dict[str, Any]]:
+    """Process and separate algorithm parameters into positional and keyword arguments.
+
+    Parameters
+    ----------
+    params : dict[str, Any]
+        A dictionary of algorithm parameters, where keys can indicate either positional
+        or keyword arguments.
+
+    Returns
+    -------
+    tuple[list[Any], dict[str, Any]]
+        A tuple containing a list of positional arguments and a dictionary of keyword
+        arguments.
+
+    Notes
+    -----
+    Parameters prefixed with an underscore ("_") are treated as positional arguments.
+    If a parameter value is a
+    dictionary containing a "func" key, the function is imported dynamically.
+    """
     pos_args = []
     kwargs = {}
     for key, value in params.items():
