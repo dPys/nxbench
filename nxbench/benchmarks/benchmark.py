@@ -193,7 +193,7 @@ class GraphBenchmark:
         except (ImportError, AttributeError):
             logger.exception(f"Function not available for backend {backend}")
             logger.debug(traceback.format_exc())
-            self.teardown(backend)
+            self.teardown(dataset_name, backend)
             return {"execution_time": float("nan"), "memory_used": float("nan")}
 
         try:
@@ -231,11 +231,11 @@ class GraphBenchmark:
             logger.debug(traceback.format_exc())
             metrics = {"execution_time": float("nan"), "memory_used": float("nan")}
         finally:
-            self.teardown(backend)
+            self.teardown(dataset_name, backend)
 
         return metrics
 
-    def teardown(self, backend: str):
+    def teardown(self, dataset_name: str, backend: str):
         """Reset any backend-specific configurations to avoid state carryover."""
         if backend == "parallel":
             nx.config.backends.parallel.active = False
