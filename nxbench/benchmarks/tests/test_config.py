@@ -396,8 +396,12 @@ class TestBenchmarkResult:
             "algorithm": "pagerank",
         }
 
-        with pytest.raises(AttributeError):
-            BenchmarkResult.from_asv_result(asv_result, None)
+        result = BenchmarkResult.from_asv_result(asv_result, None)
+
+        assert result.num_nodes == 0
+        assert result.num_edges == 0
+        assert result.is_directed is False
+        assert result.is_weighted is False
 
 
 class TestBenchmarkMetrics:

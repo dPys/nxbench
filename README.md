@@ -54,7 +54,7 @@ nxbench --config 'configs/example.yaml' benchmark run
 3. Export results:
 
 ```bash
-nxbench benchmark export 'results/benchmarks.csv' --output-format csv  # Convert benchmarked results into csv format.
+nxbench benchmark export 'results/results.csv' --output-format csv  # Convert benchmarked results into csv format.
 ```
 
 

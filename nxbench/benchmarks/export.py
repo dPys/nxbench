@@ -1,5 +1,6 @@
 import json
 import logging
+import re
 from pathlib import Path
 from typing import Any
 
@@ -28,6 +29,7 @@ class ResultsExporter:
         self.results_dir = Path(results_dir)
         self.data_manager = BenchmarkDataManager()
         self.benchmark_config = get_benchmark_config()
+
         self._db = None
         self._cached_results = None
 
@@ -46,6 +48,11 @@ class ResultsExporter:
         self._machine_dir = machine_dirs[0]
         self._machine_info = self._load_machine_info()
 
+        if self._machine_info:
+            logger.debug(f"Machine Information: {self._machine_info}")
+        else:
+            logger.warning("Machine information could not be loaded.")
+
     def _load_machine_info(self) -> MachineInfo | None:
         """Load machine information from json file."""
         if not self._machine_dir:
@@ -62,7 +69,9 @@ class ResultsExporter:
             )
             return None
         else:
-            return MachineInfo(**data)
+            machine_info = MachineInfo(**data)
+            logger.debug(f"Loaded machine info: {machine_info}")
+            return machine_info
 
     def _parse_measurement(
         self, measurement: dict | int | float | None
@@ -107,6 +116,9 @@ class ResultsExporter:
         backend: str,
         execution_time: float,
         memory_used: float,
+        num_thread: int | None,
+        commit_hash: str,
+        date: int,
     ) -> BenchmarkResult | None:
         """Create a benchmark result object."""
         dataset_config = next(
@@ -135,18 +147,34 @@ class ResultsExporter:
         }
 
         try:
-            result = BenchmarkResult.from_asv_result(asv_result, graph)
+            if num_thread is None and self._machine_info:
+                try:
+                    num_thread = int(self._machine_info.num_cpu)
+                    logger.debug(
+                        f"Falling back to num_thread from machine_info: {num_thread}"
+                    )
+                except (ValueError, TypeError):
+                    logger.warning(
+                        f"Invalid num_cpu value in machine_info: "
+                        f"{self._machine_info.num_cpu}"
+                    )
+                    num_thread = 1
+
+            if num_thread is None:
+                num_thread = 1
+
+            logger.debug(f"Final num_thread for benchmark: {num_thread}")
+
+            result = BenchmarkResult.from_asv_result(
+                asv_result,
+                graph,
+                num_thread,
+                commit_hash=commit_hash,
+                date=date,
+            )
             result.metadata = metadata
-            if self._machine_info:
-                result.metadata.update(
-                    {
-                        "machine_arch": self._machine_info.arch,
-                        "machine_cpu": self._machine_info.cpu,
-                        "machine_name": self._machine_info.machine,
-                        "machine_os": self._machine_info.os,
-                        "machine_ram": self._machine_info.ram,
-                    }
-                )
+
+            logger.debug(f"BenchmarkResult created: {result}")
         except Exception:
             logger.exception(
                 f"Failed to create benchmark result for {algorithm} on {dataset}"
@@ -154,6 +182,24 @@ class ResultsExporter:
             return None
         else:
             return result
+
+    def _parse_benchmark_name(self, bench_name: str) -> tuple[str, str, str] | None:
+        """Parse the benchmark name to extract algorithm, dataset, and backend."""
+        pattern = r"^(?:track_)?(\w+?)_([\w\d]+?)_([\w\d]+?)(?:_\d+)?$"
+        match = re.search(pattern, bench_name)
+        if match:
+            algorithm = match.group(1)
+            dataset = match.group(2)
+            backend = match.group(3)
+            logger.debug(
+                f"Parsed benchmark name '{bench_name}': algorithm={algorithm}, "
+                f"dataset={dataset}, backend={backend}"
+            )
+            return algorithm, dataset, backend
+        logger.warning(
+            f"Benchmark name '{bench_name}' does not match expected patterns."
+        )
+        return None
 
     def load_results(self) -> list[BenchmarkResult]:
         """Load benchmark results and machine information."""
@@ -176,34 +222,143 @@ class ResultsExporter:
                 logger.exception(f"Failed to decode JSON from {result_file}")
                 continue
 
+            logger.debug(f"Processing result file: {result_file}")
+
+            env_vars = data.get("params", {}).get("env_vars", {})
+            logger.debug(f"'params.env_vars' extracted: {env_vars}")
+
+            if not env_vars:
+                env_vars = data.get("env_vars", {})
+                logger.debug(f"Falling back to top-level 'env_vars': {env_vars}")
+
+            num_thread_str = env_vars.get("NUM_THREAD") or env_vars.get("NUM_THREADS")
+            logger.debug(f"Extracted num_thread_str from env_vars: {num_thread_str}")
+
+            if not num_thread_str:
+                env_name = data.get("env_name", "")
+                logger.debug(f"'env_name' extracted: {env_name}")
+                match = re.search(r"NUM_THREAD(\d+)", env_name)
+                if match:
+                    num_thread = int(match.group(1))
+                    logger.debug(f"Extracted num_thread: {num_thread} from 'env_name'")
+                else:
+                    logger.warning(f"Could not extract NUM_THREAD from {result_file}")
+                    num_thread = None
+            else:
+                try:
+                    num_thread = int(num_thread_str)
+                    logger.debug(f"Extracted num_thread: {num_thread} from env_vars")
+                except (TypeError, ValueError):
+                    logger.warning(
+                        f"Invalid NUM_THREAD value in {result_file}: {num_thread_str}"
+                    )
+                    num_thread = None  # or set a default value
+
+            commit_hash = data.get("commit_hash", "unknown")
+            date = data.get("date", 0)
+
             for bench_name, bench_data in data.get("results", {}).items():
                 if not isinstance(bench_data, list) or len(bench_data) < 2:
-                    logger.warning(f"Unexpected bench_data format for {bench_name}")
+                    logger.warning(
+                        f"Unexpected bench_data format for {bench_name}: {bench_data}"
+                    )
                     continue
 
                 measurements = bench_data[0]
                 params_info = bench_data[1]
 
-                if not isinstance(params_info, list) or len(params_info) != 2:
-                    logger.warning(f"Unexpected params_info format for {bench_name}")
+                logger.debug(f"'params_info' content for {bench_name}: {params_info}")
+
+                if isinstance(params_info, list) and len(params_info) >= 2:
+                    datasets = [name.strip("'") for name in params_info[0]]
+                    backends = [name.strip("'") for name in params_info[1]]
+                elif isinstance(params_info, dict):
+                    datasets = params_info.get("datasets", [])
+                    backends = params_info.get("backends", [])
+                elif isinstance(params_info, list) and len(params_info) == 0:
+                    parsed = self._parse_benchmark_name(bench_name)
+                    if parsed:
+                        algorithm_parsed, dataset, backend = parsed
+                        algorithm = algorithm_parsed
+                        datasets = [dataset]
+                        backends = [backend]
+                    else:
+                        logger.warning(
+                            f"Unable to parse parameters from benchmark name: "
+                            f"{bench_name}"
+                        )
+                        continue
+                else:
+                    logger.warning(
+                        f"Unexpected params_info format for {bench_name}: {params_info}"
+                    )
                     continue
 
-                datasets = [name.strip("'") for name in params_info[0]]
-                backends = [name.strip("'") for name in params_info[1]]
-                algorithm = bench_name.split(".")[-1].replace("track_", "")
+                if not (isinstance(params_info, list) and len(params_info) == 0):
+                    algorithm = bench_name.split(".")[-1].replace("track_", "")
 
-                for (dataset, backend), measurement in zip(
-                    list(zip(datasets, backends)), measurements
-                ):
-                    execution_time, memory_used = self._parse_measurement(measurement)
+                logger.debug(
+                    f"Algorithm: {algorithm}, Dataset: {datasets}, Backend: {backends}"
+                )
 
-                    result = self._create_benchmark_result(
-                        algorithm, dataset, backend, execution_time, memory_used
+                if len(backends) == 1 and len(datasets) > 1:
+                    backend = backends[0]
+                    for dataset, measurement in zip(datasets, measurements):
+                        execution_time, memory_used = self._parse_measurement(
+                            measurement
+                        )
+
+                        result = self._create_benchmark_result(
+                            algorithm,
+                            dataset,
+                            backend,
+                            execution_time,
+                            memory_used,
+                            num_thread,
+                            commit_hash,
+                            date,
+                        )
+                        if result:
+                            results.append(result)
+                            logger.debug(
+                                f"Added BenchmarkResult: algorithm={algorithm}, "
+                                f"dataset={dataset}, "
+                                f"backend={backend}, num_thread={result.num_thread}"
+                            )
+                elif len(backends) == len(datasets):
+                    for dataset, backend, measurement in zip(
+                        datasets, backends, measurements
+                    ):
+                        execution_time, memory_used = self._parse_measurement(
+                            measurement
+                        )
+
+                        result = self._create_benchmark_result(
+                            algorithm,
+                            dataset,
+                            backend,
+                            execution_time,
+                            memory_used,
+                            num_thread,
+                            commit_hash,
+                            date,
+                        )
+                        if result:
+                            results.append(result)
+                            logger.debug(
+                                f"Added BenchmarkResult: algorithm={algorithm}, "
+                                f"dataset={dataset}, "
+                                f"backend={backend}, num_thread={result.num_thread}"
+                            )
+                else:
+                    logger.warning(
+                        f"Mismatch between number of backends and datasets for "
+                        f"{bench_name} in {result_file}"
                     )
-                    if result:
-                        results.append(result)
+                    continue
 
         self._cached_results = results
+        logger.info(f"Total benchmark results loaded: {len(results)}")
         return results
 
     def to_dataframe(self) -> pd.DataFrame:
@@ -215,6 +370,10 @@ class ResultsExporter:
             DataFrame containing benchmark results
         """
         results = self.load_results()
+        if not results:
+            logger.error("No benchmark results found.")
+            raise ValueError("No benchmark results found.")
+
         records = []
         for result in results:
             record = {
@@ -223,14 +382,19 @@ class ResultsExporter:
                 "backend": result.backend,
                 "execution_time": result.execution_time,
                 "memory_used": result.memory_used,
+                "num_thread": result.num_thread,  # Added num_thread
                 "num_nodes": result.num_nodes,
                 "num_edges": result.num_edges,
                 "is_directed": result.is_directed,
                 "is_weighted": result.is_weighted,
+                "commit_hash": result.commit_hash,
+                "date": result.date,
             }
             record.update(result.metadata)
             records.append(record)
-        return pd.DataFrame(records)
+        df = pd.DataFrame(records)
+        logger.debug(f"DataFrame created with shape: {df.shape}")
+        return df
 
     def to_csv(self, output_path: str | Path) -> None:
         """Export results to CSV file.

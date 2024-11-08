@@ -104,17 +104,21 @@ def test_setup_cache(mock_benchmark):
 
 
 def test_setup_failure(mock_benchmark):
-    """Test the setup method for failure when the dataset is not found."""
+    """Test setup_cache for failure when a dataset is not found."""
     mock_benchmark.graphs = {}
 
-    result = mock_benchmark.setup("non_existent_dataset", "networkx")
-    assert result is None
+    mock_benchmark.data_manager.load_network_sync.side_effect = Exception(
+        "Failed to load dataset"
+    )
+
+    mock_benchmark.setup_cache()
+
+    assert len(mock_benchmark.graphs) == 0
 
 
-def test_setup_unsupported_backend(mock_benchmark):
-    """Test the setup method with an unsupported backend."""
-    dataset_name = "test_dataset1"
-    result = mock_benchmark.setup(dataset_name, "unsupported_backend")
+def test_prepare_benchmark_unsupported_backend(mock_benchmark):
+    """Test the prepare_benchmark method with an unsupported backend."""
+    result = mock_benchmark.prepare_benchmark("test_dataset1", "unsupported_backend")
     assert result is None
 
 

@@ -12,34 +12,22 @@
     "pythons": [
         "3.11"
     ],
+    "req": [
+        "networkx==3.4.2",
+        "nx_parallel==0.3",
+        "python-graphblas==2024.2.0"
+    ],
     "matrix": {
-        "req": {
-            "networkx": [
-                "3.4.2"
-            ],
-            "nx_parallel": [
-                "0.3"
-            ],
-            "python-graphblas": [
-                "2024.2.0"
-            ]
-        },
-        "env_nobuild": {
-            "NUM_THREAD": [
-                "1",
-                "4",
-                "8"
-            ],
-            "OMP_NUM_THREADS": [
-                "1"
-            ],
-            "MKL_NUM_THREADS": [
-                "1"
-            ],
-            "OPENBLAS_NUM_THREADS": [
-                "1"
-            ]
-        }
+        "backend": [
+            "networkx",
+            "nx_parallel",
+            "python-graphblas"
+        ],
+        "num_threads": [
+            "1",
+            "4",
+            "8"
+        ]
     },
     "benchmark_dir": "nxbench/benchmarks",
     "env_dir": "env",

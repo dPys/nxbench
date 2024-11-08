@@ -185,11 +185,19 @@ class BenchmarkResult:
     is_directed: bool
     is_weighted: bool
     backend: str
+    num_thread: int
+    commit_hash: str
+    date: int
     metadata: dict[str, Any]
 
     @classmethod
     def from_asv_result(
-        cls, asv_result: dict[str, Any], graph: nx.Graph | nx.DiGraph | None = None
+        cls,
+        asv_result: dict[str, Any],
+        graph: nx.Graph | nx.DiGraph | None = None,
+        num_thread: int = 1,
+        commit_hash: str = "unknown",
+        date: int = 0,
     ):
         """Create BenchmarkResult from ASV benchmark output."""
         execution_time = asv_result.get("execution_time", 0.0)
@@ -208,6 +216,10 @@ class BenchmarkResult:
             logger.error(f"Non-numeric memory_used: {memory_used}")
             memory_used = float("nan")
 
+        if graph is None:
+            graph = nx.Graph()
+            graph.graph["name"] = dataset
+
         return cls(
             algorithm=algorithm,
             dataset=dataset,
@@ -218,6 +230,9 @@ class BenchmarkResult:
             is_directed=graph.is_directed(),
             is_weighted=nx.is_weighted(graph),
             backend=backend,
+            num_thread=num_thread,
+            commit_hash=commit_hash,
+            date=date,
             metadata={},
         )
 
