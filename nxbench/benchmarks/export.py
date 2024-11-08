@@ -69,9 +69,14 @@ class ResultsExporter:
             )
             return None
         else:
-            machine_info = MachineInfo(**data)
-            logger.debug(f"Loaded machine info: {machine_info}")
-            return machine_info
+            try:
+                machine_info = MachineInfo(**data)
+                logger.debug(f"Loaded machine info: {machine_info}")
+            except TypeError:
+                logger.warning("MachineInfo structure mismatch")
+                return None
+            else:
+                return machine_info
 
     def _parse_measurement(
         self, measurement: dict | int | float | None
@@ -185,7 +190,9 @@ class ResultsExporter:
 
     def _parse_benchmark_name(self, bench_name: str) -> tuple[str, str, str] | None:
         """Parse the benchmark name to extract algorithm, dataset, and backend."""
-        pattern = r"^(?:track_)?(\w+?)_([\w\d]+?)_([\w\d]+?)(?:_\d+)?$"
+        pattern = (
+            r"^(?:benchmark\.)?GraphBenchmark\.track_(.+?)_([^_]+)_([^_]+)(?:_\d+)?$"
+        )
         match = re.search(pattern, bench_name)
         if match:
             algorithm = match.group(1)
@@ -241,6 +248,18 @@ class ResultsExporter:
                 if match:
                     num_thread = int(match.group(1))
                     logger.debug(f"Extracted num_thread: {num_thread} from 'env_name'")
+                elif "num_cpu" in data.get("params", {}):
+                    try:
+                        num_thread = int(data["params"]["num_cpu"])
+                        logger.debug(
+                            f"Falling back to num_cpu from params: {num_thread}"
+                        )
+                    except (ValueError, TypeError):
+                        logger.warning(
+                            f"Invalid num_cpu value in params: "
+                            f"{data['params']['num_cpu']}"
+                        )
+                        num_thread = None
                 else:
                     logger.warning(f"Could not extract NUM_THREAD from {result_file}")
                     num_thread = None
@@ -374,6 +393,12 @@ class ResultsExporter:
             logger.error("No benchmark results found.")
             raise ValueError("No benchmark results found.")
 
+        machine_info = self.get_machine_info()
+        cpu = machine_info.get("cpu", "unknown")
+        os_info = machine_info.get("os", "unknown")
+        version = machine_info.get("version", "unknown")
+        python_version = get_python_version()
+
         records = []
         for result in results:
             record = {
@@ -382,15 +407,19 @@ class ResultsExporter:
                 "backend": result.backend,
                 "execution_time": result.execution_time,
                 "memory_used": result.memory_used,
-                "num_thread": result.num_thread,  # Added num_thread
+                "num_thread": result.num_thread,
                 "num_nodes": result.num_nodes,
                 "num_edges": result.num_edges,
                 "is_directed": result.is_directed,
                 "is_weighted": result.is_weighted,
                 "commit_hash": result.commit_hash,
-                "date": result.date,
+                "cpu": cpu,
+                "os": os_info,
+                "version": version,
+                "python_version": python_version,
             }
-            record.update(result.metadata)
+            metadata = {k: v for k, v in result.metadata.items() if k != "date"}
+            record.update(metadata)
             records.append(record)
         df = pd.DataFrame(records)
         logger.debug(f"DataFrame created with shape: {df.shape}")

@@ -213,7 +213,7 @@ validation:
 matrix:
   backend:
     - "networkx"
-    - "nx_parallel"
+    - "parallel"
     - "graphblas"
   num_threads:
     - "1"
