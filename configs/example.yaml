@@ -154,15 +154,7 @@ datasets:
     source: "networkrepository"
     params: {}
 
-  - name: "IMDB"
-    source: "networkrepository"
-    params: {}
-
   - name: "citeseer"
-    source: "networkrepository"
-    params: {}
-
-  - name: "enron"
     source: "networkrepository"
     params: {}
 
@@ -217,3 +209,13 @@ validation:
   validate_all: true
   error_on_fail: true
   report_memory: true
+
+matrix:
+  backend:
+    - "networkx"
+    - "parallel"
+    - "graphblas"
+  num_threads:
+    - "1"
+    - "4"
+    - "8"

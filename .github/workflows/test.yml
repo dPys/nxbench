@@ -49,7 +49,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -e .[test,scrape]
+          pip install -e .[test]
 
       - name: Cache Test Data
         uses: actions/cache@v4

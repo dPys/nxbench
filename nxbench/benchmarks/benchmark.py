@@ -1,24 +1,20 @@
 """Core benchmark functionality and result handling."""
 
-import gc
 import logging
+import os
 import time
 import traceback
-import tracemalloc
 import warnings
-from contextlib import contextmanager
 from functools import partial
-from typing import Any, ClassVar
+from typing import Any
 
 import networkx as nx
 
-from _nxbench.config import _config as package_config
 from nxbench.benchmarks.config import AlgorithmConfig
 from nxbench.benchmarks.utils import (
+    get_available_backends,
     get_benchmark_config,
-    is_cugraph_available,
-    is_graphblas_available,
-    is_nx_parallel_available,
+    memory_tracker,
 )
 from nxbench.data.loader import BenchmarkDataManager
 from nxbench.validation.registry import BenchmarkValidator
@@ -36,54 +32,68 @@ __all__ = [
 ]
 
 
-config = get_benchmark_config()
-datasets = [ds.name for ds in config.datasets]
-
-
-backends = ["networkx"]
-
-if is_cugraph_available():
-    backends.append("cugraph")
-
-if is_graphblas_available():
-    backends.append("graphblas")
-
-if is_nx_parallel_available():
-    backends.append("parallel")
-
-
-@contextmanager
-def memory_tracker():
-    tracemalloc.start()
-    try:
-        yield
-    finally:
-        current, peak = tracemalloc.get_traced_memory()
-        tracemalloc.stop()
-        tracemalloc.reset_peak()
-
-
 def generate_benchmark_methods(cls):
+    """Generate benchmark methods dynamically for each combination of algorithm,
+    backend, and number of threads without redundant executions.
+    """
     config = get_benchmark_config()
     algorithms = config.algorithms
+    datasets = [ds.name for ds in config.datasets]
+    available_backends = get_available_backends()
+    matrix_config = config.matrix
+    if matrix_config:
+        backends = [
+            backend
+            for backend in matrix_config.get("backend", ["networkx"])
+            if backend in available_backends
+        ]
+        num_thread_values = [int(v) for v in matrix_config.get("num_threads", ["1"])]
+    else:
+        backends = ["networkx"]
+        num_thread_values = ["1"]
 
-    def make_benchmark_method(algo_config):
+    def make_benchmark_method(algo_config, dataset_name, backend, num_thread):
+        """Create a unique benchmark method for the given algorithm, dataset, backend,
+        and number of threads combination.
+        """
         algo_name = algo_config.name
+        orig_dataset_name = dataset_name
+        method_name = f"track_{algo_name}_{orig_dataset_name}_{backend}_{num_thread}"
 
-        def track_method(self, dataset_name: str, backend: str):
-            """Run benchmark and return metrics."""
-            metrics = self.do_benchmark(algo_config, dataset_name, backend)
-            logger.debug(f"Track {algo_name} results: {metrics}")
+        def track_method(self):
+            """Run benchmark and return metrics for the unique combination."""
+            logger.debug(
+                f"Starting track_method for {method_name} with backend={backend}, "
+                f"threads={num_thread}, dataset={orig_dataset_name}"
+            )
+            metrics = self.do_benchmark(
+                algo_config, orig_dataset_name, backend, num_thread
+            )
+            logger.debug(f"Track {method_name} results: {metrics}")
             return metrics
 
-        track_method.__name__ = f"track_{algo_name}"
+        track_method.__name__ = method_name
         track_method.unit = "seconds+MB"
 
         return track_method
 
+    generated_methods = set()
     for algo_config in algorithms:
-        track_method = make_benchmark_method(algo_config)
-        setattr(cls, track_method.__name__, track_method)
+        for dataset_name in datasets:
+            for backend in backends:
+                for num_thread in num_thread_values:
+                    method_signature = (
+                        algo_config.name,
+                        dataset_name,
+                        backend,
+                        num_thread,
+                    )
+                    if method_signature not in generated_methods:
+                        track_method = make_benchmark_method(
+                            algo_config, dataset_name, backend, num_thread
+                        )
+                        setattr(cls, track_method.__name__, track_method)
+                        generated_methods.add(method_signature)
 
     return cls
 
@@ -92,25 +102,20 @@ def generate_benchmark_methods(cls):
 class GraphBenchmark:
     """Base class for all graph algorithm benchmarks."""
 
-    param_names: ClassVar[list[str]] = ["dataset_name", "backend"]
-    params: ClassVar[list[Any]] = [datasets, backends]
-
     def __init__(self):
         self.data_manager = BenchmarkDataManager()
         self.graphs = {}
-        self.current_graph = None
-        self.current_backend = None
 
     def setup_cache(self):
         """Cache graph data for benchmarks."""
         self.graphs = {}
-        for dataset_name in self.params[0]:
+
+        config = get_benchmark_config()
+        datasets = [ds.name for ds in config.datasets]
+
+        for dataset_name in datasets:
             dataset_config = next(
-                (
-                    ds
-                    for ds in get_benchmark_config().datasets
-                    if ds.name == dataset_name
-                ),
+                (ds for ds in config.datasets if ds.name == dataset_name),
                 None,
             )
             if dataset_config is None:
@@ -120,65 +125,86 @@ class GraphBenchmark:
                 graph, metadata = self.data_manager.load_network_sync(dataset_config)
                 self.graphs[dataset_name] = (graph, metadata)
                 logger.debug(
-                    f"Cached dataset '{dataset_name}' with {graph.number_of_nodes()} "
-                    f"nodes"
+                    f"Cached dataset '{dataset_name}' with "
+                    f"{graph.number_of_nodes()} nodes"
                 )
             except Exception:
                 logger.exception(f"Failed to load dataset '{dataset_name}'")
 
-    def setup(self, dataset_name: str, backend: str) -> bool:
-        """Initialize the dataset and backend."""
-        if not self.graphs:
-            self.setup_cache()
+    def setup(self):
+        """ASV setup method. Called before any benchmarks are run."""
+        logger.debug("ASV setup: Initializing benchmark cache.")
+        self.setup_cache()
+
+    def prepare_benchmark(
+        self, dataset_name: str, backend: str, num_thread: int = 1
+    ) -> Any:
+        """Initialize the dataset and backend, returning the converted graph."""
+        logger.debug(
+            f"Preparing benchmark with dataset={dataset_name}, "
+            f"backend={backend}, threads={num_thread}"
+        )
 
         dataset_name = dataset_name.strip("'")
+        logger.debug(f"Looking for dataset '{dataset_name}' in cache")
 
         graph_data = self.graphs.get(dataset_name)
         if graph_data is None:
             logger.error(f"Graph for dataset '{dataset_name}' not found in cache.")
-            return False
+            logger.debug(f"Available datasets: {list(self.graphs.keys())}")
+            return None
 
-        self.current_graph, metadata = graph_data
-        self.current_backend = backend
+        original_graph, metadata = graph_data
+        logger.debug(
+            f"Found graph with {original_graph.number_of_nodes()} nodes, "
+            f"{original_graph.number_of_edges()} edges"
+        )
 
         try:
             if backend == "networkx":
-                pass
-            elif backend == "parallel":
+                converted_graph = original_graph
+            elif "parallel" in backend:
+                os.environ["NUM_THREAD"] = str(num_thread)
+                os.environ["OMP_NUM_THREADS"] = str(num_thread)
+                os.environ["MKL_NUM_THREADS"] = str(num_thread)
+                os.environ["OPENBLAS_NUM_THREADS"] = str(num_thread)
+
                 nx.config.backends.parallel.active = True
-                nx.config.backends.parallel.n_jobs = package_config.num_thread
-            elif backend == "cugraph":
+                nx.config.backends.parallel.n_jobs = num_thread
+                converted_graph = original_graph
+            elif "cugraph" in backend:
                 import cugraph
 
-                edge_attr = "weight" if nx.is_weighted(self.current_graph) else None
-                self.current_graph = cugraph.from_networkx(
-                    self.current_graph, edge_attrs=edge_attr
+                edge_attr = "weight" if nx.is_weighted(original_graph) else None
+                converted_graph = cugraph.from_networkx(
+                    original_graph, edge_attrs=edge_attr
                 )
-            elif backend == "graphblas":
+            elif "graphblas" in backend:
                 import graphblas_algorithms as ga
 
-                self.current_graph = ga.Graph.from_networkx(self.current_graph)
+                converted_graph = ga.Graph.from_networkx(original_graph)
             else:
                 logger.error(f"Unsupported backend: {backend}")
-                return False
-        except ImportError:
-            logger.exception(f"Backend '{backend}' import failed")
-            return False
+                return None
         except Exception:
-            logger.exception(f"Error setting up backend '{backend}'")
-            logger.debug(traceback.format_exc())
-            return False
+            logger.exception("Error in prepare_benchmark")
+            return None
         else:
-            return True
+            return converted_graph
 
     def do_benchmark(
-        self, algo_config: AlgorithmConfig, dataset_name: str, backend: str
+        self,
+        algo_config: AlgorithmConfig,
+        dataset_name: str,
+        backend: str,
+        num_thread: int,
     ) -> dict:
         logger.debug(
-            f"Running benchmark for {algo_config.name} on {dataset_name} with {backend}"
+            f"Running benchmark for {algo_config.name} on {dataset_name} with "
+            f"{backend} using {num_thread} threads"
         )
 
-        converted_graph = self.setup(dataset_name, backend)
+        converted_graph = self.prepare_benchmark(dataset_name, backend, num_thread)
         if converted_graph is None:
             return {"execution_time": float("nan"), "memory_used": float("nan")}
 
@@ -193,7 +219,7 @@ class GraphBenchmark:
         except (ImportError, AttributeError):
             logger.exception(f"Function not available for backend {backend}")
             logger.debug(traceback.format_exc())
-            self.teardown(backend)
+            self.teardown_specific(backend, num_thread)
             return {"execution_time": float("nan"), "memory_used": float("nan")}
 
         try:
@@ -205,9 +231,7 @@ class GraphBenchmark:
                 end_time = time.perf_counter()
 
             execution_time = end_time - start_time
-            current, peak = mem
-
-            gc.collect()
+            current, peak = mem["current"], mem["peak"]
 
             if not isinstance(result, (float, int)):
                 result = dict(result)
@@ -233,19 +257,49 @@ class GraphBenchmark:
             logger.debug(traceback.format_exc())
             metrics = {"execution_time": float("nan"), "memory_used": float("nan")}
         finally:
-            self.teardown(backend)
+            self.teardown_specific(backend, num_thread)
 
         return metrics
 
-    def teardown(self, backend: str):
-        """Reset any backend-specific configurations to avoid state carryover."""
-        if backend == "parallel":
+    def teardown_specific(self, backend: str, num_thread: int = 1):
+        """Reset any backend-specific configurations to avoid state leakage."""
+        if "parallel" in backend:
+            logger.debug("Tearing down parallel backend configurations.")
             nx.config.backends.parallel.active = False
             nx.config.backends.parallel.n_jobs = 1
 
+            os.environ["NUM_THREAD"] = "1"
+            os.environ["OMP_NUM_THREADS"] = "1"
+            os.environ["MKL_NUM_THREADS"] = "1"
+            os.environ["OPENBLAS_NUM_THREADS"] = "1"
+
+    def teardown(self):
+        """ASV teardown method. Called after all benchmarks are run."""
+        logger.debug("ASV teardown: Cleaning up if necessary.")
+
 
 def get_algorithm_function(algo_config: AlgorithmConfig, backend_name: str) -> Any:
-    """Retrieve the algorithm function for the specified backend."""
+    """Retrieve the algorithm function for the specified backend.
+
+    Parameters
+    ----------
+    algo_config : AlgorithmConfig
+        Configuration object containing details about the algorithm, including its
+        function reference.
+    backend_name : str
+        The name of the backend for which the algorithm function is being retrieved.
+
+    Returns
+    -------
+    Any
+        The algorithm function or a partially applied function for the specified
+        backend.
+
+    Raises
+    ------
+    ImportError
+        If the function reference for the algorithm is not found.
+    """
     if algo_config.func_ref is None:
         raise ImportError(
             f"Function '{algo_config.func}' could not be imported for algorithm "
@@ -259,6 +313,26 @@ def get_algorithm_function(algo_config: AlgorithmConfig, backend_name: str) -> A
 def process_algorithm_params(
     params: dict[str, Any],
 ) -> tuple[list[Any], dict[str, Any]]:
+    """Process and separate algorithm parameters into positional and keyword arguments.
+
+    Parameters
+    ----------
+    params : dict[str, Any]
+        A dictionary of algorithm parameters, where keys can indicate either positional
+        or keyword arguments.
+
+    Returns
+    -------
+    tuple[list[Any], dict[str, Any]]
+        A tuple containing a list of positional arguments and a dictionary of keyword
+        arguments.
+
+    Notes
+    -----
+    Parameters prefixed with an underscore ("_") are treated as positional arguments.
+    If a parameter value is a
+    dictionary containing a "func" key, the function is imported dynamically.
+    """
     pos_args = []
     kwargs = {}
     for key, value in params.items():

@@ -45,7 +45,7 @@ class BenchmarkDataManager:
             ) as f:
                 df = pd.read_csv(f)
                 df["name"] = df["name"].apply(self._normalize_name)
-                logger.debug(f"Loaded metadata names: {df['name'].tolist()}")
+                # logger.debug(f"Loaded metadata names: {df['name'].tolist()}")
                 return df
         except Exception:
             logger.exception("Failed to load network metadata from package data")

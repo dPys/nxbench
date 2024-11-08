@@ -1,7 +1,7 @@
 {
     "version": 1,
     "project": "nxbench",
-    "timeout": 120,
+    "timeout": 3000,
     "project_url": "https://github.com/dpys/nxbench",
     "repo": ".",
     "branches": [
@@ -10,19 +10,14 @@
     "environment_type": "existing",
     "show_commit_url": "https://github.com/dpys/nxbench/commit/",
     "pythons": [
-        "3.10"
+        "3.11"
     ],
-    "matrix": {
-        "networkx": [
-            "3.3"
-        ],
-        "nx-parallel": [
-            "0.3rc0.dev0"
-        ],
-        "python-graphblas": [
-            "2024.2.0"
-        ]
-    },
+    "req": [
+        "networkx==3.4.2",
+        "nx_parallel==0.3",
+        "graphblas_algorithms==2023.10.0"
+    ],
+    "matrix": {},
     "benchmark_dir": "nxbench/benchmarks",
     "env_dir": "env",
     "results_dir": "results",
@@ -32,7 +27,7 @@
         "asv_runner"
     ],
     "build_command": [
-        "python -m pip install ."
+        "PIP_NO_BUILD_ISOLATION=false python -m pip install ."
     ],
     "install_command": [
         "python -m pip install {wheel_file}"

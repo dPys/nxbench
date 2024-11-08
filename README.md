@@ -1,13 +1,13 @@
 # nxbench
 
-**nxbench** is a comprehensive benchmarking suite designed to facilitate comparative profiling of graph analytic algorithms across NetworkX and compatible backends. Built with an emphasis on reproducibility, extensibility, and detailed performance analysis, nxbench enables developers and researchers to optimize their graph analysis workflows efficiently.
+**nxbench** is a comprehensive benchmarking suite designed to facilitate comparative profiling of graph analytic algorithms across NetworkX and compatible backends. Built with an emphasis on extensibility and detailed performance analysis, nxbench aims to enable developers and researchers to optimize their graph analysis workflows efficiently and reproducibly.
 
-## Features
+## Key Features
 
 - **Cross-Backend Benchmarking**: Leverage NetworkX's backend system to profile algorithms across multiple implementations (NetworkX, nx-parallel, GraphBLAS, and CuGraph)
 - **Configurable Suite**: YAML-based configuration for algorithms, datasets, and benchmarking parameters
-- **Real-World Datasets**: Automated downloading and caching of networks from NetworkRepository
-- **Synthetic Graph Generation**: Support for generating benchmark graphs using NetworkX's built-in generators
+- **Real-World Datasets**: Automated downloading and caching of networks and their metadata from NetworkRepository
+- **Synthetic Graph Generation**: Support for generating benchmark graphs using any of NetworkX's built-in generators
 - **Validation Framework**: Comprehensive result validation for correctness across implementations
 - **Performance Monitoring**: Track execution time and memory usage with detailed metrics
 - **Interactive Visualization**: Dynamic dashboard for exploring benchmark results using Plotly Dash
@@ -54,7 +54,7 @@ nxbench --config 'configs/example.yaml' benchmark run
 3. Export results:
 
 ```bash
-nxbench benchmark export 'results/benchmarks.csv' --output-format csv  # Convert benchmarked results into csv format.
+nxbench benchmark export 'results/results.csv' --output-format csv  # Convert benchmarked results into csv format.
 ```
 
 
@@ -69,6 +69,9 @@ nxbench viz serve  # Launch interactive dashboard
 The CLI provides comprehensive management of benchmarks, datasets, and visualization:
 
 ```bash
+# Validating asv configuration
+asv check
+
 # Data Management
 nxbench data download karate  # Download specific dataset
 nxbench data list --category social  # List available datasets
@@ -77,7 +80,6 @@ nxbench data list --category social  # List available datasets
 nxbench --config 'configs/example.yaml' -vvv benchmark run  # Debug benchmark runs
 nxbench benchmark export 'results/benchmarks.sqlite' --output-format sql # Export the results into a sql database
 nxbench benchmark compare HEAD HEAD~1  # Compare with previous commit
-
 
 # Visualization
 nxbench viz serve  # Launch parallel categories dashboard
@@ -107,14 +109,14 @@ datasets:
 
 - NetworkX (default)
 - CuGraph (requires separate CUDA installation and supported GPU hardware)
-- GraphBLAS (optional)
+- GraphBLAS Algorithms (optional)
 - nx-parallel (optional)
 
 ## Development
 
 ```bash
 # Install development dependencies
-pip install -e .[test,scrape,doc] # testing, scraping of real-world graph data, and documentation
+pip install -e .[test,doc] # testing and documentation
 
 # Run tests
 make test

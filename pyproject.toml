@@ -32,21 +32,19 @@ dependencies = [
     "pydantic >=2.8",
     "setuptools >=75.1",
     "nest-asyncio >=1.6",
-    "pytest-asyncio >= 0.24.0",
-    "asv>=0.6.4",
+    "asv >=0.6.4",
     "dash >= 2.18.1",
-    "dash-bootstrap-components >= 1.6.0"
-]
-
-[project.optional-dependencies]
-cuda = ["cugraph"]
-
-scrape = ["aiohttp >= 3.9.5",
+    "dash-bootstrap-components >=1.6.0",
+    "aiohttp >= 3.9.5",
     "aiofiles >= 24.1.0",
     "chardet >= 4.0.0",
     "beautifulsoup4 >= 4.12.3",
     "multidict >= 6.0.5",
-    "yarl >= 1.9.4"]
+    "yarl >= 1.9.4"
+]
+
+[project.optional-dependencies]
+cuda = ["cugraph"]
 
 test = [
     'pre-commit>=3.8.0',
@@ -60,6 +58,7 @@ test = [
     'pytest-xdist>=1.32.0',
     'pytest-metadata>=2.0.2',
     'pytest-env>=1.1.5',
+    "pytest-asyncio >= 0.24.0",
     'coverage>=7.6.1',
     'build>=1.2.2',
     'isort>=5.13.2'

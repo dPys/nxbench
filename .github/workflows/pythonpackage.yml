@@ -36,7 +36,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -U build pip twine
-          pip install -e .[doc,test,scrape]
+          pip install -e .[doc,test]
 
       - name: Build and check package
         run: |

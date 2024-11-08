@@ -3,8 +3,8 @@
 import logging
 import warnings
 from collections import defaultdict
-from typing import Any
 from collections.abc import Iterable
+from typing import Any
 
 import networkx as nx
 import numpy as np
@@ -29,7 +29,6 @@ __all__ = [
 
 class ValidationError(Exception):
     """Custom exception for validation failures."""
-
 
 
 def validate_graph_result(

@@ -151,7 +151,7 @@ class BenchmarkDashboard:
         """
         if export_format.lower() == "csv":
             if output_path is None:
-                output_path = self.results_dir / "benchmark_results.csv"
+                output_path = self.results_dir / "results.csv"
             self.exporter.to_csv(output_path)
         elif export_format.lower() == "sql":
             self.exporter.to_sql(output_path)
