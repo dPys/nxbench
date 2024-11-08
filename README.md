@@ -109,7 +109,7 @@ datasets:
 
 - NetworkX (default)
 - CuGraph (requires separate CUDA installation and supported GPU hardware)
-- GraphBLAS (optional)
+- GraphBLAS Algorithms (optional)
 - nx-parallel (optional)
 
 ## Development

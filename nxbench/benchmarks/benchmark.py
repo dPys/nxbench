@@ -40,16 +40,17 @@ def generate_benchmark_methods(cls):
     algorithms = config.algorithms
     datasets = [ds.name for ds in config.datasets]
     available_backends = get_available_backends()
-    backends = [
-        backend
-        for backend, version_list in config.matrix.get(
-            "req", {"networkx": ["3.4.2"]}
-        ).items()
-        if backend in available_backends
-    ]
-    num_thread_values = [
-        int(v) for v in config.matrix.get("env_nobuild", {}).get("NUM_THREAD", ["1"])
-    ]
+    matrix_config = config.matrix
+    if matrix_config:
+        backends = [
+            backend
+            for backend in matrix_config.get("backend", ["networkx"])
+            if backend in available_backends
+        ]
+        num_thread_values = [int(v) for v in matrix_config.get("num_threads", ["1"])]
+    else:
+        backends = ["networkx"]
+        num_thread_values = ["1"]
 
     def make_benchmark_method(algo_config, dataset_name, backend, num_thread):
         """Create a unique benchmark method for the given algorithm, dataset, backend,
@@ -161,10 +162,8 @@ class GraphBenchmark:
 
         try:
             if backend == "networkx":
-                logger.debug("Using NetworkX backend directly")
                 converted_graph = original_graph
             elif "parallel" in backend:
-                logger.debug(f"Setting up parallel backend with {num_thread} threads")
                 os.environ["NUM_THREAD"] = str(num_thread)
                 os.environ["OMP_NUM_THREADS"] = str(num_thread)
                 os.environ["MKL_NUM_THREADS"] = str(num_thread)
@@ -173,6 +172,17 @@ class GraphBenchmark:
                 nx.config.backends.parallel.active = True
                 nx.config.backends.parallel.n_jobs = num_thread
                 converted_graph = original_graph
+            elif "cugraph" in backend:
+                import cugraph
+
+                edge_attr = "weight" if nx.is_weighted(original_graph) else None
+                converted_graph = cugraph.from_networkx(
+                    original_graph, edge_attrs=edge_attr
+                )
+            elif "graphblas" in backend:
+                import graphblas_algorithms as ga
+
+                converted_graph = ga.Graph.from_networkx(original_graph)
             else:
                 logger.error(f"Unsupported backend: {backend}")
                 return None
@@ -258,7 +268,6 @@ class GraphBenchmark:
             nx.config.backends.parallel.active = False
             nx.config.backends.parallel.n_jobs = 1
 
-            # Reset environment variables
             os.environ["NUM_THREAD"] = "1"
             os.environ["OMP_NUM_THREADS"] = "1"
             os.environ["MKL_NUM_THREADS"] = "1"
