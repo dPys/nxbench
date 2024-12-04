@@ -1,6 +1,8 @@
 import warnings
 from pathlib import Path
+from unittest.mock import AsyncMock, MagicMock, patch
 
+import aiohttp
 import networkx as nx
 import pytest
 
@@ -419,3 +421,104 @@ D A 4.0
         assert data["weight"] == expected_weights.get(
             (u, v), expected_weights.get((v, u))
         ), f"Incorrect weight for edge ({u}, {v})"
+
+
+def test_load_metadata(data_manager):
+    """Test that metadata is loaded correctly."""
+    metadata = data_manager._metadata_df
+    assert not metadata.empty, "Metadata DataFrame should not be empty"
+    expected_names = [
+        "jazz",
+        "08blocks",
+        "patentcite",
+        "imdb",
+        "citeseer",
+        "mixed_delimiters",
+        "invalid_weights",
+        "self_loops_duplicates",
+        "non_sequential_ids",
+        "example",
+        "extra_columns",
+        "twitter",
+        "invalid_example",
+    ]
+    assert set(metadata["name"]) == set(
+        expected_names
+    ), "Metadata names do not match expected names"
+
+
+def test_get_metadata(data_manager):
+    """Test retrieving metadata for a network."""
+    metadata = data_manager.get_metadata("jazz")
+    assert metadata["name"] == "jazz", "Metadata 'name' should be 'jazz'"
+    assert metadata["directed"] is False, "Metadata 'directed' should be False"
+    assert metadata["weighted"] is True, "Metadata 'weighted' should be True"
+
+
+@patch("nxbench.data.loader.zipfile.ZipFile")
+@pytest.mark.asyncio
+async def test_load_network_retry(mock_zipfile_class, data_manager):
+    """Test network loading retry behavior."""
+    data_manager.get_metadata = MagicMock(
+        return_value={
+            "download_url": "http://example.com/test.zip",
+            "directed": False,
+            "weighted": True,
+        }
+    )
+
+    config = DatasetConfig(name="test", source="networkrepository", params={})
+
+    mock_response = AsyncMock()
+    mock_response.status = 200
+    mock_response.content.read = AsyncMock(side_effect=[b"data", b""])
+
+    mock_session = AsyncMock(spec=aiohttp.ClientSession)
+    mock_session.get.return_value.__aenter__.return_value = mock_response
+
+    mock_zipfile = MagicMock()
+    mock_zipfile.__enter__.return_value.extractall = MagicMock()
+    mock_zipfile_class.return_value = mock_zipfile
+
+    with pytest.raises(FileNotFoundError):
+        await data_manager.load_network(config, session=mock_session)
+
+    mock_session.get.assert_called_once_with("http://example.com/test.zip")
+
+
+def test_load_weighted_graph(data_manager, tmp_path):
+    """Test loading weighted graph formats."""
+    content = """# Test weighted graph
+1 2 1.5
+2 3 2.5
+3 1 3.5
+"""
+    test_file = tmp_path / "test.edges"
+    test_file.write_text(content)
+
+    graph = data_manager._load_graph_file(
+        test_file, {"directed": False, "weighted": True}
+    )
+
+    assert isinstance(graph, nx.Graph)
+    assert graph.number_of_nodes() == 3
+    assert graph.number_of_edges() == 3
+    for _, _, data in graph.edges(data=True):
+        assert "weight" in data
+        assert isinstance(data["weight"], float)
+
+
+def test_normalize_graph(data_manager, tmp_path):
+    """Test graph normalization and cleanup."""
+    content = """1 1
+1 2
+2 3"""
+    test_file = tmp_path / "test.edges"
+    test_file.write_text(content)
+
+    normalized = data_manager._load_graph_file(test_file, {"directed": False})
+
+    assert len(list(nx.selfloop_edges(normalized))) == 0
+    assert all(isinstance(n, str) for n in normalized.nodes())
+    assert normalized.number_of_nodes() == 3
+    assert normalized.number_of_edges() == 2

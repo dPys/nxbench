@@ -59,7 +59,7 @@ class BenchmarkDataManager:
         return network.iloc[0].to_dict()
 
     async def load_network(
-        self, config: DatasetConfig
+        self, config: DatasetConfig, session: aiohttp.ClientSession | None = None
     ) -> tuple[nx.Graph | nx.DiGraph, dict[str, Any]]:
         """Load or generate a network based on config."""
         source_lower = config.source.lower()
@@ -89,7 +89,7 @@ class BenchmarkDataManager:
 
         source_lower = config.source.lower()
         if source_lower == "networkrepository":
-            graph, metadata = await self._load_nr_graph(config.name, metadata)
+            graph, metadata = await self._load_nr_graph(config.name, metadata, session)
         elif source_lower == "local":
             graph, metadata = self._load_local_graph(config)
         elif source_lower == "generator":
@@ -241,7 +241,10 @@ class BenchmarkDataManager:
             return graph
 
     async def _load_nr_graph(
-        self, name: str, metadata: dict[str, Any]
+        self,
+        name: str,
+        metadata: dict[str, Any],
+        session: aiohttp.ClientSession | None = None,
     ) -> nx.Graph | nx.DiGraph:
         for ext in self.SUPPORTED_FORMATS:
             graph_file = self.data_dir / f"{name}{ext}"
@@ -256,7 +259,7 @@ class BenchmarkDataManager:
             f"Network '{name}' not found in local cache. Attempting to download from "
             f"repository."
         )
-        await self._download_and_extract_network(name, url)
+        await self._download_and_extract_network(name, url, session)
 
         for ext in self.SUPPORTED_FORMATS:
             graph_file = self.data_dir / f"{name}{ext}"
@@ -269,13 +272,15 @@ class BenchmarkDataManager:
             f"download was successful and the graph file exists."
         )
 
-    async def _download_and_extract_network(self, name: str, url: str):
+    async def _download_and_extract_network(
+        self, name: str, url: str, session: aiohttp.ClientSession | None = None
+    ):
         zip_path = self.data_dir / f"{name}.zip"
         extracted_folder = self.data_dir / f"{name}_extracted"
 
         if not zip_path.exists():
             logger.info(f"Downloading network '{name}' from {url}")
-            await self._download_file(url, zip_path)
+            await self._download_file(url, zip_path, session)
             logger.info(f"Downloaded network '{name}' to {zip_path}")
 
         if not extracted_folder.exists():
@@ -309,8 +314,12 @@ class BenchmarkDataManager:
                 )
                 raise
 
-    async def _download_file(self, url: str, dest: Path):
-        async with aiohttp.ClientSession() as session:
+    async def _download_file(
+        self, url: str, dest: Path, session: aiohttp.ClientSession | None = None
+    ):
+        if session is None:
+            session = aiohttp.ClientSession()
+        async with session:
             async with session.get(url) as response:
                 if response.status != 200:
                     logger.error(
