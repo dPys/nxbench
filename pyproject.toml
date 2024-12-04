@@ -190,6 +190,7 @@ exclude = [
     ".venv",
     "__pypackages__",
     "_build",
+    "docker/**",
     "buck-out",
     "build",
     "dist",
