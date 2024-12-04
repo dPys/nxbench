@@ -1,4 +1,4 @@
-.PHONY: clean_local install lint test doc_api doc_html clean_doc
+.PHONY: clean_local build install lint test doc_api doc_html clean_doc
 
 clean_local:
 	@find . -name "*.pyc" -type f -delete
@@ -8,17 +8,20 @@ clean_local:
 	@ruff clean
 	@rm -rf .mypy_cache .pytest_cache build dist nxbench.egg-info htmlcov .benchmarks env
 
+build:
+	@docker-compose build
+
 install: clean_local
-	pip uninstall nxbench -y
-	pip install -e .
+	@pip uninstall nxbench -y
+	@pip install -e .
 
 lint: clean_local
-	isort .
-	ruff format .
-	black .
+	@isort .
+	@ruff format .
+	@black .
 
 test: clean_local
-	pytest -vvv --disable-warnings --cov=nxbench --cov-report=xml --cov-report=html --cov-report=term-missing
+	@pytest -vvv --disable-warnings --cov=nxbench --cov-report=xml --cov-report=html --cov-report=term-missing
 
 SPHINXOPTS    =
 SPHINXBUILD   = sphinx-build

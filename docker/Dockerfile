@@ -6,6 +6,10 @@ ENV CUDA_HOME=/usr/local/cuda
 ENV PATH=${CUDA_HOME}/bin:${PATH}
 ENV LD_LIBRARY_PATH=${CUDA_HOME}/lib64:${LD_LIBRARY_PATH}
 
+WORKDIR /app
+
+COPY . /app/
+
 RUN apt-get update && apt-get install -y \
     build-essential \
     ca-certificates \
@@ -18,17 +22,13 @@ RUN apt-get update && apt-get install -y \
     && apt-get clean \
     && apt-get purge -y \
     && rm -rf /var/lib/{apt,dpkg,cache,log}/ \
-    && rm -rf /tmp/* /var/tmp/*
-
-WORKDIR /app
-
-COPY . /app/
-
-RUN pip install --no-cache-dir -e .[cuda,scrape] \
+    && rm -rf /tmp/* /var/tmp/* \
+    && pip install --no-cache-dir -e .[cuda] \
     nx-parallel \
     python-graphblas \
     ipython \
-    && mkdir -p ~/.nxbench/data
+    && mkdir -p ~/.nxbench/data \
+    && rm -rf /root/.cache/pip
 
 ENV NXBENCH_HOME=/root/.nxbench
 ENV NXBENCH_CONFIG_FILE=/app/configs/example.yaml
