@@ -1,4 +1,3 @@
-import importlib
 import importlib.resources as importlib_resources
 import logging
 import os
@@ -14,6 +13,7 @@ import pandas as pd
 from scipy.io import mmread
 
 from nxbench.benchmarks.config import DatasetConfig
+from nxbench.data.synthesize import generate_graph
 
 warnings.filterwarnings("ignore")
 
@@ -390,37 +390,25 @@ class BenchmarkDataManager:
     def _generate_graph(
         self, config: DatasetConfig
     ) -> tuple[nx.Graph | nx.DiGraph, dict[str, Any]]:
-        """Generate a synthetic network using networkx generator functions."""
+        """Generate a synthetic network using a generator function."""
         generator_name = config.params.get("generator")
         if not generator_name:
             raise ValueError("Generator name must be specified in params.")
 
-        try:
-            module_path, func_name = generator_name.rsplit(".", 1)
-            module = importlib.import_module(module_path)
-            generator = getattr(module, func_name)
-        except Exception:
-            raise ValueError(f"Invalid generator {generator_name}")
-
         gen_params = config.params.copy()
         gen_params.pop("generator", None)
 
-        try:
-            graph = generator(**gen_params)
-        except Exception:
-            raise ValueError(
-                f"Failed to generate graph with {generator_name} and params "
-                f"{gen_params}"
-            )
-
         directed = config.metadata.get("directed", False)
-        if directed and not graph.is_directed():
-            graph = graph.to_directed()
-        elif not directed and graph.is_directed():
-            graph = graph.to_undirected()
+
+        try:
+            graph = generate_graph(generator_name, gen_params, directed)
+        except Exception:
+            logger.exception(
+                f"Failed to generate graph with generator '{generator_name}'"
+            )
+            raise
 
         graph.graph.update(config.metadata)
-
         return graph, config.metadata
 
     def load_network_sync(
