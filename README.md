@@ -1,4 +1,13 @@
-# nxbench
+[![Python](https://img.shields.io/pypi/pyversions/nxbench.svg)](https://badge.fury.io/py/nxbench)
+[![PyPI](https://badge.fury.io/py/nxbench.svg)](https://badge.fury.io/py/nxbench)
+[![pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit&logoColor=white)](https://pre-commit.com/)
+[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+
+# NxBench
+
+<p align="center">
+  <img src="doc/_static/nxbench_logo.png" alt="NxBench Logo" width="150"/>
+</p>
 
 **nxbench** is a comprehensive benchmarking suite designed to facilitate comparative profiling of graph analytic algorithms across NetworkX and compatible backends. Built with an emphasis on extensibility and detailed performance analysis, nxbench aims to enable developers and researchers to optimize their graph analysis workflows efficiently and reproducibly.
 

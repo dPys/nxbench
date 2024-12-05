@@ -1,0 +1,129 @@
+/* nxbench custom styles */
+
+:root {
+    --nxbench-primary-color: #0f4a65;
+    --nxbench-secondary-color: #624d2e;
+    --nxbench-accent-color: #14b8a6;
+}
+
+.nxbench-header {
+    background-color: var(--nxbench-primary-color);
+    color: white;
+    padding: 1rem;
+}
+
+.nxbench-footer {
+    background-color: var(--nxbench-secondary-color);
+    color: white;
+    padding: 1rem;
+    text-align: center;
+}
+
+.nxbench-button {
+    background-color: var(--nxbench-accent-color);
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    text-decoration: none;
+    transition: background-color 0.3s;
+}
+
+.nxbench-button:hover {
+    background-color: #0f9b8e;
+}
+
+/* Override some Furo styles */
+.sidebar-brand {
+    padding: 1rem;
+    background-color: var(--nxbench-primary-color);
+}
+
+.sidebar-logo-container {
+    margin: 0 auto;
+}
+
+.sidebar-brand-text {
+    font-weight: bold;
+    color: white;
+    margin: 0.5rem 0;
+    text-align: center;
+}
+
+.sidebar-brand .sidebar-brand-text {
+    font-weight: bold;
+    color: darkorange;
+    margin: 0.5rem 0;
+    text-align: center;
+}
+
+.toc-tree .reference {
+    color: var(--nxbench-secondary-color);
+}
+
+.toc-tree .reference:hover {
+    color: var(--nxbench-accent-color);
+}
+
+/* Style for the logo container */
+.sidebar-brand {
+    background-color: transparent !important;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+}
+
+/* Style for the logo image */
+.sidebar-brand img {
+    background-color: transparent;
+    padding: 10px;
+}
+
+/* Adjust the logo size if needed */
+.sidebar-logo {
+    max-width: 80% !important;
+    height: auto !important;
+}
+
+/* Set the sidebar to use the full width without extra padding or margin */
+.sidebar {
+    padding-left: 0 !important;
+    margin-left: 0 !important;
+    width: 100% !important;
+}
+
+/* Adjust any potential sidebar wrapper */
+.sidebar-container,
+.sidebar-content {
+    padding-left: 0 !important;
+    margin-left: 0 !important;
+    width: 100% !important;
+}
+
+/* Check for nested sidebar structure causing extra space */
+.sidebar,
+.sidebar-inner,
+.sidebar-container,
+.sidebar-content {
+    padding-left: 0 !important;
+    margin-left: 0 !important;
+    width: 100% !important;
+    box-sizing: border-box;
+    /* Ensure padding doesn't affect layout */
+}
+
+/* Adjust for any Furo-specific class that might be adding margin or padding */
+.md-sidebar--primary {
+    padding-left: 0 !important;
+    margin-left: 0 !important;
+}
+
+/* Ensure the logo is visible in both light and dark modes */
+[data-theme="light"] .sidebar-brand img {
+    filter: brightness(0.2);
+    /* Darken the logo in light mode */
+}
+
+[data-theme="dark"] .sidebar-brand img {
+    filter: brightness(1.8);
+    /* Lighten the logo in dark mode */
+}
