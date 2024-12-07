@@ -6,12 +6,6 @@ PyPi:
 pip install nxbench
 ```
 
-For benchmarking using CUDA-based tools like [CuGraph](https://github.com/rapidsai/cugraph):
-
-```bash
-pip install nxbench[cuda]
-```
-
 ## Development Setup
 
 Install development dependencies (testing and documentation):

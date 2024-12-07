@@ -1,10 +1,12 @@
 FROM rapidsai/base:24.10-cuda12.5-py3.12
 
-ENV DEBIAN_FRONTEND=noninteractive
+USER root
 
+ENV DEBIAN_FRONTEND=noninteractive
 ENV CUDA_HOME=/usr/local/cuda
 ENV PATH=${CUDA_HOME}/bin:${PATH}
 ENV LD_LIBRARY_PATH=${CUDA_HOME}/lib64:${LD_LIBRARY_PATH}
+ENV PATH=/opt/conda/bin:${PATH}
 
 WORKDIR /app
 
@@ -22,13 +24,15 @@ RUN apt-get update && apt-get install -y \
     && apt-get clean \
     && apt-get purge -y \
     && rm -rf /var/lib/{apt,dpkg,cache,log}/ \
-    && rm -rf /tmp/* /var/tmp/* \
-    && pip install --no-cache-dir nxbench[cuda] \
+    && rm -rf /tmp/* /var/tmp/*
+
+RUN conda install -c rapidsai -c conda-forge -y cugraph \
+    && pip install --no-cache-dir \
+    nxbench \
     nx-parallel \
     python-graphblas \
     ipython \
-    && mkdir -p ~/.nxbench/data \
-    && rm -rf /root/.cache/pip
+    && mkdir -p ~/.nxbench/data && rm -rf /root/.cache/pip
 
 ENV NXBENCH_HOME=/root/.nxbench
 ENV NXBENCH_CONFIG_FILE=/app/configs/example.yaml
@@ -39,3 +43,5 @@ LABEL maintainer="Derek Alexander <dpysalexander@example.com>"
 LABEL description="Container image for nxbench graph algorithm benchmarking suite"
 LABEL version="0.1.0"
 LABEL org.opencontainers.image.source="https://github.com/dpys/nxbench"
+
+# USER rapids

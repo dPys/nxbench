@@ -29,12 +29,6 @@
 pip install nxbench
 ```
 
-For benchmarking using CUDA-based tools like [CuGraph](https://github.com/rapidsai/cugraph):
-
-```bash
-pip install nxbench[cuda]  # CUDA support is needed for CuGraph benchmarking
-```
-
 ## Quick Start
 
 1. Configure your benchmarks in a yaml file (see `configs/example.yaml`):
@@ -118,16 +112,6 @@ datasets:
 - CuGraph (requires separate CUDA installation and supported GPU hardware)
 - GraphBLAS Algorithms (optional)
 - nx-parallel (optional)
-
-## Development
-
-```bash
-# Install development dependencies
-pip install -e .[test,doc] # testing and documentation
-
-# Run tests
-make test
-```
 
 ## Reproducible benchmarking through containerization
 

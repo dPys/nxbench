@@ -1,4 +1,4 @@
-version: "3.8"
+version: "3.9"
 
 services:
   nxbench:
@@ -24,7 +24,6 @@ services:
       - NUM_THREAD=8
       - NUM_GPU=1
     command: nxbench benchmark run --backend all
-    # command: ipython
 
   dashboard:
     build:
