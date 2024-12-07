@@ -21,13 +21,14 @@ RUN apt-get update && apt-get install -y \
     vim \
     python3-dev \
     python3-pip \
+    && conda install -c rapidsai -c conda-forge -y cugraph \
     && apt-get clean \
     && apt-get purge -y \
     && rm -rf /var/lib/{apt,dpkg,cache,log}/ \
-    && rm -rf /tmp/* /var/tmp/*
+    && rm -rf /tmp/* /var/tmp/* \
+    && conda clean --all --yes
 
-RUN conda install -c rapidsai -c conda-forge -y cugraph \
-    && pip install --no-cache-dir \
+RUN pip install --no-cache-dir \
     nxbench \
     nx-parallel \
     python-graphblas \
