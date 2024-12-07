@@ -5,8 +5,10 @@ API Documentation
    :maxdepth: 2
    :caption: Contents:
 
-   nxbench.core
+   nxbench
    nxbench.benchmarks
    nxbench.data
+   nxbench.data.scripts
    nxbench.validation
+   nxbench.validation.scripts
    nxbench.viz

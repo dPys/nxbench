@@ -26,15 +26,13 @@
 ## Installation
 
 ```bash
-git clone https://github.com/dpys/nxbench.git
-cd nxbench
-pip install -e .[cuda]  # CUDA support is needed for CuGraph benchmarking
+pip install nxbench
 ```
 
 For benchmarking using CUDA-based tools like [CuGraph](https://github.com/rapidsai/cugraph):
 
 ```bash
-pip install -e .[cuda]
+pip install nxbench[cuda]  # CUDA support is needed for CuGraph benchmarking
 ```
 
 ## Quick Start
