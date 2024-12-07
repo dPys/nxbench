@@ -23,7 +23,7 @@ RUN apt-get update && apt-get install -y \
     && apt-get purge -y \
     && rm -rf /var/lib/{apt,dpkg,cache,log}/ \
     && rm -rf /tmp/* /var/tmp/* \
-    && pip install --no-cache-dir -e .[cuda] \
+    && pip install --no-cache-dir nxbench[cuda] \
     nx-parallel \
     python-graphblas \
     ipython \
