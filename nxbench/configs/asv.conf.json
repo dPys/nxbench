@@ -5,7 +5,7 @@
     "project_url": "https://github.com/dpys/nxbench",
     "repo": "https://github.com/dpys/nxbench.git",
     "branches": [
-        "main"
+        "cli-from-anywhere"
     ],
     "environment_type": "virtualenv",
     "show_commit_url": "https://github.com/dpys/nxbench/commit/",

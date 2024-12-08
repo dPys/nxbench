@@ -178,7 +178,22 @@ def run_asv_command(
     else:
         logger.debug("Found .git directory. Using existing repository settings.")
 
-    # **Set the 'pythons' field to the current Python executable**
+    try:
+        import nxbench
+
+        nxbench_path = Path(nxbench.__file__).resolve().parent
+        benchmark_dir = nxbench_path / "benchmarks"
+        if not benchmark_dir.exists():
+            logger.error(
+                FileNotFoundError(f"Benchmark directory not found: {benchmark_dir}")
+            )
+        config_data["benchmark_dir"] = str(benchmark_dir)
+        logger.debug(f"Set benchmark_dir to: {benchmark_dir}")
+    except ImportError:
+        raise click.ClickException("Failed to import nxbench. Ensure it is installed.")
+    except FileNotFoundError as e:
+        raise click.ClickException(str(e))
+
     config_data["pythons"] = [str(get_python_executable())]
 
     with tempfile.TemporaryDirectory() as tmpdir:
