@@ -145,6 +145,10 @@ def ensure_asv_config_in_root():
     return project_root
 
 
+def has_git(project_root):
+    return (project_root / ".git").exists()
+
+
 def run_asv_command(
     args: Sequence[str], check: bool = True
 ) -> subprocess.CompletedProcess:
@@ -154,10 +158,9 @@ def run_asv_command(
         raise click.ClickException("ASV executable not found")
 
     project_root = find_project_root()
-    has_git = (project_root / ".git").exists()
-
+    _has_git = has_git(project_root)
     logger.debug(f"Project root: {project_root}")
-    logger.debug(f"Has .git: {has_git}")
+    logger.debug(f"Has .git: {_has_git}")
 
     try:
         with resources.open_text("nxbench.configs", "asv.conf.json") as f:
@@ -165,7 +168,7 @@ def run_asv_command(
     except FileNotFoundError:
         raise click.ClickException("asv.conf.json not found in package resources.")
 
-    if not has_git:
+    if not _has_git:
         logger.debug(
             "No .git directory found. Modifying asv.conf.json for remote repo and "
             "virtualenv."
@@ -197,7 +200,7 @@ def run_asv_command(
             logger.debug(f"Added --config {temp_config_path} to ASV arguments.")
 
         old_cwd = Path.cwd()
-        if has_git:
+        if _has_git:
             os.chdir(project_root)
             logger.debug(f"Changed working directory to project root: {project_root}")
 
