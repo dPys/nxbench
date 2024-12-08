@@ -1,25 +1,47 @@
-# Examples
 
-## Configuration Examples
+# **Nxbench Configuration Guide**
 
-Benchmarks are configured through YAML files with the following structure:
+## **Introduction**
 
-```yaml
-algorithms:
-  - name: "algorithm_name"
-    func: "fully.qualified.function.name"
-    params: {}
-    requires_directed: false
-    groups: ["category"]
-    validate_result: "validation.function"
+The included `example.yaml` file serves as the boilerplate configuration for `nxbench`, defining the algorithms to benchmark, the datasets to use, validation settings, benchmarking matrices, and ASV (Airspeed Velocity) configurations. The `asv.conf.json` file, on the other hand, should NOT be modified -- nxbench handles this dynamically.
 
-datasets:
-  - name: "dataset_name"
-    source: "networkrepository"
-    params: {}
-```
+Properly configuring the configuration yaml file ensures accurate and meaningful benchmarking results tailored to your specific requirements.
 
-### Example 1: Basic Configuration
+## **Configuration Structure**
+
+The YAML configuration file is divided into several key sections:
+
+1. **Algorithms**
+2. **Datasets**
+3. **Validation**
+4. **Matrix**
+5. **ASV Configuration**
+
+Each section plays a crucial role in setting up the benchmarking environment. Below, we delve into each section, explaining their fields and providing examples for clarity.
+
+---
+
+## **1. Algorithms**
+
+### **Purpose**
+
+Defines the list of algorithms that `nxbench` will benchmark. Each algorithm entry specifies the function to benchmark, its parameters, grouping categories, and optional validation functions.
+
+### **Fields**
+
+- **`name`** *(string, required)*: A unique identifier for the algorithm.
+- **`func`** *(string, required)*: The fully qualified Python path to the function implementing the algorithm.
+- **`params`** *(dictionary, optional)*: A set of parameters to pass to the algorithm function.
+- **`requires_directed`** *(boolean, optional)*: Indicates if the algorithm requires a directed graph. Defaults to `false`.
+- **`groups`** *(list of strings, optional)*: Categories or tags to group algorithms for selective benchmarking.
+- **`validate_result`** *(string, optional)*: Fully qualified path to a validation function to verify the correctness of the algorithm's output.
+- **`min_rounds`** *(integer, optional)*: Minimum number of benchmarking rounds to ensure statistical significance.
+- **`warmup`** *(boolean, optional)*: If `true`, runs warm-up iterations to stabilize performance measurements.
+- **`warmup_iterations`** *(integer, optional)*: Number of warm-up iterations to execute.
+
+### **Example Entries**
+
+#### **Basic Configuration**
 
 ```yaml
 algorithms:
@@ -28,13 +50,9 @@ algorithms:
     params:
       alpha: 0.85
     groups: ["centrality"]
-
-datasets:
-  - name: "karate"
-    source: "networkrepository"
 ```
 
-### Example 2: Advanced Algorithm Configuration
+#### **Advanced Configuration with Validation and Warm-up**
 
 ```yaml
 algorithms:
@@ -42,65 +60,133 @@ algorithms:
     func: "networkx.betweenness_centrality"
     params:
       normalized: true
+      endpoints: false
     requires_directed: false
-    groups: ["centrality"]
+    groups: ["centrality", "path_based"]
     validate_result: "nxbench.validation.validate_betweenness_centrality"
+    min_rounds: 5
+    warmup: true
+    warmup_iterations: 20
+```
 
+---
+
+## **2. Datasets**
+
+### **Purpose**
+
+Specifies the datasets on which the algorithms will be benchmarked. Datasets can be sourced from repositories or generated on-the-fly using graph generators.
+
+### **Fields**
+
+- **`name`** *(string, required)*: A unique identifier for the dataset.
+- **`source`** *(string, required)*: Specifies the source of the dataset. Common sources include:
+  - `"networkrepository"`: Fetches datasets from the Network Repository.
+  - `"generator"`: Generates datasets using NetworkX graph generators.
+- **`params`** *(dictionary, optional)*: Parameters required to fetch or generate the dataset.
+- **`metadata`** *(dictionary, optional)*: Additional information about the dataset, such as whether it's directed or weighted.
+
+### **Example Entries**
+
+#### **Basic Configuration**
+
+```yaml
 datasets:
-  - name: "road_network"
+  - name: "karate"
     source: "networkrepository"
+    params: {}
+```
+
+#### **Dataset Generated on-the-fly**
+
+```yaml
+datasets:
+  - name: "erdos_renyi_small"
+    source: "generator"
     params:
-      format: "edgelist"
+      generator: "networkx.erdos_renyi_graph"
+      n: 1000
+      p: 0.01
+    metadata:
+      directed: false
+      weighted: false
 ```
 
-## Usage Examples
+---
 
-### Running a Specific Benchmark Configuration
+## **3. Validation**
 
-```bash
-nxbench --config 'configs/advanced.yaml' benchmark run
+### **Purpose**
+
+Configures how benchmark results are validated to ensure the correctness and reliability of the algorithms' outputs.
+
+### **Fields**
+
+- **`skip_slow`** *(boolean, optional)*: If `true`, skips validation for algorithms or datasets that are time-consuming.
+- **`validate_all`** *(boolean, optional)*: If `true`, validates all benchmark results.
+- **`error_on_fail`** *(boolean, optional)*: If `true`, raises an error when validation fails.
+- **`report_memory`** *(boolean, optional)*: If `true`, includes memory usage in the validation reports.
+
+### **Example Entry**
+
+```yaml
+validation:
+  skip_slow: false
+  validate_all: true
+  error_on_fail: true
+  report_memory: true
 ```
 
-### Exporting Benchmark Results to CSV
+---
 
-```bash
-nxbench benchmark export 'results/advanced_results.csv' --output-format csv
+## **4. Matrix**
+
+### **Purpose**
+
+Defines the benchmarking matrix by specifying different variables such as backends and the number of threads. This allows `nxbench` to run benchmarks across various configurations, providing a comprehensive performance analysis.
+
+### **Fields**
+
+- **`backend`** *(list of strings, required)*: Specifies the different backend implementations to benchmark.
+- **`num_threads`** *(list of strings or integers, required)*: Specifies the number of threads to utilize during benchmarking.
+
+### **Example Entry**
+
+```yaml
+matrix:
+  backend:
+    - "networkx"
+    - "parallel"
+    - "graphblas"
+  num_threads:
+    - "1"
+    - "4"
+    - "8"
 ```
 
-### Comparing Benchmark Results Between Different Commits
+---
 
-```bash
-nxbench benchmark compare v1.0.0 v0.9.0
-```
+## **5. ASV Configuration**
 
-### Visualizing Results in a Web Browser
+### **Purpose**
 
-```bash
-nxbench viz serve --port 8050
-```
+Configures ASV-specific settings, including the repository URL, branches to benchmark, and required dependencies.
 
-### Generating a Static Report
+### **Fields**
 
-```bash
-nxbench viz publish --output-dir 'reports/static_report'
-```
+- **`repo`** *(string, required)*: URL of the Git repository to benchmark.
+- **`branches`** *(list of strings, required)*: Specifies the branches in the repository to benchmark.
+- **`req`** *(list of strings, required)*: Lists the Python dependencies required for benchmarking.
 
-## Containerization Examples
+### **Example Entry**
 
-### Building the Docker Image
-
-```bash
-docker build -t nxbench:latest .
-```
-
-### Running Benchmarks Inside a Docker Container
-
-```bash
-docker run --rm nxbench:latest benchmark run --backend cugraph
-```
-
-### Accessing the Visualization Dashboard via Docker Compose
-
-```bash
-docker-compose up dashboard
+```yaml
+asv_config:
+  repo: "https://github.com/dpys/nxbench.git"
+  branches:
+    - "main"
+  req:
+    - "networkx==3.4.2"
+    - "nx_parallel==0.3"
+    - "graphblas_algorithms==2023.10.0"
 ```
