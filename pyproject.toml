@@ -20,7 +20,7 @@ classifiers = [
     'Programming Language :: Python :: 3 :: Only',
 ]
 authors = [
-    { name = "Derek Alexander", email = "dpysalexander@example.com" }
+    { name = "Derek Alexander", email = "dpysalexander@gmail.com" }
 ]
 
 dependencies = [
@@ -44,8 +44,6 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-cuda = ["cugraph"]
-
 test = [
     'pre-commit>=3.8.0',
     'pre-commit-hooks>=5.0.0',
@@ -89,7 +87,7 @@ packages = [
     "nxbench.benchmarks",
     "nxbench.validation",
     "nxbench.viz",
-    '_nxbench',
+    'nxbench.configs',
 ]
 
 platforms = [

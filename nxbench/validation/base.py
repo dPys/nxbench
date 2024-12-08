@@ -64,7 +64,7 @@ def validate_node_scores(
     ----------
     result : dict
         Dictionary mapping nodes to scores
-    graph : networkx.nx.Graph or networkx.nx.DiGraph
+    graph : nx.Graph or nx.DiGraph
         Original graph
     score_range : tuple of float, default=(0.0, 1.0)
         Expected range for scores (min, max)
@@ -162,7 +162,7 @@ def validate_communities(
     ----------
     result : list of sets
         List of node sets representing communities
-    graph : networkx.nx.Graph or networkx.nx.DiGraph
+    graph : nx.Graph or nx.DiGraph
         Original graph
     allow_overlap : bool, default=False
         Whether communities can overlap
@@ -230,7 +230,7 @@ def validate_path_lengths(
     result : dict of dict
         Dictionary mapping source nodes to dictionaries mapping target nodes to
         distances
-    graph : networkx.nx.Graph or networkx.nx.DiGraph
+    graph : nx.Graph or nx.DiGraph
         Original graph
     check_symmetry : bool, default=False
         Whether to verify that distances are symmetric (for undirected graphs)
@@ -296,7 +296,7 @@ def validate_flow(
     ----------
     result : tuple
         (flow_value, flow_dict) tuple from max flow algorithm
-    graph : networkx.nx.Graph or networkx.nx.DiGraph
+    graph : nx.Graph or nx.DiGraph
         Original graph
     check_conservation : bool, default=True
         Whether to verify flow conservation at all nodes
@@ -407,7 +407,7 @@ def validate_similarity_scores(
     ----------
     result : iterable of tuples
         (node_u, node_v, score) tuples from similarity measure
-    graph : networkx.nx.Graph or networkx.nx.DiGraph
+    graph : nx.Graph or nx.DiGraph
         Original graph
     score_range : tuple of float, default=(0.0, 1.0)
         Expected range for similarity scores

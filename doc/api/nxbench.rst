@@ -30,11 +30,3 @@ nxbench.log module
    :members:
    :undoc-members:
    :show-inheritance:
-
-Module contents
----------------
-
-.. automodule:: nxbench
-   :members:
-   :undoc-members:
-   :show-inheritance:

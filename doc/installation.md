@@ -1,25 +1,27 @@
 # Installation
 
-Clone the repository and install the package:
+PyPi:
 
 ```bash
-git clone https://github.com/dpys/nxbench.git
-cd nxbench
-pip install -e .
+pip install nxbench
 ```
 
-For benchmarking using CUDA-based tools like [CuGraph](https://github.com/rapidsai/cugraph):
+Docker:
 
 ```bash
-pip install -e .[cuda]  # CUDA support is needed for CuGraph benchmarking
+# CPU-only
+docker-compose -f docker/docker-compose.cpu.yaml build
+
+# With GPU
+docker-compose -f docker/docker-compose.gpu.yaml build
 ```
 
 ## Development Setup
 
-Install development dependencies:
+Install development dependencies (testing and documentation):
 
 ```bash
-pip install -e .[test,doc]  # For testing and documentation
+pip install -e .[test,doc]
 ```
 
 Run tests to ensure everything is set up correctly:

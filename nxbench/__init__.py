@@ -1,8 +1,4 @@
-from nxbench._version import __version__
-
-from .data import *
-from .validation import *
-from .viz import *
+from ._version import __version__
 from .log import initialize_logging
 
 __packagename__ = "nxbench"

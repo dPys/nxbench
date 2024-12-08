@@ -191,16 +191,20 @@ nitpick_ignore = [
     ("py:class", "annotated_types.Gt"),
     ("py:class", "gt=0"),
     # Missing References
-    ("py:class", "_nxbench.config.nxbenchConfig"),
+    ("py:class", "nxbench.log.nxbenchConfig"),
     ("py:class", "Path"),
     ("py:class", "Document"),
     ("py:class", "function"),
+    ("py:class", "click.ClickException"),
+    ("py:class", "pd.DataFrame"),
+    ("py:class", "bs4.BeautifulSoup"),
 ]
 
 autodoc_inherit_docstrings = False
 
 intersphinx_mapping = {
     "python": ("https://docs.python.org/3", None),
+    "pandas": ("https://pandas.pydata.org/pandas-docs/stable/", None),
     "networkx": ("https://networkx.org/documentation/stable/", None),
     "pydantic": ("https://docs.pydantic.dev/latest/", None),
     "numpy": ("https://numpy.org/doc/stable/", None),

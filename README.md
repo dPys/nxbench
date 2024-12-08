@@ -25,16 +25,20 @@
 
 ## Installation
 
+PyPi:
+
 ```bash
-git clone https://github.com/dpys/nxbench.git
-cd nxbench
-pip install -e .[cuda]  # CUDA support is needed for CuGraph benchmarking
+pip install nxbench
 ```
 
-For benchmarking using CUDA-based tools like [CuGraph](https://github.com/rapidsai/cugraph):
+Docker:
 
 ```bash
-pip install -e .[cuda]
+# CPU-only
+docker-compose -f docker/docker-compose.cpu.yaml build
+
+# With GPU
+docker-compose -f docker/docker-compose.gpu.yaml build
 ```
 
 ## Quick Start
@@ -57,20 +61,19 @@ datasets:
 2. Run benchmarks based on the configuration:
 
 ```bash
-nxbench --config 'configs/example.yaml' benchmark run
+nxbench --config 'nxbench/configs/example.yaml' benchmark run
 ```
 
 3. Export results:
 
 ```bash
-nxbench benchmark export 'results/results.csv' --output-format csv  # Convert benchmarked results into csv format.
+nxbench benchmark export 'results/results.csv' --output-format csv  # convert benchmarked results into csv format.
 ```
-
 
 4. View results:
 
 ```bash
-nxbench viz serve  # Launch interactive dashboard
+nxbench viz serve  # launch interactive dashboard
 ```
 
 ## Advanced Command Line Interface
@@ -78,21 +81,21 @@ nxbench viz serve  # Launch interactive dashboard
 The CLI provides comprehensive management of benchmarks, datasets, and visualization:
 
 ```bash
-# Validating asv configuration
+# Validate asv configuration
 asv check
 
 # Data Management
-nxbench data download karate  # Download specific dataset
-nxbench data list --category social  # List available datasets
+nxbench data download karate  # download specific dataset
+nxbench data list --category social  # list available datasets
 
 # Benchmarking
-nxbench --config 'configs/example.yaml' -vvv benchmark run  # Debug benchmark runs
-nxbench benchmark export 'results/benchmarks.sqlite' --output-format sql # Export the results into a sql database
-nxbench benchmark compare HEAD HEAD~1  # Compare with previous commit
+nxbench --config 'nxbench/configs/example.yaml' -vvv benchmark run  # debug benchmark runs
+nxbench benchmark export 'results/benchmarks.sqlite' --output-format sql # export the results into a sql database
+nxbench benchmark compare HEAD HEAD~1  # compare with previous commit
 
 # Visualization
-nxbench viz serve  # Launch parallel categories dashboard
-nxbench viz publish  # Generate static asv report
+nxbench viz serve  # launch parallel categories dashboard
+nxbench viz publish  # generate static asv report
 ```
 
 ## Configuration
@@ -117,37 +120,27 @@ datasets:
 ## Supported Backends
 
 - NetworkX (default)
-- CuGraph (requires separate CUDA installation and supported GPU hardware)
+- nx-CuGraph (requires separate CuGraph installation and supported GPU hardware)
 - GraphBLAS Algorithms (optional)
 - nx-parallel (optional)
-
-## Development
-
-```bash
-# Install development dependencies
-pip install -e .[test,doc] # testing and documentation
-
-# Run tests
-make test
-```
 
 ## Reproducible benchmarking through containerization
 
 ```bash
 # Run benchmarks with GPU
-docker-compose up nxbench
+NUM_GPU=1 docker-compose -f docker/docker-compose.gpu.yaml up nxbench
 
 # Run benchmarks CPU-only
-NUM_GPU=0 docker-compose up nxbench
+docker-compose -f docker/docker-compose.cpu.yaml up nxbench
 
 # Start visualization dashboard
-docker-compose up dashboard
+docker-compose -f docker/docker-compose.cpu.yaml up dashboard
 
 # Run specific backend
-docker-compose run --rm nxbench benchmark run --backend networkx
+docker-compose -f docker/docker-compose.cpu.yaml run --rm nxbench benchmark run --backend networkx
 
 # View results
-docker-compose run --rm nxbench benchmark export results.csv
+docker-compose -f docker/docker-compose.cpu.yaml run --rm nxbench benchmark export results.csv
 ```
 
 ## Contributing
