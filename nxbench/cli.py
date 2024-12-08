@@ -178,6 +178,8 @@ def run_asv_command(
     else:
         logger.debug("Found .git directory. Using existing repository settings.")
 
+    config_data["pythons"] = [str(get_python_executable())]
+
     with tempfile.TemporaryDirectory() as tmpdir:
         temp_config_path = Path(tmpdir) / "asv.conf.json"
         try:
@@ -207,15 +209,21 @@ def run_asv_command(
         try:
             asv_command = [asv_path, *safe_args]
             logger.debug(f"Executing ASV command: {' '.join(map(str, asv_command))}")
-            return safe_run(asv_command, check=check)
+            return subprocess.run(  # noqa: S603
+                asv_command,
+                capture_output=True,
+                text=True,
+                shell=False,
+                check=check,
+            )
         except subprocess.CalledProcessError:
-            logger.exception("ASV command failed")
-            raise click.ClickException("ASV command failed")
+            logger.exception("ASV command failed.")
+            raise click.ClickException("ASV command failed.")
         except (subprocess.SubprocessError, ValueError):
-            logger.exception("ASV subprocess error occurred")
-            raise click.ClickException("ASV subprocess error occurred")
+            logger.exception("ASV subprocess error occurred.")
+            raise click.ClickException("ASV subprocess error occurred.")
         finally:
-            if has_git:
+            if _has_git:
                 os.chdir(old_cwd)
                 logger.debug(f"Restored working directory to: {old_cwd}")
 
@@ -332,13 +340,17 @@ def run_benchmark(ctx, backend: tuple[str], collection: str):
     if config:
         logger.debug(f"Config file used for benchmark run: {config}")
 
-    try:
-        git_hash = get_git_hash()
-    except subprocess.CalledProcessError:
-        logger.exception("Failed to get git hash")
-        raise click.ClickException("Could not determine git commit hash")
+    cmd_args = ["run", "--quick"]
 
-    cmd_args = ["run", "--quick", f"--set-commit-hash={git_hash}"]
+    project_root = find_project_root()
+    _has_git = has_git(project_root)
+    if _has_git:
+        try:
+            git_hash = get_git_hash()
+            cmd_args.append(f"--set-commit-hash={git_hash}")
+        except subprocess.CalledProcessError:
+            logger.exception("Failed to get git hash")
+            raise click.ClickException("Could not determine git commit hash")
 
     if package_config.verbosity_level >= 1:
         cmd_args.append("--verbose")
