@@ -184,9 +184,7 @@ def run_asv_command(
         nxbench_path = Path(nxbench.__file__).resolve().parent
         benchmark_dir = nxbench_path / "benchmarks"
         if not benchmark_dir.exists():
-            logger.error(
-                FileNotFoundError(f"Benchmark directory not found: {benchmark_dir}")
-            )
+            logger.error(f"Benchmark directory not found: {benchmark_dir}")
         config_data["benchmark_dir"] = str(benchmark_dir)
         logger.debug(f"Set benchmark_dir to: {benchmark_dir}")
     except ImportError:
