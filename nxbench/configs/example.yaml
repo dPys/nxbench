@@ -219,3 +219,12 @@ matrix:
     - "1"
     - "4"
     - "8"
+
+asv_config:
+  repo: "https://github.com/dpys/nxbench.git"
+  branches:
+    - "main"
+  req:
+    - "networkx==3.4.2"
+    - "nx_parallel==0.3"
+    - "graphblas_algorithms==2023.10.0"

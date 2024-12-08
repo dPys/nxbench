@@ -90,6 +90,10 @@ packages = [
     'nxbench.configs',
 ]
 
+[tool.setuptools.package-data]
+"nxbench.configs" = ["asv.conf.json", "example.yaml"]
+"nxbench.data" = ["network_directory.csv"]
+
 platforms = [
     'Linux',
     'Mac OSX',
@@ -99,9 +103,6 @@ platforms = [
 
 [tool.setuptools.dynamic]
 version = { attr = "nxbench._version.__version__" }
-
-[tool.setuptools.package-data]
-"nxbench.data" = ["network_directory.csv"]
 
 [tool.black]
 line-length = 88
