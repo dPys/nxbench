@@ -10,9 +10,9 @@ import click
 import pandas as pd
 
 from nxbench.benchmarks.config import DatasetConfig
-from nxbench.config import _config as package_config
 from nxbench.data.loader import BenchmarkDataManager
 from nxbench.data.repository import NetworkRepository
+from nxbench.log import _config as package_config
 from nxbench.viz.dashboard import BenchmarkDashboard
 
 logger = logging.getLogger("nxbench")

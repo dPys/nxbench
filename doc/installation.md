@@ -6,6 +6,16 @@ PyPi:
 pip install nxbench
 ```
 
+Docker:
+
+```bash
+# CPU-only
+docker-compose -f docker/docker-compose.cpu.yaml build
+
+# With GPU
+docker-compose -f docker/docker-compose.gpu.yaml build
+```
+
 ## Development Setup
 
 Install development dependencies (testing and documentation):

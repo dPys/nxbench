@@ -191,7 +191,7 @@ nitpick_ignore = [
     ("py:class", "annotated_types.Gt"),
     ("py:class", "gt=0"),
     # Missing References
-    ("py:class", "nxbench.config.nxbenchConfig"),
+    ("py:class", "nxbench.log.nxbenchConfig"),
     ("py:class", "Path"),
     ("py:class", "Document"),
     ("py:class", "function"),

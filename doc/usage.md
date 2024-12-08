@@ -20,19 +20,19 @@
 2. **Run Benchmarks Based on the Configuration**:
 
    ```bash
-   nxbench --config 'configs/example.yaml' benchmark run
+   nxbench --config 'nxbench/configs/example.yaml' benchmark run
    ```
 
 3. **Export Results**:
 
    ```bash
-   nxbench benchmark export 'results/results.csv' --output-format csv  # Convert benchmark results into CSV format.
+   nxbench benchmark export 'results/results.csv' --output-format csv  # convert benchmark results into CSV format.
    ```
 
 4. **View Results**:
 
    ```bash
-   nxbench viz serve  # Launch the interactive dashboard.
+   nxbench viz serve  # launch the interactive dashboard.
    ```
 
 ## Advanced Command-Line Interface
@@ -64,7 +64,7 @@ asv check
 - **Run Benchmarks with Verbose Output**:
 
   ```bash
-  nxbench --config 'configs/example.yaml' -vvv benchmark run
+  nxbench --config 'nxbench/configs/example.yaml' -vvv benchmark run
   ```
 
 - **Export Results to a SQL Database**:
@@ -96,7 +96,7 @@ asv check
 ## Supported Backends
 
 - **NetworkX** (default)
-- **CuGraph** (requires separate CUDA installation and supported GPU hardware)
+- **Nx-CuGraph** (requires separate CuGraph installation and supported GPU hardware)
 - **GraphBLAS Algorithms** (optional)
 - **nx-parallel** (optional)
 

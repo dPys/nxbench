@@ -23,14 +23,6 @@ nxbench.cli module
    :undoc-members:
    :show-inheritance:
 
-nxbench.config module
----------------------
-
-.. automodule:: nxbench.config
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 nxbench.log module
 ------------------
 
