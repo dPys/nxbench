@@ -11,6 +11,7 @@ from pathlib import Path
 
 import click
 import pandas as pd
+import yaml
 
 from nxbench.benchmarks.config import DatasetConfig
 from nxbench.data.loader import BenchmarkDataManager
@@ -97,6 +98,19 @@ def get_git_executable() -> Path | None:
         return None
 
 
+def get_git_hash(repo_path: Path) -> str:
+    """Get current git commit hash within the specified repository path."""
+    git_path = get_git_executable()
+    if git_path is None:
+        return "unknown"
+
+    try:
+        proc = safe_run([str(git_path), "rev-parse", "HEAD"])
+        return proc.stdout.strip()
+    except (subprocess.SubprocessError, ValueError):
+        return "unknown"
+
+
 def get_asv_executable() -> Path | None:
     """Get full path to asv executable."""
     asv_path = shutil.which("asv")
@@ -113,26 +127,13 @@ def get_python_executable() -> Path:
     return validate_executable(sys.executable)
 
 
-def get_git_hash() -> str:
-    """Get current git commit hash."""
-    git_path = get_git_executable()
-    if git_path is None:
-        return "unknown"
-
-    try:
-        proc = safe_run([git_path, "rev-parse", "HEAD"], capture_output=True)
-        return proc.stdout.strip()
-    except (subprocess.SubprocessError, ValueError):
-        return "unknown"
-
-
 def find_project_root() -> Path:
     """Find the project root directory (one containing .git)."""
     current = Path(__file__).resolve()
     for parent in current.parents:
         if (parent / ".git").exists():
             return parent
-    return current.parents[1]
+    return current.parent
 
 
 def ensure_asv_config_in_root():
@@ -193,6 +194,40 @@ def run_asv_command(
         raise click.ClickException(str(e))
 
     config_data["pythons"] = [str(get_python_executable())]
+
+    config_file_path = os.environ.get("NXBENCH_CONFIG_FILE")
+    if config_file_path:
+        try:
+            with Path(config_file_path).open("r") as yaml_file:
+                yaml_config = yaml.safe_load(yaml_file)
+                asv_yaml_config = yaml_config.get("asv_config", {})
+
+                repo = asv_yaml_config.get("repo")
+                if repo:
+                    config_data["repo"] = repo
+                    logger.debug(f"Set repo to: {repo}")
+
+                branches = asv_yaml_config.get("branches")
+                if branches:
+                    config_data["branches"] = branches
+                    logger.debug(f"Set branches to: {branches}")
+
+                req = asv_yaml_config.get("req")
+                if req:
+                    config_data["req"] = req
+                    logger.debug(f"Set req to: {req}")
+
+        except FileNotFoundError:
+            raise click.ClickException(
+                f"Configuration file not found: {config_file_path}"
+            )
+        except yaml.YAMLError as e:
+            raise click.ClickException(f"Error parsing YAML config: {e}")
+    else:
+        logger.warning(
+            "NXBENCH_CONFIG_FILE environment variable not set. Using default ASV "
+            "config."
+        )
 
     with tempfile.TemporaryDirectory() as tmpdir:
         temp_config_path = Path(tmpdir) / "asv.conf.json"
@@ -354,7 +389,7 @@ def run_benchmark(ctx, backend: tuple[str], collection: str):
     _has_git = has_git(project_root)
     if _has_git:
         try:
-            git_hash = get_git_hash()
+            git_hash = get_git_hash(project_root)
             cmd_args.append(f"--set-commit-hash={git_hash}")
         except subprocess.CalledProcessError:
             logger.exception("Failed to get git hash")

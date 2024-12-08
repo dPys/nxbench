@@ -3,17 +3,8 @@
     "project": "nxbench",
     "timeout": 3000,
     "project_url": "https://github.com/dpys/nxbench",
-    "repo": "https://github.com/dpys/nxbench.git",
-    "branches": [
-        "cli-from-anywhere"
-    ],
     "environment_type": "virtualenv",
     "show_commit_url": "https://github.com/dpys/nxbench/commit/",
-    "req": [
-        "networkx==3.4.2",
-        "nx_parallel==0.3",
-        "graphblas_algorithms==2023.10.0"
-    ],
     "matrix": {},
     "benchmark_dir": "nxbench/benchmarks",
     "env_dir": "env",
