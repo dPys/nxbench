@@ -11,7 +11,6 @@ from pathlib import Path
 
 import click
 import pandas as pd
-import yaml
 
 from nxbench.benchmarks.config import DatasetConfig
 from nxbench.data.loader import BenchmarkDataManager
@@ -157,7 +156,7 @@ def has_git(project_root):
 
 
 def run_asv_command(
-    args: Sequence[str], check: bool = True
+    args: Sequence[str], check: bool = True, use_commit_hash: bool = True
 ) -> subprocess.CompletedProcess:
     """Run ASV command with dynamic asv.conf.json based on DVCS presence."""
     asv_path = get_asv_executable()
@@ -180,7 +179,7 @@ def run_asv_command(
             "No .git directory found. Modifying asv.conf.json for remote repo and "
             "virtualenv."
         )
-        config_data["repo"] = "https://github.com/dpys/nxbench.git"
+        config_data["repo"] = str(project_root.resolve())
         config_data["environment_type"] = "virtualenv"
     else:
         logger.debug("Found .git directory. Using existing repository settings.")
@@ -201,48 +200,11 @@ def run_asv_command(
 
     config_data["pythons"] = [str(get_python_executable())]
 
-    config_file_path = os.environ.get("NXBENCH_CONFIG_FILE")
-    if config_file_path:
-        try:
-            with Path(config_file_path).open("r") as yaml_file:
-                yaml_config = yaml.safe_load(yaml_file)
-                asv_yaml_config = yaml_config.get("asv_config", {})
-
-                repo = asv_yaml_config.get("repo")
-                if repo:
-                    config_data["repo"] = repo
-                    logger.debug(f"Set repo to: {repo}")
-
-                branches = asv_yaml_config.get("branches")
-                if branches:
-                    config_data["branches"] = branches
-                    logger.debug(f"Set branches to: {branches}")
-
-                req = asv_yaml_config.get("req")
-                if req:
-                    config_data["req"] = req
-                    logger.debug(f"Set req to: {req}")
-
-        except FileNotFoundError:
-            raise click.ClickException(
-                f"Configuration file not found: {config_file_path}"
-            )
-        except yaml.YAMLError as e:
-            raise click.ClickException(f"Error parsing YAML config: {e}")
-    else:
-        logger.warning(
-            "NXBENCH_CONFIG_FILE environment variable not set. Using default ASV "
-            "config."
-        )
-
     with tempfile.TemporaryDirectory() as tmpdir:
         temp_config_path = Path(tmpdir) / "asv.conf.json"
-        try:
-            with temp_config_path.open("w") as f:
-                json.dump(config_data, f, indent=4)
-            logger.debug(f"Temporary asv.conf.json created at: {temp_config_path}")
-        except Exception as e:
-            raise click.ClickException(f"Failed to write temporary asv.conf.json: {e}")
+        with temp_config_path.open("w") as f:
+            json.dump(config_data, f, indent=4)
+        logger.debug(f"Temporary asv.conf.json created at: {temp_config_path}")
 
         safe_args = []
         for arg in args:
@@ -255,6 +217,17 @@ def run_asv_command(
         if "--config" not in safe_args:
             safe_args = ["--config", str(temp_config_path), *safe_args]
             logger.debug(f"Added --config {temp_config_path} to ASV arguments.")
+
+        if use_commit_hash and _has_git:
+            try:
+                git_hash = get_git_hash(project_root)
+                if git_hash != "unknown":
+                    safe_args.append(f"--set-commit-hash={git_hash}")
+                    logger.debug(f"Set commit hash to: {git_hash}")
+            except subprocess.CalledProcessError:
+                logger.warning(
+                    "Could not determine git commit hash. Proceeding without it."
+                )
 
         old_cwd = Path.cwd()
         if _has_git:
@@ -382,24 +355,19 @@ def benchmark(ctx):
     help="Backends to benchmark. Specify multiple values to run for multiple backends.",
 )
 @click.option("--collection", type=str, default="all", help="Graph collection to use.")
+@click.option(
+    "--use-commit-hash/--no-commit-hash",
+    default=False,
+    help="Whether to use git commit hash for benchmarking.",
+)
 @click.pass_context
-def run_benchmark(ctx, backend: tuple[str], collection: str):
+def run_benchmark(ctx, backend: tuple[str], collection: str, use_commit_hash: bool):
     """Run benchmarks."""
     config = ctx.obj.get("CONFIG")
     if config:
         logger.debug(f"Config file used for benchmark run: {config}")
 
     cmd_args = ["run", "--quick"]
-
-    project_root = find_project_root()
-    _has_git = has_git(project_root)
-    if _has_git:
-        try:
-            git_hash = get_git_hash(project_root)
-            cmd_args.append(f"--set-commit-hash={git_hash}")
-        except subprocess.CalledProcessError:
-            logger.exception("Failed to get git hash")
-            raise click.ClickException("Could not determine git commit hash")
 
     if package_config.verbosity_level >= 1:
         cmd_args.append("--verbose")
@@ -418,7 +386,7 @@ def run_benchmark(ctx, backend: tuple[str], collection: str):
     cmd_args.append("--python=same")
 
     try:
-        run_asv_command(cmd_args)
+        run_asv_command(cmd_args, use_commit_hash=use_commit_hash)
     except subprocess.CalledProcessError:
         logger.exception("Benchmark run failed")
         raise click.ClickException("Benchmark run failed")

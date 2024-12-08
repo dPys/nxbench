@@ -3,6 +3,7 @@
     "project": "nxbench",
     "timeout": 3000,
     "project_url": "https://github.com/dpys/nxbench",
+    "repo": ".",
     "environment_type": "virtualenv",
     "show_commit_url": "https://github.com/dpys/nxbench/commit/",
     "matrix": {},
