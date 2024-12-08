@@ -43,6 +43,7 @@ dependencies = [
     "yarl >= 1.9.4"
 ]
 
+[project.optional-dependencies]
 test = [
     'pre-commit>=3.8.0',
     'pre-commit-hooks>=5.0.0',
