@@ -20,7 +20,7 @@ classifiers = [
     'Programming Language :: Python :: 3 :: Only',
 ]
 authors = [
-    { name = "Derek Alexander", email = "dpysalexander@example.com" }
+    { name = "Derek Alexander", email = "dpysalexander@gmail.com" }
 ]
 
 dependencies = [

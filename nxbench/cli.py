@@ -9,8 +9,8 @@ from pathlib import Path
 import click
 import pandas as pd
 
-from _nxbench.config import _config as package_config
 from nxbench.benchmarks.config import DatasetConfig
+from nxbench.config import _config as package_config
 from nxbench.data.loader import BenchmarkDataManager
 from nxbench.data.repository import NetworkRepository
 from nxbench.viz.dashboard import BenchmarkDashboard

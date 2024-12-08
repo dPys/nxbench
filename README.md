@@ -109,7 +109,7 @@ datasets:
 ## Supported Backends
 
 - NetworkX (default)
-- CuGraph (requires separate CUDA installation and supported GPU hardware)
+- nx-CuGraph (requires separate CUDA installation and supported GPU hardware)
 - GraphBLAS Algorithms (optional)
 - nx-parallel (optional)
 
@@ -117,19 +117,19 @@ datasets:
 
 ```bash
 # Run benchmarks with GPU
-docker-compose up nxbench
+NUM_GPU=1 docker-compose -f docker/docker-compose.gpu.yaml up nxbench
 
 # Run benchmarks CPU-only
-NUM_GPU=0 docker-compose up nxbench
+docker-compose -f docker/docker-compose.cpu.yaml up nxbench
 
 # Start visualization dashboard
-docker-compose up dashboard
+docker-compose -f docker/docker-compose.cpu.yaml up dashboard
 
 # Run specific backend
-docker-compose run --rm nxbench benchmark run --backend networkx
+docker-compose -f docker/docker-compose.cpu.yaml run --rm nxbench benchmark run --backend networkx
 
 # View results
-docker-compose run --rm nxbench benchmark export results.csv
+docker-compose -f docker/docker-compose.cpu.yaml run --rm nxbench benchmark export results.csv
 ```
 
 ## Contributing

@@ -1,11 +1,15 @@
 import logging
 import sys
+from dataclasses import dataclass, field
 from logging.handlers import TimedRotatingFileHandler
 from typing import Any
 
-from _nxbench.config import LoggerConfig, LoggingConfig, LoggingHandlerConfig, _config
+from nxbench.config import _config
 
 __all__ = [
+    "LoggingHandlerConfig",
+    "LoggerConfig",
+    "LoggingConfig",
     "setup_logger",
     "create_handler",
     "setup_logger_from_config",
@@ -14,6 +18,35 @@ __all__ = [
     "get_default_logger",
     "disable_logger",
 ]
+
+
+@dataclass
+class LoggingHandlerConfig:
+    """Configuration for a single logging handler."""
+
+    handler_type: str  # 'console' or 'file'
+    level: str = "INFO"  # e.g., 'DEBUG', 'INFO', 'WARNING', etc.
+    formatter: str = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+    log_file: str | None = None  # only used if handler_type is 'file'
+    rotate_logs: bool = True
+    backup_count: int = 7
+    when: str = "midnight"
+
+
+@dataclass
+class LoggerConfig:
+    """Configuration for a single logger."""
+
+    name: str
+    level: str = "INFO"
+    handlers: list[LoggingHandlerConfig] = field(default_factory=list)
+
+
+@dataclass
+class LoggingConfig:
+    """Configuration for all loggers."""
+
+    loggers: list[LoggerConfig] = field(default_factory=list)
 
 
 def setup_logger(logger_cfg: LoggerConfig) -> None:
