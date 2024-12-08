@@ -3,14 +3,14 @@
     "project": "nxbench",
     "timeout": 3000,
     "project_url": "https://github.com/dpys/nxbench",
-    "repo": ".",
+    "repo": "https://github.com/dpys/nxbench.git",
     "branches": [
         "main"
     ],
-    "environment_type": "existing",
+    "environment_type": "virtualenv",
     "show_commit_url": "https://github.com/dpys/nxbench/commit/",
     "pythons": [
-        "3.11"
+        "/usr/local/bin/python3.11"
     ],
     "req": [
         "networkx==3.4.2",

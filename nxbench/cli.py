@@ -1,9 +1,12 @@
+import json
 import logging
 import os
 import shutil
 import subprocess
 import sys
+import tempfile
 from collections.abc import Sequence
+from importlib import resources
 from pathlib import Path
 
 import click
@@ -19,23 +22,7 @@ logger = logging.getLogger("nxbench")
 
 
 def validate_executable(path: str | Path) -> Path:
-    """Validate an executable path.
-
-    Parameters
-    ----------
-    path : str or Path
-        Path to executable to validate
-
-    Returns
-    -------
-    Path
-        Validated executable path
-
-    Raises
-    ------
-    ValueError
-        If path is not a valid executable
-    """
+    """Validate an executable path."""
     executable = Path(path).resolve()
     if not executable.exists():
         raise ValueError(f"Executable not found: {executable}")
@@ -50,32 +37,31 @@ def safe_run(
     capture_output: bool = False,
     **kwargs,
 ) -> subprocess.CompletedProcess:
-    """Safely run a subprocess command with optional output capture.
+    """
+    Safely run a subprocess command with optional output capture.
 
     Parameters
     ----------
-    cmd : sequence of str or Path
-        Command and arguments to run. First item must be path to executable.
+    cmd : Sequence[str | Path]
+        The command and arguments to execute.
     check : bool, default=True
-        Whether to check return code
+        If True, raise an exception if the command fails.
     capture_output : bool, default=False
-        Whether to capture stdout and stderr
+        If True, capture stdout and stderr.
     **kwargs : dict
-        Additional arguments to subprocess.run
+        Additional keyword arguments to pass to subprocess.run.
 
     Returns
     -------
     subprocess.CompletedProcess
-        Completed process info
+        The completed process.
 
     Raises
     ------
-    ValueError
-        If command is empty
     TypeError
-        If command contains invalid argument types
-    subprocess.SubprocessError
-        If command fails and check=True
+        If a command argument is not of type str or Path.
+    ValueError
+        If a command argument contains potentially unsafe characters.
     """
     if not cmd:
         raise ValueError("Empty command")
@@ -86,6 +72,8 @@ def safe_run(
     for arg in cmd[1:]:
         if not isinstance(arg, (str, Path)):
             raise TypeError(f"Command argument must be str or Path, got {type(arg)}")
+        if ";" in str(arg) or "&&" in str(arg) or "|" in str(arg):
+            raise ValueError(f"Potentially unsafe argument: {arg}")
         safe_cmd.append(str(arg))
 
     return subprocess.run(  # noqa: S603
@@ -138,42 +126,95 @@ def get_git_hash() -> str:
         return "unknown"
 
 
+def find_project_root() -> Path:
+    """Find the project root directory (one containing .git)."""
+    current = Path(__file__).resolve()
+    for parent in current.parents:
+        if (parent / ".git").exists():
+            return parent
+    return current.parents[1]
+
+
+def ensure_asv_config_in_root():
+    """Ensure asv.conf.json is present at the project root as a symlink."""
+    project_root = find_project_root()
+    target = project_root / "asv.conf.json"
+    if not target.exists():
+        with resources.path("nxbench.configs", "asv.conf.json") as config_path:
+            target.symlink_to(config_path)
+    return project_root
+
+
 def run_asv_command(
     args: Sequence[str], check: bool = True
 ) -> subprocess.CompletedProcess:
-    """Run ASV command with security checks.
-
-    Parameters
-    ----------
-    args : sequence of str
-        Command arguments
-    check : bool, default=True
-        Whether to check return code
-
-    Returns
-    -------
-    subprocess.CompletedProcess
-        Completed process info
-
-    Raises
-    ------
-    click.ClickException
-        If command fails
-    """
+    """Run ASV command with dynamic asv.conf.json based on DVCS presence."""
     asv_path = get_asv_executable()
     if asv_path is None:
         raise click.ClickException("ASV executable not found")
 
-    safe_args = []
-    for arg in args:
-        if not isinstance(arg, str):
-            raise click.ClickException(f"Invalid argument type: {type(arg)}")
-        safe_args.append(arg)
+    project_root = find_project_root()
+    has_git = (project_root / ".git").exists()
+
+    logger.debug(f"Project root: {project_root}")
+    logger.debug(f"Has .git: {has_git}")
 
     try:
-        return safe_run([asv_path, *safe_args], check=check)
-    except (subprocess.SubprocessError, ValueError) as e:
-        raise click.ClickException(str(e))
+        with resources.open_text("nxbench.configs", "asv.conf.json") as f:
+            config_data = json.load(f)
+    except FileNotFoundError:
+        raise click.ClickException("asv.conf.json not found in package resources.")
+
+    if not has_git:
+        logger.debug(
+            "No .git directory found. Modifying asv.conf.json for remote repo and "
+            "virtualenv."
+        )
+        config_data["repo"] = "https://github.com/dpys/nxbench.git"
+        config_data["environment_type"] = "virtualenv"
+    else:
+        logger.debug("Found .git directory. Using existing repository settings.")
+
+    with tempfile.TemporaryDirectory() as tmpdir:
+        temp_config_path = Path(tmpdir) / "asv.conf.json"
+        try:
+            with temp_config_path.open("w") as f:
+                json.dump(config_data, f, indent=4)
+            logger.debug(f"Temporary asv.conf.json created at: {temp_config_path}")
+        except Exception as e:
+            raise click.ClickException(f"Failed to write temporary asv.conf.json: {e}")
+
+        safe_args = []
+        for arg in args:
+            if not isinstance(arg, str):
+                raise click.ClickException(f"Invalid argument type: {type(arg)}")
+            if ";" in arg or "&&" in arg or "|" in arg:
+                raise click.ClickException(f"Potentially unsafe argument: {arg}")
+            safe_args.append(arg)
+
+        if "--config" not in safe_args:
+            safe_args = ["--config", str(temp_config_path), *safe_args]
+            logger.debug(f"Added --config {temp_config_path} to ASV arguments.")
+
+        old_cwd = Path.cwd()
+        if has_git:
+            os.chdir(project_root)
+            logger.debug(f"Changed working directory to project root: {project_root}")
+
+        try:
+            asv_command = [asv_path, *safe_args]
+            logger.debug(f"Executing ASV command: {' '.join(map(str, asv_command))}")
+            return safe_run(asv_command, check=check)
+        except subprocess.CalledProcessError:
+            logger.exception("ASV command failed")
+            raise click.ClickException("ASV command failed")
+        except (subprocess.SubprocessError, ValueError):
+            logger.exception("ASV subprocess error occurred")
+            raise click.ClickException("ASV subprocess error occurred")
+        finally:
+            if has_git:
+                os.chdir(old_cwd)
+                logger.debug(f"Restored working directory to: {old_cwd}")
 
 
 @click.group()
@@ -329,15 +370,7 @@ def run_benchmark(ctx, backend: tuple[str], collection: str):
 )
 @click.pass_context
 def export(ctx, result_file: Path, output_format: str):
-    """Export benchmark results.
-
-    Parameters
-    ----------
-    result_file : Path
-        Output file path for results
-    output_format : str
-        Format to export results in (json, csv, or sql)
-    """
+    """Export benchmark results."""
     config = ctx.obj.get("CONFIG")
     if config:
         logger.debug(f"Using config file for export: {config}")
