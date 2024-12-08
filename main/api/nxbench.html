@@ -593,6 +593,23 @@
 <section id="module-nxbench.cli">
 <span id="nxbench-cli-module"></span><h2>nxbench.cli module<a class="headerlink" href="#module-nxbench.cli" title="Link to this heading">¶</a></h2>
 <dl class="py function">
+<dt class="sig sig-object py" id="nxbench.cli.ensure_asv_config_in_root">
+<span class="sig-prename descclassname"><span class="pre">nxbench.cli.</span></span><span class="sig-name descname"><span class="pre">ensure_asv_config_in_root</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/nxbench/cli.html#ensure_asv_config_in_root"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nxbench.cli.ensure_asv_config_in_root" title="Link to this definition">¶</a></dt>
+<dd><p>Ensure asv.conf.json is present at the project root as a symlink.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="nxbench.cli.find_project_root">
+<span class="sig-prename descclassname"><span class="pre">nxbench.cli.</span></span><span class="sig-name descname"><span class="pre">find_project_root</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/nxbench/cli.html#find_project_root"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nxbench.cli.find_project_root" title="Link to this definition">¶</a></dt>
+<dd><p>Find the project root directory (one containing .git).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Path</span></code></a></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="nxbench.cli.get_asv_executable">
 <span class="sig-prename descclassname"><span class="pre">nxbench.cli.</span></span><span class="sig-name descname"><span class="pre">get_asv_executable</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/nxbench/cli.html#get_asv_executable"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nxbench.cli.get_asv_executable" title="Link to this definition">¶</a></dt>
 <dd><p>Get full path to asv executable.</p>
@@ -616,11 +633,14 @@
 
 <dl class="py function">
 <dt class="sig sig-object py" id="nxbench.cli.get_git_hash">
-<span class="sig-prename descclassname"><span class="pre">nxbench.cli.</span></span><span class="sig-name descname"><span class="pre">get_git_hash</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/nxbench/cli.html#get_git_hash"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nxbench.cli.get_git_hash" title="Link to this definition">¶</a></dt>
-<dd><p>Get current git commit hash.</p>
+<span class="sig-prename descclassname"><span class="pre">nxbench.cli.</span></span><span class="sig-name descname"><span class="pre">get_git_hash</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">repo_path</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/nxbench/cli.html#get_git_hash"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nxbench.cli.get_git_hash" title="Link to this definition">¶</a></dt>
+<dd><p>Get current git commit hash within the specified repository path.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></span></p>
+</dd>
+<dt class="field-even">Parameters<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>repo_path</strong> (<a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.13)"><em>Path</em></a>)</p>
 </dd>
 </dl>
 </dd></dl>
@@ -637,29 +657,29 @@
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="nxbench.cli.has_git">
+<span class="sig-prename descclassname"><span class="pre">nxbench.cli.</span></span><span class="sig-name descname"><span class="pre">has_git</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">project_root</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/nxbench/cli.html#has_git"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nxbench.cli.has_git" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="nxbench.cli.main">
 <span class="sig-prename descclassname"><span class="pre">nxbench.cli.</span></span><span class="sig-name descname"><span class="pre">main</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/nxbench/cli.html#main"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nxbench.cli.main" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="nxbench.cli.run_asv_command">
-<span class="sig-prename descclassname"><span class="pre">nxbench.cli.</span></span><span class="sig-name descname"><span class="pre">run_asv_command</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">check</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/nxbench/cli.html#run_asv_command"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nxbench.cli.run_asv_command" title="Link to this definition">¶</a></dt>
-<dd><p>Run ASV command with security checks.</p>
+<span class="sig-prename descclassname"><span class="pre">nxbench.cli.</span></span><span class="sig-name descname"><span class="pre">run_asv_command</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">check</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_commit_hash</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/nxbench/cli.html#run_asv_command"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nxbench.cli.run_asv_command" title="Link to this definition">¶</a></dt>
+<dd><p>Run ASV command with dynamic asv.conf.json based on DVCS presence.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>args</strong> (<em>sequence</em><em> of </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>) – Command arguments</p></li>
-<li><p><strong>check</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><em>bool</em></a><em>, </em><em>default=True</em>) – Whether to check return code</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>Completed process info</p>
-</dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/subprocess.html#subprocess.CompletedProcess" title="(in Python v3.13)">subprocess.CompletedProcess</a></p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/subprocess.html#subprocess.CompletedProcess" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">CompletedProcess</span></code></a></span></p>
 </dd>
-<dt class="field-even">Raises<span class="colon">:</span></dt>
-<dd class="field-even"><p><strong>click.ClickException</strong> – If command fails</p>
+<dt class="field-even">Parameters<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>args</strong> (<a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Sequence" title="(in Python v3.13)"><em>Sequence</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em>]</em>)</p></li>
+<li><p><strong>check</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><em>bool</em></a>)</p></li>
+<li><p><strong>use_commit_hash</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><em>bool</em></a>)</p></li>
+</ul>
 </dd>
 </dl>
 </dd></dl>
@@ -671,23 +691,22 @@
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>cmd</strong> (<em>sequence</em><em> of </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em> or </em><em>Path</em>) – Command and arguments to run. First item must be path to executable.</p></li>
-<li><p><strong>check</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><em>bool</em></a><em>, </em><em>default=True</em>) – Whether to check return code</p></li>
-<li><p><strong>capture_output</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><em>bool</em></a><em>, </em><em>default=False</em>) – Whether to capture stdout and stderr</p></li>
-<li><p><strong>**kwargs</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)"><em>dict</em></a>) – Additional arguments to subprocess.run</p></li>
+<li><p><strong>cmd</strong> (<em>Sequence</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em> | </em><em>Path</em><em>]</em>) – The command and arguments to execute.</p></li>
+<li><p><strong>check</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><em>bool</em></a><em>, </em><em>default=True</em>) – If True, raise an exception if the command fails.</p></li>
+<li><p><strong>capture_output</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><em>bool</em></a><em>, </em><em>default=False</em>) – If True, capture stdout and stderr.</p></li>
+<li><p><strong>**kwargs</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)"><em>dict</em></a>) – Additional keyword arguments to pass to subprocess.run.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>Completed process info</p>
+<dd class="field-even"><p>The completed process.</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/subprocess.html#subprocess.CompletedProcess" title="(in Python v3.13)">subprocess.CompletedProcess</a></p>
 </dd>
 <dt class="field-even">Raises<span class="colon">:</span></dt>
 <dd class="field-even"><ul class="simple">
-<li><p><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#ValueError" title="(in Python v3.13)"><strong>ValueError</strong></a> – If command is empty</p></li>
-<li><p><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#TypeError" title="(in Python v3.13)"><strong>TypeError</strong></a> – If command contains invalid argument types</p></li>
-<li><p><a class="reference external" href="https://docs.python.org/3/library/subprocess.html#subprocess.SubprocessError" title="(in Python v3.13)"><strong>subprocess.SubprocessError</strong></a> – If command fails and check=True</p></li>
+<li><p><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#TypeError" title="(in Python v3.13)"><strong>TypeError</strong></a> – If a command argument is not of type str or Path.</p></li>
+<li><p><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#ValueError" title="(in Python v3.13)"><strong>ValueError</strong></a> – If a command argument contains potentially unsafe characters.</p></li>
 </ul>
 </dd>
 </dl>
@@ -698,17 +717,11 @@
 <span class="sig-prename descclassname"><span class="pre">nxbench.cli.</span></span><span class="sig-name descname"><span class="pre">validate_executable</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/nxbench/cli.html#validate_executable"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nxbench.cli.validate_executable" title="Link to this definition">¶</a></dt>
 <dd><p>Validate an executable path.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>path</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em> or </em><em>Path</em>) – Path to executable to validate</p>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>Validated executable path</p>
-</dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Path</p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Path</span></code></a></span></p>
 </dd>
-<dt class="field-even">Raises<span class="colon">:</span></dt>
-<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#ValueError" title="(in Python v3.13)"><strong>ValueError</strong></a> – If path is not a valid executable</p>
+<dt class="field-even">Parameters<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>path</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em> | </em><a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.13)"><em>Path</em></a>)</p>
 </dd>
 </dl>
 </dd></dl>
@@ -1151,10 +1164,13 @@ that changed and its new value.</p>
 <li><a class="reference internal" href="#subpackages">Subpackages</a></li>
 <li><a class="reference internal" href="#submodules">Submodules</a></li>
 <li><a class="reference internal" href="#module-nxbench.cli">nxbench.cli module</a><ul>
+<li><a class="reference internal" href="#nxbench.cli.ensure_asv_config_in_root"><code class="docutils literal notranslate"><span class="pre">ensure_asv_config_in_root()</span></code></a></li>
+<li><a class="reference internal" href="#nxbench.cli.find_project_root"><code class="docutils literal notranslate"><span class="pre">find_project_root()</span></code></a></li>
 <li><a class="reference internal" href="#nxbench.cli.get_asv_executable"><code class="docutils literal notranslate"><span class="pre">get_asv_executable()</span></code></a></li>
 <li><a class="reference internal" href="#nxbench.cli.get_git_executable"><code class="docutils literal notranslate"><span class="pre">get_git_executable()</span></code></a></li>
 <li><a class="reference internal" href="#nxbench.cli.get_git_hash"><code class="docutils literal notranslate"><span class="pre">get_git_hash()</span></code></a></li>
 <li><a class="reference internal" href="#nxbench.cli.get_python_executable"><code class="docutils literal notranslate"><span class="pre">get_python_executable()</span></code></a></li>
+<li><a class="reference internal" href="#nxbench.cli.has_git"><code class="docutils literal notranslate"><span class="pre">has_git()</span></code></a></li>
 <li><a class="reference internal" href="#nxbench.cli.main"><code class="docutils literal notranslate"><span class="pre">main()</span></code></a></li>
 <li><a class="reference internal" href="#nxbench.cli.run_asv_command"><code class="docutils literal notranslate"><span class="pre">run_asv_command()</span></code></a></li>
 <li><a class="reference internal" href="#nxbench.cli.safe_run"><code class="docutils literal notranslate"><span class="pre">safe_run()</span></code></a></li>
