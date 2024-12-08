@@ -105,7 +105,13 @@ def get_git_hash(repo_path: Path) -> str:
         return "unknown"
 
     try:
-        proc = safe_run([str(git_path), "rev-parse", "HEAD"])
+        proc = subprocess.run(  # noqa: S603
+            [str(git_path), "rev-parse", "HEAD"],
+            cwd=str(repo_path),
+            capture_output=True,
+            text=True,
+            check=True,
+        )
         return proc.stdout.strip()
     except (subprocess.SubprocessError, ValueError):
         return "unknown"
