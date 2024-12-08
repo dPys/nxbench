@@ -87,7 +87,7 @@ packages = [
     "nxbench.benchmarks",
     "nxbench.validation",
     "nxbench.viz",
-    '_nxbench',
+    'nxbench.configs',
 ]
 
 platforms = [
