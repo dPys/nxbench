@@ -31,7 +31,7 @@ PyPi:
 pip install nxbench
 ```
 
-Docker:
+From a local clone, try Docker:
 
 ```bash
 # CPU-only
@@ -81,9 +81,6 @@ nxbench viz serve  # launch interactive dashboard
 The CLI provides comprehensive management of benchmarks, datasets, and visualization:
 
 ```bash
-# Validate asv configuration
-asv check
-
 # Data Management
 nxbench data download karate  # download specific dataset
 nxbench data list --category social  # list available datasets
@@ -91,7 +88,6 @@ nxbench data list --category social  # list available datasets
 # Benchmarking
 nxbench --config 'nxbench/configs/example.yaml' -vvv benchmark run  # debug benchmark runs
 nxbench benchmark export 'results/benchmarks.sqlite' --output-format sql # export the results into a sql database
-nxbench benchmark compare HEAD HEAD~1  # compare with previous commit
 
 # Visualization
 nxbench viz serve  # launch parallel categories dashboard

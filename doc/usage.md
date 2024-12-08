@@ -39,12 +39,6 @@
 
 The CLI provides comprehensive management of benchmarks, datasets, and visualization.
 
-### Validating ASV Configuration
-
-```bash
-asv check
-```
-
 ### Data Management
 
 - **Download a Specific Dataset**:
