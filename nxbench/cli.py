@@ -178,6 +178,7 @@ def run_asv_command(
     else:
         logger.debug("Found .git directory. Using existing repository settings.")
 
+    # **Set the 'pythons' field to the current Python executable**
     config_data["pythons"] = [str(get_python_executable())]
 
     with tempfile.TemporaryDirectory() as tmpdir:
@@ -207,15 +208,9 @@ def run_asv_command(
             logger.debug(f"Changed working directory to project root: {project_root}")
 
         try:
-            asv_command = [asv_path, *safe_args]
+            asv_command = [str(asv_path), *safe_args]
             logger.debug(f"Executing ASV command: {' '.join(map(str, asv_command))}")
-            return subprocess.run(  # noqa: S603
-                asv_command,
-                capture_output=True,
-                text=True,
-                shell=False,
-                check=check,
-            )
+            return safe_run(asv_command)
         except subprocess.CalledProcessError:
             logger.exception("ASV command failed.")
             raise click.ClickException("ASV command failed.")

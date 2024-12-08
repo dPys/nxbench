@@ -9,9 +9,6 @@
     ],
     "environment_type": "virtualenv",
     "show_commit_url": "https://github.com/dpys/nxbench/commit/",
-    "pythons": [
-        "/usr/local/bin/python3.11"
-    ],
     "req": [
         "networkx==3.4.2",
         "nx_parallel==0.3",
