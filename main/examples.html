@@ -7,7 +7,7 @@
         <link rel="canonical" href="https://networkx.org/examples.html" />
 
     <link rel="shortcut icon" href="_static/favicon.ico"/><!-- Generated with Sphinx 8.1.3 and Furo 2024.08.06 -->
-        <title>Examples - NxBench</title>
+        <title>Nxbench Configuration Guide - NxBench</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=a746c00c" />
     <link rel="stylesheet" type="text/css" href="_static/styles/furo.css?v=354aac6f" />
     <link rel="stylesheet" type="text/css" href="_static/styles/furo-extensions.css?v=302659d7" />
@@ -206,7 +206,7 @@
   <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="usage.html">Usage</a></li>
-<li class="toctree-l1 current current-page"><a class="current reference internal" href="#">Examples</a></li>
+<li class="toctree-l1 current current-page"><a class="current reference internal" href="#"><strong>Nxbench Configuration Guide</strong></a></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="api/index.html">API Documentation</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle navigation of API Documentation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
 <li class="toctree-l2 has-children"><a class="reference internal" href="api/nxbench.html">nxbench package</a><input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><div class="visually-hidden">Toggle navigation of nxbench package</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
 <li class="toctree-l3"><a class="reference internal" href="api/nxbench.benchmarks.html">nxbench.benchmarks package</a></li>
@@ -279,110 +279,208 @@
           </label>
         </div>
         <article role="main" id="furo-main-content">
-          <section id="examples">
-<h1>Examples<a class="headerlink" href="#examples" title="Link to this heading">¶</a></h1>
-<section id="configuration-examples">
-<h2>Configuration Examples<a class="headerlink" href="#configuration-examples" title="Link to this heading">¶</a></h2>
-<p>Benchmarks are configured through YAML files with the following structure:</p>
-<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">algorithms</span><span class="p">:</span>
-<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;algorithm_name&quot;</span>
-<span class="w">    </span><span class="nt">func</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;fully.qualified.function.name&quot;</span>
-<span class="w">    </span><span class="nt">params</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{}</span>
-<span class="w">    </span><span class="nt">requires_directed</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span>
-<span class="w">    </span><span class="nt">groups</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">&quot;category&quot;</span><span class="p p-Indicator">]</span>
-<span class="w">    </span><span class="nt">validate_result</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;validation.function&quot;</span>
-
-<span class="nt">datasets</span><span class="p">:</span>
-<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;dataset_name&quot;</span>
-<span class="w">    </span><span class="nt">source</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;networkrepository&quot;</span>
-<span class="w">    </span><span class="nt">params</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{}</span>
-</pre></div>
-</div>
-<section id="example-1-basic-configuration">
-<h3>Example 1: Basic Configuration<a class="headerlink" href="#example-1-basic-configuration" title="Link to this heading">¶</a></h3>
+          <section id="nxbench-configuration-guide">
+<h1><strong>Nxbench Configuration Guide</strong><a class="headerlink" href="#nxbench-configuration-guide" title="Link to this heading">¶</a></h1>
+<section id="introduction">
+<h2><strong>Introduction</strong><a class="headerlink" href="#introduction" title="Link to this heading">¶</a></h2>
+<p>The included <code class="docutils literal notranslate"><span class="pre">example.yaml</span></code> file serves as the boilerplate configuration for <code class="docutils literal notranslate"><span class="pre">nxbench</span></code>, defining the algorithms to benchmark, the datasets to use, validation settings, benchmarking matrices, and ASV (Airspeed Velocity) configurations. The <code class="docutils literal notranslate"><span class="pre">asv.conf.json</span></code> file, on the other hand, should NOT be modified – nxbench handles this dynamically.</p>
+<p>Properly configuring the configuration yaml file ensures accurate and meaningful benchmarking results tailored to your specific requirements.</p>
+</section>
+<section id="configuration-structure">
+<h2><strong>Configuration Structure</strong><a class="headerlink" href="#configuration-structure" title="Link to this heading">¶</a></h2>
+<p>The YAML configuration file is divided into several key sections:</p>
+<ol class="arabic simple">
+<li><p><strong>Algorithms</strong></p></li>
+<li><p><strong>Datasets</strong></p></li>
+<li><p><strong>Validation</strong></p></li>
+<li><p><strong>Matrix</strong></p></li>
+<li><p><strong>ASV Configuration</strong></p></li>
+</ol>
+<p>Each section plays a crucial role in setting up the benchmarking environment. Below, we delve into each section, explaining their fields and providing examples for clarity.</p>
+</section>
+<hr class="docutils" />
+<section id="algorithms">
+<h2><strong>1. Algorithms</strong><a class="headerlink" href="#algorithms" title="Link to this heading">¶</a></h2>
+<section id="purpose">
+<h3><strong>Purpose</strong><a class="headerlink" href="#purpose" title="Link to this heading">¶</a></h3>
+<p>Defines the list of algorithms that <code class="docutils literal notranslate"><span class="pre">nxbench</span></code> will benchmark. Each algorithm entry specifies the function to benchmark, its parameters, grouping categories, and optional validation functions.</p>
+</section>
+<section id="fields">
+<h3><strong>Fields</strong><a class="headerlink" href="#fields" title="Link to this heading">¶</a></h3>
+<ul class="simple">
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">name</span></code></strong> <em>(string, required)</em>: A unique identifier for the algorithm.</p></li>
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">func</span></code></strong> <em>(string, required)</em>: The fully qualified Python path to the function implementing the algorithm.</p></li>
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">params</span></code></strong> <em>(dictionary, optional)</em>: A set of parameters to pass to the algorithm function.</p></li>
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">requires_directed</span></code></strong> <em>(boolean, optional)</em>: Indicates if the algorithm requires a directed graph. Defaults to <code class="docutils literal notranslate"><span class="pre">false</span></code>.</p></li>
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">groups</span></code></strong> <em>(list of strings, optional)</em>: Categories or tags to group algorithms for selective benchmarking.</p></li>
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">validate_result</span></code></strong> <em>(string, optional)</em>: Fully qualified path to a validation function to verify the correctness of the algorithm’s output.</p></li>
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">min_rounds</span></code></strong> <em>(integer, optional)</em>: Minimum number of benchmarking rounds to ensure statistical significance.</p></li>
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">warmup</span></code></strong> <em>(boolean, optional)</em>: If <code class="docutils literal notranslate"><span class="pre">true</span></code>, runs warm-up iterations to stabilize performance measurements.</p></li>
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">warmup_iterations</span></code></strong> <em>(integer, optional)</em>: Number of warm-up iterations to execute.</p></li>
+</ul>
+</section>
+<section id="example-entries">
+<h3><strong>Example Entries</strong><a class="headerlink" href="#example-entries" title="Link to this heading">¶</a></h3>
+<section id="basic-configuration">
+<h4><strong>Basic Configuration</strong><a class="headerlink" href="#basic-configuration" title="Link to this heading">¶</a></h4>
 <div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">algorithms</span><span class="p">:</span>
 <span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;pagerank&quot;</span>
 <span class="w">    </span><span class="nt">func</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;networkx.pagerank&quot;</span>
 <span class="w">    </span><span class="nt">params</span><span class="p">:</span>
 <span class="w">      </span><span class="nt">alpha</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.85</span>
 <span class="w">    </span><span class="nt">groups</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">&quot;centrality&quot;</span><span class="p p-Indicator">]</span>
-
-<span class="nt">datasets</span><span class="p">:</span>
-<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;karate&quot;</span>
-<span class="w">    </span><span class="nt">source</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;networkrepository&quot;</span>
 </pre></div>
 </div>
 </section>
-<section id="example-2-advanced-algorithm-configuration">
-<h3>Example 2: Advanced Algorithm Configuration<a class="headerlink" href="#example-2-advanced-algorithm-configuration" title="Link to this heading">¶</a></h3>
+<section id="advanced-configuration-with-validation-and-warm-up">
+<h4><strong>Advanced Configuration with Validation and Warm-up</strong><a class="headerlink" href="#advanced-configuration-with-validation-and-warm-up" title="Link to this heading">¶</a></h4>
 <div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">algorithms</span><span class="p">:</span>
 <span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;betweenness_centrality&quot;</span>
 <span class="w">    </span><span class="nt">func</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;networkx.betweenness_centrality&quot;</span>
 <span class="w">    </span><span class="nt">params</span><span class="p">:</span>
 <span class="w">      </span><span class="nt">normalized</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<span class="w">      </span><span class="nt">endpoints</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span>
 <span class="w">    </span><span class="nt">requires_directed</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span>
-<span class="w">    </span><span class="nt">groups</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">&quot;centrality&quot;</span><span class="p p-Indicator">]</span>
+<span class="w">    </span><span class="nt">groups</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">&quot;centrality&quot;</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="s">&quot;path_based&quot;</span><span class="p p-Indicator">]</span>
 <span class="w">    </span><span class="nt">validate_result</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;nxbench.validation.validate_betweenness_centrality&quot;</span>
-
-<span class="nt">datasets</span><span class="p">:</span>
-<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;road_network&quot;</span>
+<span class="w">    </span><span class="nt">min_rounds</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">5</span>
+<span class="w">    </span><span class="nt">warmup</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<span class="w">    </span><span class="nt">warmup_iterations</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">20</span>
+</pre></div>
+</div>
+</section>
+</section>
+</section>
+<hr class="docutils" />
+<section id="datasets">
+<h2><strong>2. Datasets</strong><a class="headerlink" href="#datasets" title="Link to this heading">¶</a></h2>
+<section id="id1">
+<h3><strong>Purpose</strong><a class="headerlink" href="#id1" title="Link to this heading">¶</a></h3>
+<p>Specifies the datasets on which the algorithms will be benchmarked. Datasets can be sourced from repositories or generated on-the-fly using graph generators.</p>
+</section>
+<section id="id2">
+<h3><strong>Fields</strong><a class="headerlink" href="#id2" title="Link to this heading">¶</a></h3>
+<ul class="simple">
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">name</span></code></strong> <em>(string, required)</em>: A unique identifier for the dataset.</p></li>
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">source</span></code></strong> <em>(string, required)</em>: Specifies the source of the dataset. Common sources include:</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;networkrepository&quot;</span></code>: Fetches datasets from the Network Repository.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;generator&quot;</span></code>: Generates datasets using NetworkX graph generators.</p></li>
+</ul>
+</li>
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">params</span></code></strong> <em>(dictionary, optional)</em>: Parameters required to fetch or generate the dataset.</p></li>
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">metadata</span></code></strong> <em>(dictionary, optional)</em>: Additional information about the dataset, such as whether it’s directed or weighted.</p></li>
+</ul>
+</section>
+<section id="id3">
+<h3><strong>Example Entries</strong><a class="headerlink" href="#id3" title="Link to this heading">¶</a></h3>
+<section id="id4">
+<h4><strong>Basic Configuration</strong><a class="headerlink" href="#id4" title="Link to this heading">¶</a></h4>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">datasets</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;karate&quot;</span>
 <span class="w">    </span><span class="nt">source</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;networkrepository&quot;</span>
+<span class="w">    </span><span class="nt">params</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{}</span>
+</pre></div>
+</div>
+</section>
+<section id="dataset-generated-on-the-fly">
+<h4><strong>Dataset Generated on-the-fly</strong><a class="headerlink" href="#dataset-generated-on-the-fly" title="Link to this heading">¶</a></h4>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">datasets</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;erdos_renyi_small&quot;</span>
+<span class="w">    </span><span class="nt">source</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;generator&quot;</span>
 <span class="w">    </span><span class="nt">params</span><span class="p">:</span>
-<span class="w">      </span><span class="nt">format</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;edgelist&quot;</span>
+<span class="w">      </span><span class="nt">generator</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;networkx.erdos_renyi_graph&quot;</span>
+<span class="w">      </span><span class="nt">n</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1000</span>
+<span class="w">      </span><span class="nt">p</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.01</span>
+<span class="w">    </span><span class="nt">metadata</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">directed</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span>
+<span class="w">      </span><span class="nt">weighted</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span>
 </pre></div>
 </div>
 </section>
 </section>
-<section id="usage-examples">
-<h2>Usage Examples<a class="headerlink" href="#usage-examples" title="Link to this heading">¶</a></h2>
-<section id="running-a-specific-benchmark-configuration">
-<h3>Running a Specific Benchmark Configuration<a class="headerlink" href="#running-a-specific-benchmark-configuration" title="Link to this heading">¶</a></h3>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>nxbench<span class="w"> </span>--config<span class="w"> </span><span class="s1">&#39;configs/advanced.yaml&#39;</span><span class="w"> </span>benchmark<span class="w"> </span>run
-</pre></div>
-</div>
 </section>
-<section id="exporting-benchmark-results-to-csv">
-<h3>Exporting Benchmark Results to CSV<a class="headerlink" href="#exporting-benchmark-results-to-csv" title="Link to this heading">¶</a></h3>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>nxbench<span class="w"> </span>benchmark<span class="w"> </span><span class="nb">export</span><span class="w"> </span><span class="s1">&#39;results/advanced_results.csv&#39;</span><span class="w"> </span>--output-format<span class="w"> </span>csv
-</pre></div>
-</div>
+<hr class="docutils" />
+<section id="validation">
+<h2><strong>3. Validation</strong><a class="headerlink" href="#validation" title="Link to this heading">¶</a></h2>
+<section id="id5">
+<h3><strong>Purpose</strong><a class="headerlink" href="#id5" title="Link to this heading">¶</a></h3>
+<p>Configures how benchmark results are validated to ensure the correctness and reliability of the algorithms’ outputs.</p>
 </section>
-<section id="comparing-benchmark-results-between-different-commits">
-<h3>Comparing Benchmark Results Between Different Commits<a class="headerlink" href="#comparing-benchmark-results-between-different-commits" title="Link to this heading">¶</a></h3>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>nxbench<span class="w"> </span>benchmark<span class="w"> </span>compare<span class="w"> </span>v1.0.0<span class="w"> </span>v0.9.0
-</pre></div>
-</div>
+<section id="id6">
+<h3><strong>Fields</strong><a class="headerlink" href="#id6" title="Link to this heading">¶</a></h3>
+<ul class="simple">
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">skip_slow</span></code></strong> <em>(boolean, optional)</em>: If <code class="docutils literal notranslate"><span class="pre">true</span></code>, skips validation for algorithms or datasets that are time-consuming.</p></li>
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">validate_all</span></code></strong> <em>(boolean, optional)</em>: If <code class="docutils literal notranslate"><span class="pre">true</span></code>, validates all benchmark results.</p></li>
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">error_on_fail</span></code></strong> <em>(boolean, optional)</em>: If <code class="docutils literal notranslate"><span class="pre">true</span></code>, raises an error when validation fails.</p></li>
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">report_memory</span></code></strong> <em>(boolean, optional)</em>: If <code class="docutils literal notranslate"><span class="pre">true</span></code>, includes memory usage in the validation reports.</p></li>
+</ul>
 </section>
-<section id="visualizing-results-in-a-web-browser">
-<h3>Visualizing Results in a Web Browser<a class="headerlink" href="#visualizing-results-in-a-web-browser" title="Link to this heading">¶</a></h3>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>nxbench<span class="w"> </span>viz<span class="w"> </span>serve<span class="w"> </span>--port<span class="w"> </span><span class="m">8050</span>
-</pre></div>
-</div>
-</section>
-<section id="generating-a-static-report">
-<h3>Generating a Static Report<a class="headerlink" href="#generating-a-static-report" title="Link to this heading">¶</a></h3>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>nxbench<span class="w"> </span>viz<span class="w"> </span>publish<span class="w"> </span>--output-dir<span class="w"> </span><span class="s1">&#39;reports/static_report&#39;</span>
+<section id="example-entry">
+<h3><strong>Example Entry</strong><a class="headerlink" href="#example-entry" title="Link to this heading">¶</a></h3>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">validation</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">skip_slow</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span>
+<span class="w">  </span><span class="nt">validate_all</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<span class="w">  </span><span class="nt">error_on_fail</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<span class="w">  </span><span class="nt">report_memory</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
 </pre></div>
 </div>
 </section>
 </section>
-<section id="containerization-examples">
-<h2>Containerization Examples<a class="headerlink" href="#containerization-examples" title="Link to this heading">¶</a></h2>
-<section id="building-the-docker-image">
-<h3>Building the Docker Image<a class="headerlink" href="#building-the-docker-image" title="Link to this heading">¶</a></h3>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>docker<span class="w"> </span>build<span class="w"> </span>-t<span class="w"> </span>nxbench:latest<span class="w"> </span>.
+<hr class="docutils" />
+<section id="matrix">
+<h2><strong>4. Matrix</strong><a class="headerlink" href="#matrix" title="Link to this heading">¶</a></h2>
+<section id="id7">
+<h3><strong>Purpose</strong><a class="headerlink" href="#id7" title="Link to this heading">¶</a></h3>
+<p>Defines the benchmarking matrix by specifying different variables such as backends and the number of threads. This allows <code class="docutils literal notranslate"><span class="pre">nxbench</span></code> to run benchmarks across various configurations, providing a comprehensive performance analysis.</p>
+</section>
+<section id="id8">
+<h3><strong>Fields</strong><a class="headerlink" href="#id8" title="Link to this heading">¶</a></h3>
+<ul class="simple">
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">backend</span></code></strong> <em>(list of strings, required)</em>: Specifies the different backend implementations to benchmark.</p></li>
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">num_threads</span></code></strong> <em>(list of strings or integers, required)</em>: Specifies the number of threads to utilize during benchmarking.</p></li>
+</ul>
+</section>
+<section id="id9">
+<h3><strong>Example Entry</strong><a class="headerlink" href="#id9" title="Link to this heading">¶</a></h3>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">matrix</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">backend</span><span class="p">:</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;networkx&quot;</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;parallel&quot;</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;graphblas&quot;</span>
+<span class="w">  </span><span class="nt">num_threads</span><span class="p">:</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;1&quot;</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;4&quot;</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;8&quot;</span>
 </pre></div>
 </div>
 </section>
-<section id="running-benchmarks-inside-a-docker-container">
-<h3>Running Benchmarks Inside a Docker Container<a class="headerlink" href="#running-benchmarks-inside-a-docker-container" title="Link to this heading">¶</a></h3>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>docker<span class="w"> </span>run<span class="w"> </span>--rm<span class="w"> </span>nxbench:latest<span class="w"> </span>benchmark<span class="w"> </span>run<span class="w"> </span>--backend<span class="w"> </span>cugraph
-</pre></div>
-</div>
 </section>
-<section id="accessing-the-visualization-dashboard-via-docker-compose">
-<h3>Accessing the Visualization Dashboard via Docker Compose<a class="headerlink" href="#accessing-the-visualization-dashboard-via-docker-compose" title="Link to this heading">¶</a></h3>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>docker-compose<span class="w"> </span>up<span class="w"> </span>dashboard
+<hr class="docutils" />
+<section id="asv-configuration">
+<h2><strong>5. ASV Configuration</strong><a class="headerlink" href="#asv-configuration" title="Link to this heading">¶</a></h2>
+<section id="id10">
+<h3><strong>Purpose</strong><a class="headerlink" href="#id10" title="Link to this heading">¶</a></h3>
+<p>Configures ASV-specific settings, including the repository URL, branches to benchmark, and required dependencies.</p>
+</section>
+<section id="id11">
+<h3><strong>Fields</strong><a class="headerlink" href="#id11" title="Link to this heading">¶</a></h3>
+<ul class="simple">
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">repo</span></code></strong> <em>(string, required)</em>: URL of the Git repository to benchmark.</p></li>
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">branches</span></code></strong> <em>(list of strings, required)</em>: Specifies the branches in the repository to benchmark.</p></li>
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">req</span></code></strong> <em>(list of strings, required)</em>: Lists the Python dependencies required for benchmarking.</p></li>
+</ul>
+</section>
+<section id="id12">
+<h3><strong>Example Entry</strong><a class="headerlink" href="#id12" title="Link to this heading">¶</a></h3>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">asv_config</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">repo</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;https://github.com/dpys/nxbench.git&quot;</span>
+<span class="w">  </span><span class="nt">branches</span><span class="p">:</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;main&quot;</span>
+<span class="w">  </span><span class="nt">req</span><span class="p">:</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;networkx==3.4.2&quot;</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;nx_parallel==0.3&quot;</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;graphblas_algorithms==2023.10.0&quot;</span>
 </pre></div>
 </div>
 </section>
@@ -444,24 +542,45 @@
         <div class="toc-tree-container">
           <div class="toc-tree">
             <ul>
-<li><a class="reference internal" href="#">Examples</a><ul>
-<li><a class="reference internal" href="#configuration-examples">Configuration Examples</a><ul>
-<li><a class="reference internal" href="#example-1-basic-configuration">Example 1: Basic Configuration</a></li>
-<li><a class="reference internal" href="#example-2-advanced-algorithm-configuration">Example 2: Advanced Algorithm Configuration</a></li>
+<li><a class="reference internal" href="#"><strong>Nxbench Configuration Guide</strong></a><ul>
+<li><a class="reference internal" href="#introduction"><strong>Introduction</strong></a></li>
+<li><a class="reference internal" href="#configuration-structure"><strong>Configuration Structure</strong></a></li>
+<li><a class="reference internal" href="#algorithms"><strong>1. Algorithms</strong></a><ul>
+<li><a class="reference internal" href="#purpose"><strong>Purpose</strong></a></li>
+<li><a class="reference internal" href="#fields"><strong>Fields</strong></a></li>
+<li><a class="reference internal" href="#example-entries"><strong>Example Entries</strong></a><ul>
+<li><a class="reference internal" href="#basic-configuration"><strong>Basic Configuration</strong></a></li>
+<li><a class="reference internal" href="#advanced-configuration-with-validation-and-warm-up"><strong>Advanced Configuration with Validation and Warm-up</strong></a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#usage-examples">Usage Examples</a><ul>
-<li><a class="reference internal" href="#running-a-specific-benchmark-configuration">Running a Specific Benchmark Configuration</a></li>
-<li><a class="reference internal" href="#exporting-benchmark-results-to-csv">Exporting Benchmark Results to CSV</a></li>
-<li><a class="reference internal" href="#comparing-benchmark-results-between-different-commits">Comparing Benchmark Results Between Different Commits</a></li>
-<li><a class="reference internal" href="#visualizing-results-in-a-web-browser">Visualizing Results in a Web Browser</a></li>
-<li><a class="reference internal" href="#generating-a-static-report">Generating a Static Report</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#containerization-examples">Containerization Examples</a><ul>
-<li><a class="reference internal" href="#building-the-docker-image">Building the Docker Image</a></li>
-<li><a class="reference internal" href="#running-benchmarks-inside-a-docker-container">Running Benchmarks Inside a Docker Container</a></li>
-<li><a class="reference internal" href="#accessing-the-visualization-dashboard-via-docker-compose">Accessing the Visualization Dashboard via Docker Compose</a></li>
+<li><a class="reference internal" href="#datasets"><strong>2. Datasets</strong></a><ul>
+<li><a class="reference internal" href="#id1"><strong>Purpose</strong></a></li>
+<li><a class="reference internal" href="#id2"><strong>Fields</strong></a></li>
+<li><a class="reference internal" href="#id3"><strong>Example Entries</strong></a><ul>
+<li><a class="reference internal" href="#id4"><strong>Basic Configuration</strong></a></li>
+<li><a class="reference internal" href="#dataset-generated-on-the-fly"><strong>Dataset Generated on-the-fly</strong></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#validation"><strong>3. Validation</strong></a><ul>
+<li><a class="reference internal" href="#id5"><strong>Purpose</strong></a></li>
+<li><a class="reference internal" href="#id6"><strong>Fields</strong></a></li>
+<li><a class="reference internal" href="#example-entry"><strong>Example Entry</strong></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#matrix"><strong>4. Matrix</strong></a><ul>
+<li><a class="reference internal" href="#id7"><strong>Purpose</strong></a></li>
+<li><a class="reference internal" href="#id8"><strong>Fields</strong></a></li>
+<li><a class="reference internal" href="#id9"><strong>Example Entry</strong></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#asv-configuration"><strong>5. ASV Configuration</strong></a><ul>
+<li><a class="reference internal" href="#id10"><strong>Purpose</strong></a></li>
+<li><a class="reference internal" href="#id11"><strong>Fields</strong></a></li>
+<li><a class="reference internal" href="#id12"><strong>Example Entry</strong></a></li>
 </ul>
 </li>
 </ul>
