@@ -457,30 +457,29 @@
 </section>
 </section>
 <hr class="docutils" />
-<section id="asv-configuration">
-<h2><strong>5. ASV Configuration</strong><a class="headerlink" href="#asv-configuration" title="Link to this heading">¶</a></h2>
+<section id="environment-configuration">
+<h2><strong>5. Environment Configuration</strong><a class="headerlink" href="#environment-configuration" title="Link to this heading">¶</a></h2>
 <section id="id10">
 <h3><strong>Purpose</strong><a class="headerlink" href="#id10" title="Link to this heading">¶</a></h3>
-<p>Configures ASV-specific settings, including the repository URL, branches to benchmark, and required dependencies.</p>
+<p>Configures environment settings, such as the python and dependency versions.</p>
 </section>
 <section id="id11">
 <h3><strong>Fields</strong><a class="headerlink" href="#id11" title="Link to this heading">¶</a></h3>
 <ul class="simple">
-<li><p><strong><code class="docutils literal notranslate"><span class="pre">repo</span></code></strong> <em>(string, required)</em>: URL of the Git repository to benchmark.</p></li>
-<li><p><strong><code class="docutils literal notranslate"><span class="pre">branches</span></code></strong> <em>(list of strings, required)</em>: Specifies the branches in the repository to benchmark.</p></li>
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">python</span></code></strong> <em>(list of strings, required)</em>: List of valid python versions (e.g. “3.10”, “3.11”)</p></li>
 <li><p><strong><code class="docutils literal notranslate"><span class="pre">req</span></code></strong> <em>(list of strings, required)</em>: Lists the Python dependencies required for benchmarking.</p></li>
 </ul>
 </section>
 <section id="id12">
 <h3><strong>Example Entry</strong><a class="headerlink" href="#id12" title="Link to this heading">¶</a></h3>
-<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">asv_config</span><span class="p">:</span>
-<span class="w">  </span><span class="nt">repo</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;https://github.com/dpys/nxbench.git&quot;</span>
-<span class="w">  </span><span class="nt">branches</span><span class="p">:</span>
-<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;main&quot;</span>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">env_config</span><span class="p">:</span>
 <span class="w">  </span><span class="nt">req</span><span class="p">:</span>
 <span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;networkx==3.4.2&quot;</span>
 <span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;nx_parallel==0.3&quot;</span>
 <span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;graphblas_algorithms==2023.10.0&quot;</span>
+<span class="w">  </span><span class="nt">pythons</span><span class="p">:</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;3.10&quot;</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;3.11&quot;</span>
 </pre></div>
 </div>
 </section>
@@ -577,7 +576,7 @@
 <li><a class="reference internal" href="#id9"><strong>Example Entry</strong></a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#asv-configuration"><strong>5. ASV Configuration</strong></a><ul>
+<li><a class="reference internal" href="#environment-configuration"><strong>5. Environment Configuration</strong></a><ul>
 <li><a class="reference internal" href="#id10"><strong>Purpose</strong></a></li>
 <li><a class="reference internal" href="#id11"><strong>Fields</strong></a></li>
 <li><a class="reference internal" href="#id12"><strong>Example Entry</strong></a></li>

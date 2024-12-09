@@ -294,7 +294,7 @@
 
 
 <div class="viewcode-block" id="AlgorithmConfig">
-<a class="viewcode-back" href="../../../api/nxbench.benchmarks.html#nxbench.benchmarks.config.AlgorithmConfig">[docs]</a>
+<a class="viewcode-back" href="../../../api/nxbench.benchmarks.html#nxbench.benchmarks.benchmark.AlgorithmConfig">[docs]</a>
 <span class="nd">@dataclass</span>
 <span class="k">class</span> <span class="nc">AlgorithmConfig</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Configuration for a graph algorithm to benchmark.&quot;&quot;&quot;</span>
@@ -312,7 +312,7 @@
     <span class="n">warmup_iterations</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span>
 
 <div class="viewcode-block" id="AlgorithmConfig.__post_init__">
-<a class="viewcode-back" href="../../../api/nxbench.benchmarks.html#nxbench.benchmarks.config.AlgorithmConfig.__post_init__">[docs]</a>
+<a class="viewcode-back" href="../../../api/nxbench.benchmarks.html#nxbench.benchmarks.benchmark.AlgorithmConfig.__post_init__">[docs]</a>
     <span class="k">def</span> <span class="nf">__post_init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Validate and resolve the function reference.&quot;&quot;&quot;</span>
         <span class="n">module_path</span><span class="p">,</span> <span class="n">func_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">func</span><span class="o">.</span><span class="n">rsplit</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
@@ -343,7 +343,7 @@
 
 
 <div class="viewcode-block" id="DatasetConfig">
-<a class="viewcode-back" href="../../../api/nxbench.benchmarks.html#nxbench.benchmarks.config.DatasetConfig">[docs]</a>
+<a class="viewcode-back" href="../../../api/nxbench.benchmarks.html#nxbench.benchmarks.benchmark.DatasetConfig">[docs]</a>
 <span class="nd">@dataclass</span>
 <span class="k">class</span> <span class="nc">DatasetConfig</span><span class="p">:</span>
     <span class="n">name</span><span class="p">:</span> <span class="nb">str</span>
@@ -367,7 +367,7 @@
 
 
 <div class="viewcode-block" id="BenchmarkConfig">
-<a class="viewcode-back" href="../../../api/nxbench.benchmarks.html#nxbench.benchmarks.config.BenchmarkConfig">[docs]</a>
+<a class="viewcode-back" href="../../../api/nxbench.benchmarks.html#nxbench.benchmarks.benchmark.BenchmarkConfig">[docs]</a>
 <span class="nd">@dataclass</span>
 <span class="k">class</span> <span class="nc">BenchmarkConfig</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Complete benchmark suite configuration.&quot;&quot;&quot;</span>
@@ -376,10 +376,11 @@
     <span class="n">datasets</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">DatasetConfig</span><span class="p">]</span>
     <span class="n">matrix</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span>
     <span class="n">machine_info</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">dict</span><span class="p">)</span>
-    <span class="n">output_dir</span><span class="p">:</span> <span class="n">Path</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="k">lambda</span><span class="p">:</span> <span class="n">Path</span><span class="p">(</span><span class="s2">&quot;../results&quot;</span><span class="p">))</span>
+    <span class="n">output_dir</span><span class="p">:</span> <span class="n">Path</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="k">lambda</span><span class="p">:</span> <span class="n">Path</span><span class="p">(</span><span class="s2">&quot;~/results&quot;</span><span class="p">))</span>
+    <span class="n">env_data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">dict</span><span class="p">)</span>
 
 <div class="viewcode-block" id="BenchmarkConfig.from_yaml">
-<a class="viewcode-back" href="../../../api/nxbench.benchmarks.html#nxbench.benchmarks.config.BenchmarkConfig.from_yaml">[docs]</a>
+<a class="viewcode-back" href="../../../api/nxbench.benchmarks.html#nxbench.benchmarks.benchmark.BenchmarkConfig.from_yaml">[docs]</a>
     <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">from_yaml</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;BenchmarkConfig&quot;</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Load configuration from YAML file.</span>
@@ -418,6 +419,8 @@
             <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;&#39;matrix&#39; should be a dict in the config file: </span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
             <span class="n">matrix_data</span> <span class="o">=</span> <span class="p">{}</span>
 
+        <span class="n">env_data</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;env_config&quot;</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{}</span>
+
         <span class="n">algorithms</span> <span class="o">=</span> <span class="p">[</span><span class="n">AlgorithmConfig</span><span class="p">(</span><span class="o">**</span><span class="n">algo_data</span><span class="p">)</span> <span class="k">for</span> <span class="n">algo_data</span> <span class="ow">in</span> <span class="n">algorithms_data</span><span class="p">]</span>
 
         <span class="n">datasets</span> <span class="o">=</span> <span class="p">[</span><span class="n">DatasetConfig</span><span class="p">(</span><span class="o">**</span><span class="n">ds_data</span><span class="p">)</span> <span class="k">for</span> <span class="n">ds_data</span> <span class="ow">in</span> <span class="n">datasets_data</span><span class="p">]</span>
@@ -427,12 +430,13 @@
             <span class="n">datasets</span><span class="o">=</span><span class="n">datasets</span><span class="p">,</span>
             <span class="n">matrix</span><span class="o">=</span><span class="n">matrix_data</span><span class="p">,</span>
             <span class="n">machine_info</span><span class="o">=</span><span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;machine_info&quot;</span><span class="p">,</span> <span class="p">{}),</span>
-            <span class="n">output_dir</span><span class="o">=</span><span class="n">Path</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;output_dir&quot;</span><span class="p">,</span> <span class="s2">&quot;../results&quot;</span><span class="p">)),</span>
+            <span class="n">output_dir</span><span class="o">=</span><span class="n">Path</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;output_dir&quot;</span><span class="p">,</span> <span class="s2">&quot;~/results&quot;</span><span class="p">)),</span>
+            <span class="n">env_data</span><span class="o">=</span><span class="n">env_data</span><span class="p">,</span>
         <span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="BenchmarkConfig.to_yaml">
-<a class="viewcode-back" href="../../../api/nxbench.benchmarks.html#nxbench.benchmarks.config.BenchmarkConfig.to_yaml">[docs]</a>
+<a class="viewcode-back" href="../../../api/nxbench.benchmarks.html#nxbench.benchmarks.benchmark.BenchmarkConfig.to_yaml">[docs]</a>
     <span class="k">def</span> <span class="nf">to_yaml</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Save configuration to YAML file.</span>
 
@@ -462,7 +466,7 @@
 
 
 <div class="viewcode-block" id="BenchmarkResult">
-<a class="viewcode-back" href="../../../api/nxbench.benchmarks.html#nxbench.benchmarks.config.BenchmarkResult">[docs]</a>
+<a class="viewcode-back" href="../../../api/nxbench.benchmarks.html#nxbench.benchmarks.benchmark.BenchmarkResult">[docs]</a>
 <span class="nd">@dataclass</span>
 <span class="k">class</span> <span class="nc">BenchmarkResult</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Container for benchmark execution results.&quot;&quot;&quot;</span>
@@ -482,7 +486,7 @@
     <span class="n">metadata</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span>
 
 <div class="viewcode-block" id="BenchmarkResult.from_asv_result">
-<a class="viewcode-back" href="../../../api/nxbench.benchmarks.html#nxbench.benchmarks.config.BenchmarkResult.from_asv_result">[docs]</a>
+<a class="viewcode-back" href="../../../api/nxbench.benchmarks.html#nxbench.benchmarks.benchmark.BenchmarkResult.from_asv_result">[docs]</a>
     <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">from_asv_result</span><span class="p">(</span>
         <span class="bp">cls</span><span class="p">,</span>
@@ -533,7 +537,7 @@
 
 
 <div class="viewcode-block" id="BenchmarkMetrics">
-<a class="viewcode-back" href="../../../api/nxbench.benchmarks.html#nxbench.benchmarks.config.BenchmarkMetrics">[docs]</a>
+<a class="viewcode-back" href="../../../api/nxbench.benchmarks.html#nxbench.benchmarks.benchmark.BenchmarkMetrics">[docs]</a>
 <span class="nd">@dataclass</span>
 <span class="k">class</span> <span class="nc">BenchmarkMetrics</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Container for benchmark metrics.&quot;&quot;&quot;</span>

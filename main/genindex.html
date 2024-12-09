@@ -402,11 +402,13 @@
 </li>
         <li><a href="api/nxbench.benchmarks.html#nxbench.benchmarks.config.BenchmarkResult.commit_hash">commit_hash (nxbench.benchmarks.config.BenchmarkResult attribute)</a>
 </li>
-    </ul></td>
-    <td style="width: 33%; vertical-align: top;"><ul>
         <li><a href="api/nxbench.viz.html#nxbench.viz.dashboard.BenchmarkDashboard.compare_results">compare_results() (nxbench.viz.dashboard.BenchmarkDashboard method)</a>
 </li>
+    </ul></td>
+    <td style="width: 33%; vertical-align: top;"><ul>
         <li><a href="api/nxbench.benchmarks.html#nxbench.benchmarks.utils.MemorySnapshot.compare_to">compare_to() (nxbench.benchmarks.utils.MemorySnapshot method)</a>
+</li>
+        <li><a href="api/nxbench.benchmarks.html#nxbench.benchmarks.benchmark.GraphBenchmark.config">config (nxbench.benchmarks.benchmark.GraphBenchmark attribute)</a>
 </li>
         <li><a href="api/nxbench.benchmarks.html#nxbench.benchmarks.utils.configure_benchmarks">configure_benchmarks() (in module nxbench.benchmarks.utils)</a>
 </li>
@@ -461,6 +463,8 @@
         <li><a href="api/nxbench.data.html#nxbench.data.repository.NetworkMetadata.edge_type">edge_type (nxbench.data.repository.NetworkMetadata attribute)</a>
 </li>
         <li><a href="api/nxbench.html#nxbench.cli.ensure_asv_config_in_root">ensure_asv_config_in_root() (in module nxbench.cli)</a>
+</li>
+        <li><a href="api/nxbench.benchmarks.html#nxbench.benchmarks.config.BenchmarkConfig.env_data">env_data (nxbench.benchmarks.config.BenchmarkConfig attribute)</a>
 </li>
         <li><a href="api/nxbench.benchmarks.html#nxbench.benchmarks.config.BenchmarkMetrics.execution_time">execution_time (nxbench.benchmarks.config.BenchmarkMetrics attribute)</a>
 
@@ -530,9 +534,11 @@
 </li>
         <li><a href="api/nxbench.html#nxbench.cli.get_git_executable">get_git_executable() (in module nxbench.cli)</a>
 </li>
+        <li><a href="api/nxbench.html#nxbench.cli.get_git_hash">get_git_hash() (in module nxbench.cli)</a>
+</li>
     </ul></td>
     <td style="width: 33%; vertical-align: top;"><ul>
-        <li><a href="api/nxbench.html#nxbench.cli.get_git_hash">get_git_hash() (in module nxbench.cli)</a>
+        <li><a href="api/nxbench.html#nxbench.cli.get_latest_commit_hash">get_latest_commit_hash() (in module nxbench.cli)</a>
 </li>
         <li><a href="api/nxbench.benchmarks.html#nxbench.benchmarks.export.ResultsExporter.get_machine_info">get_machine_info() (nxbench.benchmarks.export.ResultsExporter method)</a>
 </li>
@@ -580,13 +586,13 @@
   <h2>I</h2>
   <table style="width: 100%" class="indextable genindextable"><tr>
     <td style="width: 33%; vertical-align: top;"><ul>
-        <li><a href="api/nxbench.benchmarks.html#nxbench.benchmarks.utils.is_cugraph_available">is_cugraph_available() (in module nxbench.benchmarks.utils)</a>
-</li>
         <li><a href="api/nxbench.benchmarks.html#nxbench.benchmarks.config.BenchmarkResult.is_directed">is_directed (nxbench.benchmarks.config.BenchmarkResult attribute)</a>
+</li>
+        <li><a href="api/nxbench.benchmarks.html#nxbench.benchmarks.utils.is_graphblas_available">is_graphblas_available() (in module nxbench.benchmarks.utils)</a>
 </li>
     </ul></td>
     <td style="width: 33%; vertical-align: top;"><ul>
-        <li><a href="api/nxbench.benchmarks.html#nxbench.benchmarks.utils.is_graphblas_available">is_graphblas_available() (in module nxbench.benchmarks.utils)</a>
+        <li><a href="api/nxbench.benchmarks.html#nxbench.benchmarks.utils.is_nx_cugraph_available">is_nx_cugraph_available() (in module nxbench.benchmarks.utils)</a>
 </li>
         <li><a href="api/nxbench.benchmarks.html#nxbench.benchmarks.utils.is_nx_parallel_available">is_nx_parallel_available() (in module nxbench.benchmarks.utils)</a>
 </li>
@@ -1083,43 +1089,19 @@
 </li>
         <li><a href="api/nxbench.benchmarks.html#nxbench.benchmarks.export.ResultsExporter.to_dataframe">to_dataframe() (nxbench.benchmarks.export.ResultsExporter method)</a>
 </li>
+    </ul></td>
+    <td style="width: 33%; vertical-align: top;"><ul>
         <li><a href="api/nxbench.benchmarks.html#nxbench.benchmarks.export.ResultsExporter.to_sql">to_sql() (nxbench.benchmarks.export.ResultsExporter method)</a>
 </li>
         <li><a href="api/nxbench.benchmarks.html#nxbench.benchmarks.config.BenchmarkConfig.to_yaml">to_yaml() (nxbench.benchmarks.config.BenchmarkConfig method)</a>
 </li>
-        <li><a href="api/nxbench.benchmarks.html#nxbench.benchmarks.benchmark.GraphBenchmark.track_louvain_communities_08blocks_networkx_1">track_louvain_communities_08blocks_networkx_1() (nxbench.benchmarks.benchmark.GraphBenchmark method)</a>
-</li>
-        <li><a href="api/nxbench.benchmarks.html#nxbench.benchmarks.benchmark.GraphBenchmark.track_louvain_communities_citeseer_networkx_1">track_louvain_communities_citeseer_networkx_1() (nxbench.benchmarks.benchmark.GraphBenchmark method)</a>
-</li>
-        <li><a href="api/nxbench.benchmarks.html#nxbench.benchmarks.benchmark.GraphBenchmark.track_louvain_communities_enron_networkx_1">track_louvain_communities_enron_networkx_1() (nxbench.benchmarks.benchmark.GraphBenchmark method)</a>
-</li>
-        <li><a href="api/nxbench.benchmarks.html#nxbench.benchmarks.benchmark.GraphBenchmark.track_louvain_communities_IMDB_networkx_1">track_louvain_communities_IMDB_networkx_1() (nxbench.benchmarks.benchmark.GraphBenchmark method)</a>
-</li>
-    </ul></td>
-    <td style="width: 33%; vertical-align: top;"><ul>
-        <li><a href="api/nxbench.benchmarks.html#nxbench.benchmarks.benchmark.GraphBenchmark.track_louvain_communities_jazz_networkx_1">track_louvain_communities_jazz_networkx_1() (nxbench.benchmarks.benchmark.GraphBenchmark method)</a>
-</li>
-        <li><a href="api/nxbench.benchmarks.html#nxbench.benchmarks.benchmark.GraphBenchmark.track_louvain_communities_karate_networkx_1">track_louvain_communities_karate_networkx_1() (nxbench.benchmarks.benchmark.GraphBenchmark method)</a>
-</li>
-        <li><a href="api/nxbench.benchmarks.html#nxbench.benchmarks.benchmark.GraphBenchmark.track_louvain_communities_patentcite_networkx_1">track_louvain_communities_patentcite_networkx_1() (nxbench.benchmarks.benchmark.GraphBenchmark method)</a>
-</li>
-        <li><a href="api/nxbench.benchmarks.html#nxbench.benchmarks.benchmark.GraphBenchmark.track_louvain_communities_twitter_networkx_1">track_louvain_communities_twitter_networkx_1() (nxbench.benchmarks.benchmark.GraphBenchmark method)</a>
-</li>
         <li><a href="api/nxbench.benchmarks.html#nxbench.benchmarks.benchmark.GraphBenchmark.track_pagerank_08blocks_networkx_1">track_pagerank_08blocks_networkx_1() (nxbench.benchmarks.benchmark.GraphBenchmark method)</a>
 </li>
-        <li><a href="api/nxbench.benchmarks.html#nxbench.benchmarks.benchmark.GraphBenchmark.track_pagerank_citeseer_networkx_1">track_pagerank_citeseer_networkx_1() (nxbench.benchmarks.benchmark.GraphBenchmark method)</a>
-</li>
         <li><a href="api/nxbench.benchmarks.html#nxbench.benchmarks.benchmark.GraphBenchmark.track_pagerank_enron_networkx_1">track_pagerank_enron_networkx_1() (nxbench.benchmarks.benchmark.GraphBenchmark method)</a>
-</li>
-        <li><a href="api/nxbench.benchmarks.html#nxbench.benchmarks.benchmark.GraphBenchmark.track_pagerank_IMDB_networkx_1">track_pagerank_IMDB_networkx_1() (nxbench.benchmarks.benchmark.GraphBenchmark method)</a>
 </li>
         <li><a href="api/nxbench.benchmarks.html#nxbench.benchmarks.benchmark.GraphBenchmark.track_pagerank_jazz_networkx_1">track_pagerank_jazz_networkx_1() (nxbench.benchmarks.benchmark.GraphBenchmark method)</a>
 </li>
         <li><a href="api/nxbench.benchmarks.html#nxbench.benchmarks.benchmark.GraphBenchmark.track_pagerank_karate_networkx_1">track_pagerank_karate_networkx_1() (nxbench.benchmarks.benchmark.GraphBenchmark method)</a>
-</li>
-        <li><a href="api/nxbench.benchmarks.html#nxbench.benchmarks.benchmark.GraphBenchmark.track_pagerank_patentcite_networkx_1">track_pagerank_patentcite_networkx_1() (nxbench.benchmarks.benchmark.GraphBenchmark method)</a>
-</li>
-        <li><a href="api/nxbench.benchmarks.html#nxbench.benchmarks.benchmark.GraphBenchmark.track_pagerank_twitter_networkx_1">track_pagerank_twitter_networkx_1() (nxbench.benchmarks.benchmark.GraphBenchmark method)</a>
 </li>
         <li><a href="api/nxbench.data.html#nxbench.data.repository.NetworkStats.transitivity">transitivity (nxbench.data.repository.NetworkStats attribute)</a>
 </li>

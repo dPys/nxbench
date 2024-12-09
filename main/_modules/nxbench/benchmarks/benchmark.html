@@ -277,6 +277,7 @@
 <span class="kn">import</span> <span class="nn">traceback</span>
 <span class="kn">import</span> <span class="nn">warnings</span>
 <span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">partial</span>
+<span class="kn">from</span> <span class="nn">importlib</span> <span class="kn">import</span> <span class="n">import_module</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span>
 
 <span class="kn">import</span> <span class="nn">networkx</span> <span class="k">as</span> <span class="nn">nx</span>
@@ -285,6 +286,9 @@
 <span class="kn">from</span> <span class="nn">nxbench.benchmarks.utils</span> <span class="kn">import</span> <span class="p">(</span>
     <span class="n">get_available_backends</span><span class="p">,</span>
     <span class="n">get_benchmark_config</span><span class="p">,</span>
+    <span class="n">is_graphblas_available</span><span class="p">,</span>
+    <span class="n">is_nx_cugraph_available</span><span class="p">,</span>
+    <span class="n">is_nx_parallel_available</span><span class="p">,</span>
     <span class="n">memory_tracker</span><span class="p">,</span>
 <span class="p">)</span>
 <span class="kn">from</span> <span class="nn">nxbench.data.loader</span> <span class="kn">import</span> <span class="n">BenchmarkDataManager</span>
@@ -309,7 +313,7 @@
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Generate benchmark methods dynamically for each combination of algorithm,</span>
 <span class="sd">    backend, and number of threads without redundant executions.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">config</span> <span class="o">=</span> <span class="n">get_benchmark_config</span><span class="p">()</span>
+    <span class="n">config</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">config</span>
     <span class="n">algorithms</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">algorithms</span>
     <span class="n">datasets</span> <span class="o">=</span> <span class="p">[</span><span class="n">ds</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">ds</span> <span class="ow">in</span> <span class="n">config</span><span class="o">.</span><span class="n">datasets</span><span class="p">]</span>
     <span class="n">available_backends</span> <span class="o">=</span> <span class="n">get_available_backends</span><span class="p">()</span>
@@ -378,6 +382,8 @@
 <span class="k">class</span> <span class="nc">GraphBenchmark</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Base class for all graph algorithm benchmarks.&quot;&quot;&quot;</span>
 
+    <span class="n">config</span> <span class="o">=</span> <span class="n">get_benchmark_config</span><span class="p">()</span>
+
 <div class="viewcode-block" id="GraphBenchmark.__init__">
 <a class="viewcode-back" href="../../../api/nxbench.benchmarks.html#nxbench.benchmarks.benchmark.GraphBenchmark.__init__">[docs]</a>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -391,12 +397,11 @@
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Cache graph data for benchmarks.&quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">graphs</span> <span class="o">=</span> <span class="p">{}</span>
 
-        <span class="n">config</span> <span class="o">=</span> <span class="n">get_benchmark_config</span><span class="p">()</span>
-        <span class="n">datasets</span> <span class="o">=</span> <span class="p">[</span><span class="n">ds</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">ds</span> <span class="ow">in</span> <span class="n">config</span><span class="o">.</span><span class="n">datasets</span><span class="p">]</span>
+        <span class="n">datasets</span> <span class="o">=</span> <span class="p">[</span><span class="n">ds</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">ds</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">datasets</span><span class="p">]</span>
 
         <span class="k">for</span> <span class="n">dataset_name</span> <span class="ow">in</span> <span class="n">datasets</span><span class="p">:</span>
             <span class="n">dataset_config</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span>
-                <span class="p">(</span><span class="n">ds</span> <span class="k">for</span> <span class="n">ds</span> <span class="ow">in</span> <span class="n">config</span><span class="o">.</span><span class="n">datasets</span> <span class="k">if</span> <span class="n">ds</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="n">dataset_name</span><span class="p">),</span>
+                <span class="p">(</span><span class="n">ds</span> <span class="k">for</span> <span class="n">ds</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">datasets</span> <span class="k">if</span> <span class="n">ds</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="n">dataset_name</span><span class="p">),</span>
                 <span class="kc">None</span><span class="p">,</span>
             <span class="p">)</span>
             <span class="k">if</span> <span class="n">dataset_config</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -447,37 +452,52 @@
             <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">original_graph</span><span class="o">.</span><span class="n">number_of_edges</span><span class="p">()</span><span class="si">}</span><span class="s2"> edges&quot;</span>
         <span class="p">)</span>
 
-        <span class="k">try</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">backend</span> <span class="o">==</span> <span class="s2">&quot;networkx&quot;</span><span class="p">:</span>
-                <span class="n">converted_graph</span> <span class="o">=</span> <span class="n">original_graph</span>
-            <span class="k">elif</span> <span class="s2">&quot;parallel&quot;</span> <span class="ow">in</span> <span class="n">backend</span><span class="p">:</span>
-                <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;NUM_THREAD&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">num_thread</span><span class="p">)</span>
-                <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;OMP_NUM_THREADS&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">num_thread</span><span class="p">)</span>
-                <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;MKL_NUM_THREADS&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">num_thread</span><span class="p">)</span>
-                <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;OPENBLAS_NUM_THREADS&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">num_thread</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">var_name</span> <span class="ow">in</span> <span class="p">[</span>
+            <span class="s2">&quot;NUM_THREAD&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;OMP_NUM_THREADS&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;MKL_NUM_THREADS&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;OPENBLAS_NUM_THREADS&quot;</span><span class="p">,</span>
+        <span class="p">]:</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="n">var_name</span><span class="p">]</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">num_thread</span><span class="p">)</span>
 
-                <span class="n">nx</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">backends</span><span class="o">.</span><span class="n">parallel</span><span class="o">.</span><span class="n">active</span> <span class="o">=</span> <span class="kc">True</span>
-                <span class="n">nx</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">backends</span><span class="o">.</span><span class="n">parallel</span><span class="o">.</span><span class="n">n_jobs</span> <span class="o">=</span> <span class="n">num_thread</span>
-                <span class="n">converted_graph</span> <span class="o">=</span> <span class="n">original_graph</span>
-            <span class="k">elif</span> <span class="s2">&quot;cugraph&quot;</span> <span class="ow">in</span> <span class="n">backend</span><span class="p">:</span>
-                <span class="kn">import</span> <span class="nn">cugraph</span>
+        <span class="k">if</span> <span class="n">backend</span> <span class="o">==</span> <span class="s2">&quot;networkx&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">original_graph</span>
 
-                <span class="n">edge_attr</span> <span class="o">=</span> <span class="s2">&quot;weight&quot;</span> <span class="k">if</span> <span class="n">nx</span><span class="o">.</span><span class="n">is_weighted</span><span class="p">(</span><span class="n">original_graph</span><span class="p">)</span> <span class="k">else</span> <span class="kc">None</span>
-                <span class="n">converted_graph</span> <span class="o">=</span> <span class="n">cugraph</span><span class="o">.</span><span class="n">from_networkx</span><span class="p">(</span>
-                    <span class="n">original_graph</span><span class="p">,</span> <span class="n">edge_attrs</span><span class="o">=</span><span class="n">edge_attr</span>
-                <span class="p">)</span>
-            <span class="k">elif</span> <span class="s2">&quot;graphblas&quot;</span> <span class="ow">in</span> <span class="n">backend</span><span class="p">:</span>
-                <span class="kn">import</span> <span class="nn">graphblas_algorithms</span> <span class="k">as</span> <span class="nn">ga</span>
-
-                <span class="n">converted_graph</span> <span class="o">=</span> <span class="n">ga</span><span class="o">.</span><span class="n">Graph</span><span class="o">.</span><span class="n">from_networkx</span><span class="p">(</span><span class="n">original_graph</span><span class="p">)</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unsupported backend: </span><span class="si">{</span><span class="n">backend</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="s2">&quot;parallel&quot;</span> <span class="ow">in</span> <span class="n">backend</span> <span class="ow">and</span> <span class="n">is_nx_parallel_available</span><span class="p">():</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">nxp</span> <span class="o">=</span> <span class="n">import_module</span><span class="p">(</span><span class="s2">&quot;nx_parallel&quot;</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="s2">&quot;nx-parallel backend not available&quot;</span><span class="p">)</span>
                 <span class="k">return</span> <span class="kc">None</span>
-        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="s2">&quot;Error in prepare_benchmark&quot;</span><span class="p">)</span>
-            <span class="k">return</span> <span class="kc">None</span>
+            <span class="k">return</span> <span class="n">nxp</span><span class="o">.</span><span class="n">ParallelGraph</span><span class="p">(</span><span class="n">original_graph</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="s2">&quot;cugraph&quot;</span> <span class="ow">in</span> <span class="n">backend</span> <span class="ow">and</span> <span class="n">is_nx_cugraph_available</span><span class="p">():</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">cugraph</span> <span class="o">=</span> <span class="n">import_module</span><span class="p">(</span><span class="s2">&quot;nx_cugraph&quot;</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="s2">&quot;cugraph backend not available&quot;</span><span class="p">)</span>
+                <span class="k">return</span> <span class="kc">None</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">edge_attr</span> <span class="o">=</span> <span class="s2">&quot;weight&quot;</span> <span class="k">if</span> <span class="n">nx</span><span class="o">.</span><span class="n">is_weighted</span><span class="p">(</span><span class="n">original_graph</span><span class="p">)</span> <span class="k">else</span> <span class="kc">None</span>
+                <span class="k">return</span> <span class="n">cugraph</span><span class="o">.</span><span class="n">from_networkx</span><span class="p">(</span><span class="n">original_graph</span><span class="p">,</span> <span class="n">edge_attrs</span><span class="o">=</span><span class="n">edge_attr</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="s2">&quot;Error converting graph to cugraph format&quot;</span><span class="p">)</span>
+                <span class="k">return</span> <span class="kc">None</span>
+
+        <span class="k">if</span> <span class="s2">&quot;graphblas&quot;</span> <span class="ow">in</span> <span class="n">backend</span> <span class="ow">and</span> <span class="n">is_graphblas_available</span><span class="p">():</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">ga</span> <span class="o">=</span> <span class="n">import_module</span><span class="p">(</span><span class="s2">&quot;graphblas_algorithms&quot;</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="s2">&quot;graphblas_algorithms backend not available&quot;</span><span class="p">)</span>
+                <span class="k">return</span> <span class="kc">None</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">ga</span><span class="o">.</span><span class="n">Graph</span><span class="o">.</span><span class="n">from_networkx</span><span class="p">(</span><span class="n">original_graph</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="s2">&quot;Error converting graph to graphblas format&quot;</span><span class="p">)</span>
+                <span class="k">return</span> <span class="kc">None</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">converted_graph</span></div>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unsupported backend: </span><span class="si">{</span><span class="n">backend</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">None</span></div>
 
 
 <div class="viewcode-block" id="GraphBenchmark.do_benchmark">
@@ -500,11 +520,10 @@
 
         <span class="k">try</span><span class="p">:</span>
             <span class="n">algo_func</span> <span class="o">=</span> <span class="n">get_algorithm_function</span><span class="p">(</span><span class="n">algo_config</span><span class="p">,</span> <span class="n">backend</span><span class="p">)</span>
-            <span class="n">alg_func_name</span> <span class="o">=</span> <span class="p">(</span>
-                <span class="n">algo_func</span><span class="o">.</span><span class="n">func</span><span class="o">.</span><span class="vm">__name__</span>
-                <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">algo_func</span><span class="p">,</span> <span class="s2">&quot;func&quot;</span><span class="p">)</span>
-                <span class="k">else</span> <span class="n">algo_func</span><span class="o">.</span><span class="vm">__name__</span>
-            <span class="p">)</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">algo_func</span><span class="p">,</span> <span class="n">partial</span><span class="p">):</span>
+                <span class="n">alg_func_name</span> <span class="o">=</span> <span class="n">algo_func</span><span class="o">.</span><span class="n">func</span><span class="o">.</span><span class="vm">__name__</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">alg_func_name</span> <span class="o">=</span> <span class="n">algo_func</span><span class="o">.</span><span class="vm">__name__</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Got algorithm function: </span><span class="si">{</span><span class="n">alg_func_name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
         <span class="k">except</span> <span class="p">(</span><span class="ne">ImportError</span><span class="p">,</span> <span class="ne">AttributeError</span><span class="p">):</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Function not available for backend </span><span class="si">{</span><span class="n">backend</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
