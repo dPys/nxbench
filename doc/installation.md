@@ -6,7 +6,13 @@ PyPi:
 pip install nxbench
 ```
 
-From a local clone, try Docker:
+From a local clone:
+
+```bash
+make install
+```
+
+Docker:
 
 ```bash
 # CPU-only

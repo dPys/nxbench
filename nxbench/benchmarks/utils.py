@@ -32,11 +32,20 @@ def get_benchmark_config() -> BenchmarkConfig:
 
     config_file = os.getenv("NXBENCH_CONFIG_FILE")
     if config_file:
-        if not Path(config_file).exists():
-            raise FileNotFoundError(f"Config file not found: {config_file}")
-        _BENCHMARK_CONFIG = BenchmarkConfig.from_yaml(config_file)
+        config_path = Path(config_file)
+
+        if not config_path.is_absolute():
+            config_path = (Path.cwd() / config_path).resolve()
+
+        if not config_path.exists():
+            raise FileNotFoundError(f"Config file not found: {config_path}")
+
+        logger.debug(f"Resolved config file path: {config_path}")
+
+        _BENCHMARK_CONFIG = BenchmarkConfig.from_yaml(str(config_path))
     else:
         _BENCHMARK_CONFIG = load_default_config()
+
     return _BENCHMARK_CONFIG
 
 

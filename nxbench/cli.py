@@ -273,8 +273,9 @@ def cli(ctx, verbose: int, config: Path | None):
     logging.basicConfig(level=log_level)
 
     if config:
-        os.environ["NXBENCH_CONFIG_FILE"] = str(config)
-        logger.info(f"Using config file: {config}")
+        absolute_config = config.resolve()
+        os.environ["NXBENCH_CONFIG_FILE"] = str(absolute_config)
+        logger.info(f"Using config file: {absolute_config}")
 
     ctx.ensure_object(dict)
     ctx.obj["CONFIG"] = config

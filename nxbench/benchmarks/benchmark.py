@@ -6,6 +6,7 @@ import time
 import traceback
 import warnings
 from functools import partial
+from importlib import import_module
 from typing import Any
 
 import networkx as nx
@@ -36,7 +37,7 @@ def generate_benchmark_methods(cls):
     """Generate benchmark methods dynamically for each combination of algorithm,
     backend, and number of threads without redundant executions.
     """
-    config = get_benchmark_config()
+    config = cls.config
     algorithms = config.algorithms
     datasets = [ds.name for ds in config.datasets]
     available_backends = get_available_backends()
@@ -102,6 +103,8 @@ def generate_benchmark_methods(cls):
 class GraphBenchmark:
     """Base class for all graph algorithm benchmarks."""
 
+    config = get_benchmark_config()
+
     def __init__(self):
         self.data_manager = BenchmarkDataManager()
         self.graphs = {}
@@ -110,12 +113,11 @@ class GraphBenchmark:
         """Cache graph data for benchmarks."""
         self.graphs = {}
 
-        config = get_benchmark_config()
-        datasets = [ds.name for ds in config.datasets]
+        datasets = [ds.name for ds in self.config.datasets]
 
         for dataset_name in datasets:
             dataset_config = next(
-                (ds for ds in config.datasets if ds.name == dataset_name),
+                (ds for ds in self.config.datasets if ds.name == dataset_name),
                 None,
             )
             if dataset_config is None:
@@ -160,37 +162,51 @@ class GraphBenchmark:
             f"{original_graph.number_of_edges()} edges"
         )
 
-        try:
-            if backend == "networkx":
-                converted_graph = original_graph
-            elif "parallel" in backend:
-                os.environ["NUM_THREAD"] = str(num_thread)
-                os.environ["OMP_NUM_THREADS"] = str(num_thread)
-                os.environ["MKL_NUM_THREADS"] = str(num_thread)
-                os.environ["OPENBLAS_NUM_THREADS"] = str(num_thread)
+        for var_name in [
+            "NUM_THREAD",
+            "OMP_NUM_THREADS",
+            "MKL_NUM_THREADS",
+            "OPENBLAS_NUM_THREADS",
+        ]:
+            os.environ[var_name] = str(num_thread)
 
-                nx.config.backends.parallel.active = True
-                nx.config.backends.parallel.n_jobs = num_thread
-                converted_graph = original_graph
-            elif "cugraph" in backend:
-                import cugraph
-
-                edge_attr = "weight" if nx.is_weighted(original_graph) else None
-                converted_graph = cugraph.from_networkx(
-                    original_graph, edge_attrs=edge_attr
-                )
-            elif "graphblas" in backend:
-                import graphblas_algorithms as ga
-
-                converted_graph = ga.Graph.from_networkx(original_graph)
-            else:
-                logger.error(f"Unsupported backend: {backend}")
+        if backend == "networkx":
+            return original_graph
+        if "parallel" in backend:
+            try:
+                nxp = import_module("nx_parallel")
+            except ImportError:
+                logger.exception("nx-parallel backend not available")
                 return None
-        except Exception:
-            logger.exception("Error in prepare_benchmark")
-            return None
+            return nxp.ParallelGraph(original_graph)
+
+        if "cugraph" in backend:
+            try:
+                cugraph = import_module("cugraph")
+            except ImportError:
+                logger.exception("cugraph backend not available")
+                return None
+            try:
+                edge_attr = "weight" if nx.is_weighted(original_graph) else None
+                return cugraph.from_networkx(original_graph, edge_attrs=edge_attr)
+            except Exception:
+                logger.exception("Error converting graph to cugraph format")
+                return None
+
+        if "graphblas" in backend:
+            try:
+                ga = import_module("graphblas_algorithms")
+            except ImportError:
+                logger.exception("graphblas_algorithms backend not available")
+                return None
+            try:
+                return ga.Graph.from_networkx(original_graph)
+            except Exception:
+                logger.exception("Error converting graph to graphblas format")
+                return None
         else:
-            return converted_graph
+            logger.error(f"Unsupported backend: {backend}")
+            return None
 
     def do_benchmark(
         self,
@@ -210,11 +226,10 @@ class GraphBenchmark:
 
         try:
             algo_func = get_algorithm_function(algo_config, backend)
-            alg_func_name = (
-                algo_func.func.__name__
-                if hasattr(algo_func, "func")
-                else algo_func.__name__
-            )
+            if isinstance(algo_func, partial):
+                alg_func_name = algo_func.func.__name__
+            else:
+                alg_func_name = algo_func.__name__
             logger.debug(f"Got algorithm function: {alg_func_name}")
         except (ImportError, AttributeError):
             logger.exception(f"Function not available for backend {backend}")

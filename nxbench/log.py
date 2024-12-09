@@ -265,8 +265,7 @@ class NxBenchConfig(Config):
                     LoggingHandlerConfig(
                         handler_type="console",
                         level=log_level,
-                        formatter="%(asctime)s - %(name)s - %(levelname)s - % "
-                        "(message)s",
+                        formatter="%(asctime)s - %(name)s - %(levelname)s - %(message)s",  # noqa: E501
                     )
                 ],
             )

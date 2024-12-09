@@ -1,14 +1,23 @@
 algorithms:
-  # - name: "pagerank"
-  #   func: "networkx.pagerank"
-  #   params:
-  #     alpha: 0.9
-  #     tol: 1.0e-6
-  #   requires_directed: false
-  #   groups: ["centrality", "random_walk"]
-  #   min_rounds: 10
-  #   warmup: true
-  #   warmup_iterations: 50
+  - name: "pagerank"
+    func: "networkx.pagerank"
+    params:
+      alpha: 0.9
+      tol: 1.0e-6
+    requires_directed: false
+    groups: ["centrality", "random_walk"]
+    min_rounds: 10
+    warmup: true
+    warmup_iterations: 50
+
+  - name: "eigenvector_centrality"
+    func: "networkx.eigenvector_centrality"
+    requires_directed: false
+    groups: ["centrality", "path_based"]
+    min_rounds: 5
+    warmup: true
+    warmup_iterations: 20
+    validate_result: "nxbench.validation.validate_node_scores"
 
   # - name: "betweenness_centrality"
   #   func: "networkx.betweenness_centrality"
@@ -20,7 +29,7 @@ algorithms:
   #   min_rounds: 5
   #   warmup: true
   #   warmup_iterations: 20
-    # validate_result: "nxbench.validation.validate_node_scores"
+  #   validate_result: "nxbench.validation.validate_node_scores"
 
   # - name: "edge_betweenness_centrality"
   #   func: "networkx.edge_betweenness_centrality"
@@ -39,6 +48,13 @@ algorithms:
   #   requires_directed: false
   #   groups: ["connectivity", "approximation"]
   #   min_rounds: 3
+
+  - name: "average_clustering"
+    func: "networkx.average_clustering"
+    params: {}
+    requires_directed: false
+    groups: ["clustering", "graph_structure"]
+    min_rounds: 3
 
   - name: "square_clustering"
     func: "networkx.square_clustering"
@@ -76,12 +92,12 @@ algorithms:
   #   groups: ["paths", "all_pairs"]
   #   min_rounds: 3
 
-  # - name: "all_pairs_shortest_path_length"
-  #   func: "networkx.all_pairs_shortest_path_length"
-  #   params: {}
-  #   requires_directed: false
-  #   groups: ["paths", "distance"]
-  #   min_rounds: 3
+  - name: "all_pairs_shortest_path_length"
+    func: "networkx.all_pairs_shortest_path_length"
+    params: {}
+    requires_directed: false
+    groups: ["paths", "distance"]
+    min_rounds: 3
 
   # - name: "all_pairs_shortest_path"
   #   func: "networkx.all_pairs_shortest_path"
@@ -150,27 +166,15 @@ datasets:
     source: "networkrepository"
     params: {}
 
-  - name: "patentcite"
-    source: "networkrepository"
-    params: {}
-
-  - name: "citeseer"
-    source: "networkrepository"
-    params: {}
-
-  - name: "twitter"
-    source: "networkrepository"
-    params: {}
-
-  # - name: "erdos_renyi_small"
-  #   source: "generator"
-  #   params:
-  #     generator: "networkx.erdos_renyi_graph"
-  #     n: 1000
-  #     p: 0.01
-  #   metadata:
-  #     directed: false
-  #     weighted: false
+  - name: "erdos_renyi_small"
+    source: "generator"
+    params:
+      generator: "networkx.erdos_renyi_graph"
+      n: 1000
+      p: 0.01
+    metadata:
+      directed: false
+      weighted: false
 
   # - name: "watts_strogatz_medium"
   #   source: "generator"
@@ -213,7 +217,6 @@ validation:
 matrix:
   backend:
     - "networkx"
-    - "parallel"
     - "graphblas"
   num_threads:
     - "1"
@@ -226,5 +229,4 @@ asv_config:
     - "main"
   req:
     - "networkx==3.4.2"
-    - "nx_parallel==0.3"
     - "graphblas_algorithms==2023.10.0"
