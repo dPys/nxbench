@@ -242,7 +242,7 @@ class BenchmarkDB:
         if column not in valid_columns:
             raise ValueError(f"Invalid column name: {column}")
 
-        query = f"SELECT DISTINCT '{column}' FROM benchmarks"  # noqa: S608
+        query = f"SELECT DISTINCT {column} FROM benchmarks"  # noqa: S608
         with self._connection() as conn:
             cursor = conn.execute(query)
             return [row[0] for row in cursor.fetchall()]
