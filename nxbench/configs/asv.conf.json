@@ -4,12 +4,14 @@
     "timeout": 3000,
     "project_url": "https://github.com/dpys/nxbench",
     "dvcs": "git",
+    "branches": [
+        "main"
+    ],
     "repo": "https://github.com/dpys/nxbench",
-    "environment_type": "existing",
+    "environment_type": "virtualenv",
     "show_commit_url": "https://github.com/dpys/nxbench/commit/",
     "matrix": {},
     "benchmark_dir": "nxbench/benchmarks",
-    "results_dir": "results",
     "hash_length": 8,
     "plugins": [
         "asv_runner"

@@ -234,10 +234,10 @@ matrix:
     - "4"
     - "8"
 
-asv_config:
-  repo: "https://github.com/dpys/nxbench.git"
-  branches:
-    - "main"
+env_config:
   req:
     - "networkx==3.4.2"
     - "graphblas_algorithms==2023.10.0"
+  pythons:
+    - "3.10"
+    - "3.11"

@@ -34,7 +34,7 @@ matrix:
   num_threads:
     - "1"
 
-asv_config:
+env_config:
   repo: "https://github.com/dpys/nxbench.git"
   branches:
     - "main"

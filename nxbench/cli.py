@@ -14,6 +14,7 @@ import pandas as pd
 import requests
 
 from nxbench.benchmarks.config import DatasetConfig
+from nxbench.benchmarks.utils import get_benchmark_config
 from nxbench.data.loader import BenchmarkDataManager
 from nxbench.data.repository import NetworkRepository
 from nxbench.log import _config as package_config
@@ -244,7 +245,9 @@ def run_asv_command(
     except FileNotFoundError as e:
         raise click.ClickException(str(e))
 
-    config_data["pythons"] = [str(get_python_executable())]
+    env_data = get_benchmark_config().env_data
+    config_data["pythons"] = env_data["pythons"]
+    config_data["req"] = env_data["req"]
 
     if results_dir:
         config_data["results_dir"] = str(results_dir)
