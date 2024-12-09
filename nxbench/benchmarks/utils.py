@@ -56,31 +56,21 @@ def load_default_config() -> BenchmarkConfig:
             func="networkx.algorithms.link_analysis.pagerank_alg.pagerank",
             params={"alpha": 0.85},
         ),
-        AlgorithmConfig(
-            name="louvain_communities",
-            func="networkx.algorithms.community.louvain.louvain_communities",
-            requires_undirected=True,
-        ),
     ]
     default_datasets = [
         DatasetConfig(name="08blocks", source="networkrepository"),
         DatasetConfig(name="jazz", source="networkrepository"),
         DatasetConfig(name="karate", source="networkrepository"),
-        DatasetConfig(name="patentcite", source="networkrepository"),
-        DatasetConfig(name="IMDB", source="networkrepository"),
-        DatasetConfig(name="citeseer", source="networkrepository"),
         DatasetConfig(name="enron", source="networkrepository"),
-        DatasetConfig(name="twitter", source="networkrepository"),
     ]
 
     default_matrix = {
         "req": {
             "networkx": ["3.4.2"],
-            "nx-parallel": ["0.3"],
-            "python-graphblas": ["2024.2.0"],
+            "graphblas_algorithms": ["2023.10.0"],
         },
         "env_nobuild": {
-            "NUM_THREAD": ["1", "4", "8"],
+            "NUM_THREAD": ["1", "4"],
         },
     }
     return BenchmarkConfig(
@@ -88,7 +78,6 @@ def load_default_config() -> BenchmarkConfig:
         datasets=default_datasets,
         matrix=default_matrix,
         machine_info={},
-        output_dir=Path("../results"),
     )
 
 
