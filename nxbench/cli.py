@@ -11,6 +11,7 @@ from pathlib import Path
 
 import click
 import pandas as pd
+import requests
 
 from nxbench.benchmarks.config import DatasetConfig
 from nxbench.data.loader import BenchmarkDataManager
@@ -29,6 +30,50 @@ def validate_executable(path: str | Path) -> Path:
     if not os.access(executable, os.X_OK):
         raise ValueError(f"Path is not executable: {executable}")
     return executable
+
+
+def get_latest_commit_hash(github_url: str) -> str:
+    """
+    Fetch the latest commit hash from a GitHub repository.
+
+    Parameters
+    ----------
+    github_url : str
+        The URL of the GitHub repository.
+
+    Returns
+    -------
+    str
+        The latest commit hash.
+
+    Raises
+    ------
+    ValueError
+        If the URL is invalid or the API request fails.
+    """
+    if "github.com" not in github_url:
+        raise ValueError("Provided URL is not a valid GitHub URL")
+
+    parts = github_url.strip("/").split("/")
+    if len(parts) < 2:
+        raise ValueError(
+            "GitHub URL must be in the format 'https://github.com/owner/repo'"
+        )
+
+    owner, repo = parts[-2], parts[-1]
+
+    api_url = f"https://api.github.com/repos/{owner}/{repo}/commits"
+
+    try:
+        response = requests.get(api_url, timeout=3)
+        response.raise_for_status()
+        data = response.json()
+        if not data and isinstance(data, list):
+            raise ValueError("No commit data found for the repository")
+    except requests.RequestException:
+        raise ValueError("Error fetching commit data")
+    else:
+        return data[0]["sha"]
 
 
 def safe_run(
@@ -157,7 +202,6 @@ def has_git(project_root):
 
 def run_asv_command(
     args: Sequence[str],
-    use_commit_hash: bool = True,
     results_dir: Path | None = None,
 ) -> subprocess.CompletedProcess:
     """Run ASV command with dynamic asv.conf.json based on DVCS presence."""
@@ -232,16 +276,18 @@ def run_asv_command(
             safe_args = ["--config", str(temp_config_path), *safe_args]
             logger.debug(f"Added --config {temp_config_path} to ASV arguments.")
 
-        if use_commit_hash and _has_git:
-            try:
-                git_hash = get_git_hash(project_root)
-                if git_hash != "unknown":
-                    safe_args.append(f"--set-commit-hash={git_hash}")
-                    logger.debug(f"Set commit hash to: {git_hash}")
-            except subprocess.CalledProcessError:
-                logger.warning(
-                    "Could not determine git commit hash. Proceeding without it."
-                )
+        if _has_git:
+            git_hash = get_git_hash(project_root)
+        else:
+            git_hash = get_latest_commit_hash(config_data["project_url"])
+
+        try:
+            safe_args.append(f"--set-commit-hash={git_hash}")
+            logger.debug(f"Set commit hash to: {git_hash}")
+        except subprocess.CalledProcessError:
+            logger.warning(
+                "Could not determine git commit hash. Proceeding without it."
+            )
 
         old_cwd = Path.cwd()
         if _has_git:
@@ -391,13 +437,8 @@ def benchmark(ctx):
     help="Backends to benchmark. Specify multiple values to run for multiple backends.",
 )
 @click.option("--collection", type=str, default="all", help="Graph collection to use.")
-@click.option(
-    "--use-commit-hash/--no-commit-hash",
-    default=False,
-    help="Whether to use git commit hash for benchmarking.",
-)
 @click.pass_context
-def run_benchmark(ctx, backend: tuple[str], collection: str, use_commit_hash: bool):
+def run_benchmark(ctx, backend: tuple[str], collection: str):
     """Run benchmarks."""
     config = ctx.obj.get("CONFIG")
     output_dir = ctx.obj.get("OUTPUT_DIR", Path.cwd())
@@ -427,7 +468,6 @@ def run_benchmark(ctx, backend: tuple[str], collection: str, use_commit_hash: bo
     try:
         run_asv_command(
             cmd_args,
-            use_commit_hash=use_commit_hash,
             results_dir=results_dir,
         )
     except subprocess.CalledProcessError:
