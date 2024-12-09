@@ -6,10 +6,10 @@
 # NxBench
 
 <p align="center">
-  <img src="doc/_static/nxbench_logo.png" alt="NxBench Logo" width="150"/>
+  <img src="doc/_static/assets/nxbench_logo.png" alt="NxBench Logo" width="150"/>
 </p>
 
-**nxbench** is a comprehensive benchmarking suite designed to facilitate comparative profiling of graph analytic algorithms across NetworkX and compatible backends. Built with an emphasis on extensibility and detailed performance analysis, nxbench aims to enable developers and researchers to optimize their graph analysis workflows efficiently and reproducibly.
+**nxbench** is a comprehensive benchmarking suite designed to facilitate comparative profiling of graph analytic algorithms across NetworkX and compatible backends. Built on top of [Airspeed Velocity (ASV)](https://github.com/airspeed-velocity/asv), nxbench places an emphasis on extensible and granular performance analysis, enabling developers and researchers to optimize their graph analysis workflows efficiently and reproducibly.
 
 ## Key Features
 
@@ -81,6 +81,11 @@ nxbench benchmark export 'results/results.csv' --output-format csv  # convert be
 ```bash
 nxbench viz serve  # visualize results using parallel categories dashboard
 ```
+
+<p align="center">
+  <img src="docs/_static/assets/animation.gif" alt="Parallel Categories Animation" width="1000"/>
+</p>
+
 
 ## Advanced Command Line Interface
 

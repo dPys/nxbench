@@ -61,8 +61,8 @@ html_theme = "furo"
 html_title = "NxBench"
 html_baseurl = "https://networkx.org"
 html_copy_source = False
-html_favicon = "_static/favicon.ico"
-html_logo = "_static/nxbench_logo.png"
+html_favicon = "_static/assets/favicon.ico"
+html_logo = "_static/assets/nxbench_logo.png"
 html_theme_options = {
     # "gtag": "G-XXXXXXXXXX",
     "source_repository": "https://github.com/dpys/nxbench/",
