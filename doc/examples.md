@@ -166,27 +166,26 @@ matrix:
 
 ---
 
-## **5. ASV Configuration**
+## **5. Environment Configuration**
 
 ### **Purpose**
 
-Configures ASV-specific settings, including the repository URL, branches to benchmark, and required dependencies.
+Configures environment settings, such as the python and dependency versions.
 
 ### **Fields**
 
-- **`repo`** *(string, required)*: URL of the Git repository to benchmark.
-- **`branches`** *(list of strings, required)*: Specifies the branches in the repository to benchmark.
+- **`python`** *(list of strings, required)*: List of valid python versions (e.g. "3.10", "3.11")
 - **`req`** *(list of strings, required)*: Lists the Python dependencies required for benchmarking.
 
 ### **Example Entry**
 
 ```yaml
-asv_config:
-  repo: "https://github.com/dpys/nxbench.git"
-  branches:
-    - "main"
+env_config:
   req:
     - "networkx==3.4.2"
     - "nx_parallel==0.3"
     - "graphblas_algorithms==2023.10.0"
+  pythons:
+    - "3.10"
+    - "3.11"
 ```

@@ -32,11 +32,20 @@ def get_benchmark_config() -> BenchmarkConfig:
 
     config_file = os.getenv("NXBENCH_CONFIG_FILE")
     if config_file:
-        if not Path(config_file).exists():
-            raise FileNotFoundError(f"Config file not found: {config_file}")
-        _BENCHMARK_CONFIG = BenchmarkConfig.from_yaml(config_file)
+        config_path = Path(config_file)
+
+        if not config_path.is_absolute():
+            config_path = (Path.cwd() / config_path).resolve()
+
+        if not config_path.exists():
+            raise FileNotFoundError(f"Config file not found: {config_path}")
+
+        logger.debug(f"Resolved config file path: {config_path}")
+
+        _BENCHMARK_CONFIG = BenchmarkConfig.from_yaml(str(config_path))
     else:
         _BENCHMARK_CONFIG = load_default_config()
+
     return _BENCHMARK_CONFIG
 
 
@@ -47,31 +56,21 @@ def load_default_config() -> BenchmarkConfig:
             func="networkx.algorithms.link_analysis.pagerank_alg.pagerank",
             params={"alpha": 0.85},
         ),
-        AlgorithmConfig(
-            name="louvain_communities",
-            func="networkx.algorithms.community.louvain.louvain_communities",
-            requires_undirected=True,
-        ),
     ]
     default_datasets = [
         DatasetConfig(name="08blocks", source="networkrepository"),
         DatasetConfig(name="jazz", source="networkrepository"),
         DatasetConfig(name="karate", source="networkrepository"),
-        DatasetConfig(name="patentcite", source="networkrepository"),
-        DatasetConfig(name="IMDB", source="networkrepository"),
-        DatasetConfig(name="citeseer", source="networkrepository"),
         DatasetConfig(name="enron", source="networkrepository"),
-        DatasetConfig(name="twitter", source="networkrepository"),
     ]
 
     default_matrix = {
         "req": {
             "networkx": ["3.4.2"],
-            "nx-parallel": ["0.3"],
-            "python-graphblas": ["2024.2.0"],
+            "graphblas_algorithms": ["2023.10.0"],
         },
         "env_nobuild": {
-            "NUM_THREAD": ["1", "4", "8"],
+            "NUM_THREAD": ["1", "4"],
         },
     }
     return BenchmarkConfig(
@@ -79,17 +78,16 @@ def load_default_config() -> BenchmarkConfig:
         datasets=default_datasets,
         matrix=default_matrix,
         machine_info={},
-        output_dir=Path("../results"),
     )
 
 
-def is_cugraph_available():
+def is_nx_cugraph_available():
     try:
         import importlib.util
     except ImportError:
         return False
     else:
-        return importlib.util.find_spec("cugraph") is not None
+        return importlib.util.find_spec("nx_cugraph") is not None
 
 
 def is_graphblas_available():
@@ -98,7 +96,7 @@ def is_graphblas_available():
     except ImportError:
         return False
     else:
-        return importlib.util.find_spec("graphblas") is not None
+        return importlib.util.find_spec("graphblas_algorithms") is not None
 
 
 def is_nx_parallel_available():
@@ -119,7 +117,7 @@ def get_python_version() -> str:
 def get_available_backends() -> list[str]:
     backends = ["networkx"]
 
-    if is_cugraph_available():
+    if is_nx_cugraph_available():
         backends.append("cugraph")
 
     if is_graphblas_available():

@@ -6,10 +6,10 @@
 # NxBench
 
 <p align="center">
-  <img src="doc/_static/nxbench_logo.png" alt="NxBench Logo" width="150"/>
+  <img src="doc/_static/assets/nxbench_logo.png" alt="NxBench Logo" width="150"/>
 </p>
 
-**nxbench** is a comprehensive benchmarking suite designed to facilitate comparative profiling of graph analytic algorithms across NetworkX and compatible backends. Built with an emphasis on extensibility and detailed performance analysis, nxbench aims to enable developers and researchers to optimize their graph analysis workflows efficiently and reproducibly.
+**nxbench** is a comprehensive benchmarking suite designed to facilitate comparative profiling of graph analytic algorithms across NetworkX and compatible backends. Built on top of [Airspeed Velocity (ASV)](https://github.com/airspeed-velocity/asv), nxbench places an emphasis on extensible and granular performance analysis, enabling developers and researchers to optimize their graph analysis workflows efficiently and reproducibly.
 
 ## Key Features
 
@@ -31,7 +31,13 @@ PyPi:
 pip install nxbench
 ```
 
-From a local clone, try Docker:
+From a local clone:
+
+```bash
+make install
+```
+
+Docker:
 
 ```bash
 # CPU-only
@@ -73,8 +79,13 @@ nxbench benchmark export 'results/results.csv' --output-format csv  # convert be
 4. View results:
 
 ```bash
-nxbench viz serve  # launch interactive dashboard
+nxbench viz serve  # visualize results using parallel categories dashboard
 ```
+
+<p align="center">
+  <img src="doc/_static/assets/animation.gif" alt="Parallel Categories Animation" width="1000"/>
+</p>
+
 
 ## Advanced Command Line Interface
 
@@ -90,7 +101,7 @@ nxbench --config 'nxbench/configs/example.yaml' -vvv benchmark run  # debug benc
 nxbench benchmark export 'results/benchmarks.sqlite' --output-format sql # export the results into a sql database
 
 # Visualization
-nxbench viz serve  # launch parallel categories dashboard
+nxbench viz serve  # visualize results using parallel categories dashboard
 nxbench viz publish  # generate static asv report
 ```
 

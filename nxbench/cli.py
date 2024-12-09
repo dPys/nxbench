@@ -11,8 +11,10 @@ from pathlib import Path
 
 import click
 import pandas as pd
+import requests
 
 from nxbench.benchmarks.config import DatasetConfig
+from nxbench.benchmarks.utils import get_benchmark_config
 from nxbench.data.loader import BenchmarkDataManager
 from nxbench.data.repository import NetworkRepository
 from nxbench.log import _config as package_config
@@ -29,6 +31,50 @@ def validate_executable(path: str | Path) -> Path:
     if not os.access(executable, os.X_OK):
         raise ValueError(f"Path is not executable: {executable}")
     return executable
+
+
+def get_latest_commit_hash(github_url: str) -> str:
+    """
+    Fetch the latest commit hash from a GitHub repository.
+
+    Parameters
+    ----------
+    github_url : str
+        The URL of the GitHub repository.
+
+    Returns
+    -------
+    str
+        The latest commit hash.
+
+    Raises
+    ------
+    ValueError
+        If the URL is invalid or the API request fails.
+    """
+    if "github.com" not in github_url:
+        raise ValueError("Provided URL is not a valid GitHub URL")
+
+    parts = github_url.strip("/").split("/")
+    if len(parts) < 2:
+        raise ValueError(
+            "GitHub URL must be in the format 'https://github.com/owner/repo'"
+        )
+
+    owner, repo = parts[-2], parts[-1]
+
+    api_url = f"https://api.github.com/repos/{owner}/{repo}/commits"
+
+    try:
+        response = requests.get(api_url, timeout=3)
+        response.raise_for_status()
+        data = response.json()
+        if not data and isinstance(data, list):
+            raise ValueError("No commit data found for the repository")
+    except requests.RequestException:
+        raise ValueError("Error fetching commit data")
+    else:
+        return data[0]["sha"]
 
 
 def safe_run(
@@ -156,7 +202,8 @@ def has_git(project_root):
 
 
 def run_asv_command(
-    args: Sequence[str], check: bool = True, use_commit_hash: bool = True
+    args: Sequence[str],
+    results_dir: Path | None = None,
 ) -> subprocess.CompletedProcess:
     """Run ASV command with dynamic asv.conf.json based on DVCS presence."""
     asv_path = get_asv_executable()
@@ -198,7 +245,21 @@ def run_asv_command(
     except FileNotFoundError as e:
         raise click.ClickException(str(e))
 
-    config_data["pythons"] = [str(get_python_executable())]
+    env_data = get_benchmark_config().env_data
+    config_data["pythons"] = env_data["pythons"]
+    config_data["req"] = env_data["req"]
+
+    if results_dir:
+        config_data["results_dir"] = str(results_dir)
+        logger.debug(f"Set results_dir to: {results_dir}")
+    else:
+        default_results_dir = Path.cwd() / "results"
+        config_data["results_dir"] = str(default_results_dir.resolve())
+        logger.debug(
+            "Set results_dir to default 'results' in current working directory."
+        )
+
+    config_data["html_dir"] = str(Path(config_data["results_dir"]).parent / "html")
 
     with tempfile.TemporaryDirectory() as tmpdir:
         temp_config_path = Path(tmpdir) / "asv.conf.json"
@@ -218,16 +279,18 @@ def run_asv_command(
             safe_args = ["--config", str(temp_config_path), *safe_args]
             logger.debug(f"Added --config {temp_config_path} to ASV arguments.")
 
-        if use_commit_hash and _has_git:
-            try:
-                git_hash = get_git_hash(project_root)
-                if git_hash != "unknown":
-                    safe_args.append(f"--set-commit-hash={git_hash}")
-                    logger.debug(f"Set commit hash to: {git_hash}")
-            except subprocess.CalledProcessError:
-                logger.warning(
-                    "Could not determine git commit hash. Proceeding without it."
-                )
+        if _has_git:
+            git_hash = get_git_hash(project_root)
+        else:
+            git_hash = get_latest_commit_hash(config_data["project_url"])
+
+        try:
+            safe_args.append(f"--set-commit-hash={git_hash}")
+            logger.debug(f"Set commit hash to: {git_hash}")
+        except subprocess.CalledProcessError:
+            logger.warning(
+                "Could not determine git commit hash. Proceeding without it."
+            )
 
         old_cwd = Path.cwd()
         if _has_git:
@@ -237,7 +300,7 @@ def run_asv_command(
         try:
             asv_command = [str(asv_path), *safe_args]
             logger.debug(f"Executing ASV command: {' '.join(map(str, asv_command))}")
-            return safe_run(asv_command)
+            completed_process = safe_run(asv_command)
         except subprocess.CalledProcessError:
             logger.exception("ASV command failed.")
             raise click.ClickException("ASV command failed.")
@@ -248,6 +311,7 @@ def run_asv_command(
             if _has_git:
                 os.chdir(old_cwd)
                 logger.debug(f"Restored working directory to: {old_cwd}")
+        return completed_process
 
 
 @click.group()
@@ -257,9 +321,17 @@ def run_asv_command(
     type=click.Path(exists=True, dir_okay=False, path_type=Path),
     help="Path to config file.",
 )
+@click.option(
+    "--output-dir",
+    type=click.Path(file_okay=False, writable=True, path_type=Path),
+    default=Path.cwd(),
+    show_default=True,
+    help="Directory to store benchmark results.",
+)
 @click.pass_context
-def cli(ctx, verbose: int, config: Path | None):
+def cli(ctx, verbose: int, config: Path | None, output_dir: Path):
     """NetworkX Benchmarking Suite CLI."""
+    # Set verbosity level
     if verbose >= 2:
         verbosity_level = 2
     elif verbose == 1:
@@ -273,11 +345,24 @@ def cli(ctx, verbose: int, config: Path | None):
     logging.basicConfig(level=log_level)
 
     if config:
-        os.environ["NXBENCH_CONFIG_FILE"] = str(config)
-        logger.info(f"Using config file: {config}")
+        absolute_config = config.resolve()
+        os.environ["NXBENCH_CONFIG_FILE"] = str(absolute_config)
+        logger.info(f"Using config file: {absolute_config}")
+
+    try:
+        results_dir = output_dir / "results"
+        results_dir.mkdir(parents=True, exist_ok=True)
+        logger.debug(f"Results directory is set to: {results_dir.resolve()}")
+    except Exception:
+        logger.exception(f"Failed to create results directory '{results_dir}'")
+        raise click.ClickException(
+            f"Failed to create results directory '{results_dir}'"
+        )
 
     ctx.ensure_object(dict)
     ctx.obj["CONFIG"] = config
+    ctx.obj["OUTPUT_DIR"] = output_dir.resolve()
+    ctx.obj["RESULTS_DIR"] = results_dir.resolve()
 
 
 @cli.group()
@@ -355,19 +440,17 @@ def benchmark(ctx):
     help="Backends to benchmark. Specify multiple values to run for multiple backends.",
 )
 @click.option("--collection", type=str, default="all", help="Graph collection to use.")
-@click.option(
-    "--use-commit-hash/--no-commit-hash",
-    default=False,
-    help="Whether to use git commit hash for benchmarking.",
-)
 @click.pass_context
-def run_benchmark(ctx, backend: tuple[str], collection: str, use_commit_hash: bool):
+def run_benchmark(ctx, backend: tuple[str], collection: str):
     """Run benchmarks."""
     config = ctx.obj.get("CONFIG")
+    output_dir = ctx.obj.get("OUTPUT_DIR", Path.cwd())
+    results_dir = ctx.obj.get("RESULTS_DIR", output_dir / "results")
+
     if config:
         logger.debug(f"Config file used for benchmark run: {config}")
 
-    cmd_args = ["run", "--quick"]
+    cmd_args = ["run"]
 
     if package_config.verbosity_level >= 1:
         cmd_args.append("--verbose")
@@ -386,7 +469,10 @@ def run_benchmark(ctx, backend: tuple[str], collection: str, use_commit_hash: bo
     cmd_args.append("--python=same")
 
     try:
-        run_asv_command(cmd_args, use_commit_hash=use_commit_hash)
+        run_asv_command(
+            cmd_args,
+            results_dir=results_dir,
+        )
     except subprocess.CalledProcessError:
         logger.exception("Benchmark run failed")
         raise click.ClickException("Benchmark run failed")
@@ -404,10 +490,13 @@ def run_benchmark(ctx, backend: tuple[str], collection: str, use_commit_hash: bo
 def export(ctx, result_file: Path, output_format: str):
     """Export benchmark results."""
     config = ctx.obj.get("CONFIG")
+    output_dir = ctx.obj.get("OUTPUT_DIR", Path.cwd())
+    results_dir = ctx.obj.get("RESULTS_DIR", output_dir / "results")
+
     if config:
         logger.debug(f"Using config file for export: {config}")
 
-    dashboard = BenchmarkDashboard(results_dir="results")
+    dashboard = BenchmarkDashboard(results_dir=str(results_dir))
 
     try:
         if output_format == "sql":
@@ -457,7 +546,7 @@ def compare(ctx, baseline: str, comparison: str, threshold: float):
         "-f",
         str(threshold),
     ]
-    run_asv_command(cmd_args, check=False)
+    run_asv_command(cmd_args)
 
 
 @cli.group()
@@ -486,6 +575,9 @@ def serve(ctx, port: int, debug: bool):
 def publish(ctx):
     """Generate static benchmark report."""
     config = ctx.obj.get("CONFIG")
+    output_dir = ctx.obj.get("OUTPUT_DIR", Path.cwd())
+    results_dir = ctx.obj.get("RESULTS_DIR", output_dir / "results")
+
     if config:
         logger.debug(f"Config file used for viz publish: {config}")
 
@@ -504,14 +596,14 @@ def publish(ctx):
         raise click.ClickException("Script path must be within project directory")
 
     try:
-        safe_run([python_path, process_script, "--results_dir", "results"])
+        safe_run([python_path, str(process_script), "--results_dir", str(results_dir)])
         logger.info("Successfully processed results.")
     except (subprocess.SubprocessError, ValueError) as e:
         logger.exception("Failed to process results")
         raise click.ClickException(str(e))
 
-    run_asv_command(["publish", "--verbose"], check=False)
-    dashboard = BenchmarkDashboard()
+    run_asv_command(["publish", "--verbose"], results_dir=results_dir)
+    dashboard = BenchmarkDashboard(results_dir=str(results_dir))
     dashboard.generate_static_report()
 
 

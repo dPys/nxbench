@@ -94,7 +94,8 @@ class BenchmarkConfig:
     datasets: list[DatasetConfig]
     matrix: dict[str, Any]
     machine_info: dict[str, Any] = field(default_factory=dict)
-    output_dir: Path = field(default_factory=lambda: Path("../results"))
+    output_dir: Path = field(default_factory=lambda: Path("~/results"))
+    env_data: dict[str, Any] = field(default_factory=dict)
 
     @classmethod
     def from_yaml(cls, path: str | Path) -> "BenchmarkConfig":
@@ -134,6 +135,8 @@ class BenchmarkConfig:
             logger.error(f"'matrix' should be a dict in the config file: {path}")
             matrix_data = {}
 
+        env_data = data.get("env_config") or {}
+
         algorithms = [AlgorithmConfig(**algo_data) for algo_data in algorithms_data]
 
         datasets = [DatasetConfig(**ds_data) for ds_data in datasets_data]
@@ -143,7 +146,8 @@ class BenchmarkConfig:
             datasets=datasets,
             matrix=matrix_data,
             machine_info=data.get("machine_info", {}),
-            output_dir=Path(data.get("output_dir", "../results")),
+            output_dir=Path(data.get("output_dir", "~/results")),
+            env_data=env_data,
         )
 
     def to_yaml(self, path: str | Path) -> None:
