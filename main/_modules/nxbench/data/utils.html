@@ -271,6 +271,7 @@
           <h1>Source code for nxbench.data.utils</h1><div class="highlight"><pre>
 <span></span><span class="kn">import</span> <span class="nn">re</span>
 <span class="kn">import</span> <span class="nn">zipfile</span>
+<span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
 
 <span class="kn">import</span> <span class="nn">networkx</span> <span class="k">as</span> <span class="nn">nx</span>
 
@@ -333,6 +334,9 @@
 <div class="viewcode-block" id="safe_extract">
 <a class="viewcode-back" href="../../../api/nxbench.data.html#nxbench.data.utils.safe_extract">[docs]</a>
 <span class="k">def</span> <span class="nf">safe_extract</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="n">extracted_path</span><span class="p">):</span>
+    <span class="n">extracted_path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">extracted_path</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">extracted_path</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+        <span class="n">extracted_path</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="k">with</span> <span class="n">zipfile</span><span class="o">.</span><span class="n">ZipFile</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span> <span class="k">as</span> <span class="n">zf</span><span class="p">:</span>
         <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">zf</span><span class="o">.</span><span class="n">namelist</span><span class="p">():</span>
             <span class="k">if</span> <span class="n">name</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">)</span> <span class="ow">or</span> <span class="s2">&quot;..&quot;</span> <span class="ow">in</span> <span class="n">name</span><span class="p">:</span>
