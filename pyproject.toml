@@ -143,7 +143,7 @@ filterwarnings = [
     # "error",
 ]
 python_files = [
-    "nxbench/benchmarks/tests/test_*.py", "nxbench/data/tests/test_*.py", "nxbench/validation/tests/test_*.py", "nxbench/viz/tests/test_*.py",
+    "nxbench/benchmarks/tests/test_*.py", "nxbench/data/tests/test_*.py", "nxbench/validation/tests/test_*.py", "nxbench/viz/tests/test_*.py", "nxbench/tests/test_*.py",
 ]
 python_functions = [
     "test_*",
