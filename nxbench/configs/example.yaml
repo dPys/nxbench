@@ -55,6 +55,7 @@ algorithms:
     requires_directed: false
     groups: ["clustering", "graph_structure"]
     min_rounds: 3
+    validate_result: "nxbench.validation.validate_scalar_result"
 
   - name: "square_clustering"
     func: "networkx.square_clustering"
@@ -62,6 +63,15 @@ algorithms:
     requires_directed: false
     groups: ["clustering", "graph_structure"]
     min_rounds: 3
+    validate_result: "nxbench.validation.validate_node_scores"
+
+  - name: "transitivity"
+    func: "networkx.transitivity"
+    params: {}
+    requires_directed: false
+    groups: ["clustering", "graph_structure"]
+    min_rounds: 3
+    validate_result: "nxbench.validation.validate_scalar_result"
 
   # - name: "all_pairs_node_connectivity"
   #   func: "networkx.algorithms.connectivity.connectivity.all_pairs_node_connectivity"
@@ -220,6 +230,7 @@ matrix:
     - "graphblas"
   num_threads:
     - "1"
+    - "2"
     - "4"
     - "8"
 

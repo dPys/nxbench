@@ -79,7 +79,7 @@ nxbench benchmark export 'results/results.csv' --output-format csv  # convert be
 4. View results:
 
 ```bash
-nxbench viz serve  # launch interactive dashboard
+nxbench viz serve  # visualize results using parallel categories dashboard
 ```
 
 ## Advanced Command Line Interface
@@ -96,7 +96,7 @@ nxbench --config 'nxbench/configs/example.yaml' -vvv benchmark run  # debug benc
 nxbench benchmark export 'results/benchmarks.sqlite' --output-format sql # export the results into a sql database
 
 # Visualization
-nxbench viz serve  # launch parallel categories dashboard
+nxbench viz serve  # visualize results using parallel categories dashboard
 nxbench viz publish  # generate static asv report
 ```
 

@@ -92,13 +92,13 @@ def load_default_config() -> BenchmarkConfig:
     )
 
 
-def is_cugraph_available():
+def is_nx_cugraph_available():
     try:
         import importlib.util
     except ImportError:
         return False
     else:
-        return importlib.util.find_spec("cugraph") is not None
+        return importlib.util.find_spec("nx_cugraph") is not None
 
 
 def is_graphblas_available():
@@ -107,7 +107,7 @@ def is_graphblas_available():
     except ImportError:
         return False
     else:
-        return importlib.util.find_spec("graphblas") is not None
+        return importlib.util.find_spec("graphblas_algorithms") is not None
 
 
 def is_nx_parallel_available():
@@ -128,7 +128,7 @@ def get_python_version() -> str:
 def get_available_backends() -> list[str]:
     backends = ["networkx"]
 
-    if is_cugraph_available():
+    if is_nx_cugraph_available():
         backends.append("cugraph")
 
     if is_graphblas_available():

@@ -156,7 +156,9 @@ def has_git(project_root):
 
 
 def run_asv_command(
-    args: Sequence[str], check: bool = True, use_commit_hash: bool = True
+    args: Sequence[str],
+    use_commit_hash: bool = True,
+    results_dir: Path | None = None,
 ) -> subprocess.CompletedProcess:
     """Run ASV command with dynamic asv.conf.json based on DVCS presence."""
     asv_path = get_asv_executable()
@@ -200,6 +202,18 @@ def run_asv_command(
 
     config_data["pythons"] = [str(get_python_executable())]
 
+    if results_dir:
+        config_data["results_dir"] = str(results_dir)
+        logger.debug(f"Set results_dir to: {results_dir}")
+    else:
+        default_results_dir = Path.cwd() / "results"
+        config_data["results_dir"] = str(default_results_dir.resolve())
+        logger.debug(
+            "Set results_dir to default 'results' in current working directory."
+        )
+
+    config_data["html_dir"] = str(Path(config_data["results_dir"]).parent / "html")
+
     with tempfile.TemporaryDirectory() as tmpdir:
         temp_config_path = Path(tmpdir) / "asv.conf.json"
         with temp_config_path.open("w") as f:
@@ -237,7 +251,7 @@ def run_asv_command(
         try:
             asv_command = [str(asv_path), *safe_args]
             logger.debug(f"Executing ASV command: {' '.join(map(str, asv_command))}")
-            return safe_run(asv_command)
+            completed_process = safe_run(asv_command)
         except subprocess.CalledProcessError:
             logger.exception("ASV command failed.")
             raise click.ClickException("ASV command failed.")
@@ -248,6 +262,7 @@ def run_asv_command(
             if _has_git:
                 os.chdir(old_cwd)
                 logger.debug(f"Restored working directory to: {old_cwd}")
+        return completed_process
 
 
 @click.group()
@@ -257,9 +272,17 @@ def run_asv_command(
     type=click.Path(exists=True, dir_okay=False, path_type=Path),
     help="Path to config file.",
 )
+@click.option(
+    "--output-dir",
+    type=click.Path(file_okay=False, writable=True, path_type=Path),
+    default=Path.cwd(),
+    show_default=True,
+    help="Directory to store benchmark results.",
+)
 @click.pass_context
-def cli(ctx, verbose: int, config: Path | None):
+def cli(ctx, verbose: int, config: Path | None, output_dir: Path):
     """NetworkX Benchmarking Suite CLI."""
+    # Set verbosity level
     if verbose >= 2:
         verbosity_level = 2
     elif verbose == 1:
@@ -277,8 +300,20 @@ def cli(ctx, verbose: int, config: Path | None):
         os.environ["NXBENCH_CONFIG_FILE"] = str(absolute_config)
         logger.info(f"Using config file: {absolute_config}")
 
+    try:
+        results_dir = output_dir / "results"
+        results_dir.mkdir(parents=True, exist_ok=True)
+        logger.debug(f"Results directory is set to: {results_dir.resolve()}")
+    except Exception:
+        logger.exception(f"Failed to create results directory '{results_dir}'")
+        raise click.ClickException(
+            f"Failed to create results directory '{results_dir}'"
+        )
+
     ctx.ensure_object(dict)
     ctx.obj["CONFIG"] = config
+    ctx.obj["OUTPUT_DIR"] = output_dir.resolve()
+    ctx.obj["RESULTS_DIR"] = results_dir.resolve()
 
 
 @cli.group()
@@ -365,10 +400,13 @@ def benchmark(ctx):
 def run_benchmark(ctx, backend: tuple[str], collection: str, use_commit_hash: bool):
     """Run benchmarks."""
     config = ctx.obj.get("CONFIG")
+    output_dir = ctx.obj.get("OUTPUT_DIR", Path.cwd())
+    results_dir = ctx.obj.get("RESULTS_DIR", output_dir / "results")
+
     if config:
         logger.debug(f"Config file used for benchmark run: {config}")
 
-    cmd_args = ["run", "--quick"]
+    cmd_args = ["run"]
 
     if package_config.verbosity_level >= 1:
         cmd_args.append("--verbose")
@@ -387,7 +425,11 @@ def run_benchmark(ctx, backend: tuple[str], collection: str, use_commit_hash: bo
     cmd_args.append("--python=same")
 
     try:
-        run_asv_command(cmd_args, use_commit_hash=use_commit_hash)
+        run_asv_command(
+            cmd_args,
+            use_commit_hash=use_commit_hash,
+            results_dir=results_dir,
+        )
     except subprocess.CalledProcessError:
         logger.exception("Benchmark run failed")
         raise click.ClickException("Benchmark run failed")
@@ -405,10 +447,13 @@ def run_benchmark(ctx, backend: tuple[str], collection: str, use_commit_hash: bo
 def export(ctx, result_file: Path, output_format: str):
     """Export benchmark results."""
     config = ctx.obj.get("CONFIG")
+    output_dir = ctx.obj.get("OUTPUT_DIR", Path.cwd())
+    results_dir = ctx.obj.get("RESULTS_DIR", output_dir / "results")
+
     if config:
         logger.debug(f"Using config file for export: {config}")
 
-    dashboard = BenchmarkDashboard(results_dir="results")
+    dashboard = BenchmarkDashboard(results_dir=str(results_dir))
 
     try:
         if output_format == "sql":
@@ -458,7 +503,7 @@ def compare(ctx, baseline: str, comparison: str, threshold: float):
         "-f",
         str(threshold),
     ]
-    run_asv_command(cmd_args, check=False)
+    run_asv_command(cmd_args)
 
 
 @cli.group()
@@ -487,6 +532,9 @@ def serve(ctx, port: int, debug: bool):
 def publish(ctx):
     """Generate static benchmark report."""
     config = ctx.obj.get("CONFIG")
+    output_dir = ctx.obj.get("OUTPUT_DIR", Path.cwd())
+    results_dir = ctx.obj.get("RESULTS_DIR", output_dir / "results")
+
     if config:
         logger.debug(f"Config file used for viz publish: {config}")
 
@@ -505,14 +553,14 @@ def publish(ctx):
         raise click.ClickException("Script path must be within project directory")
 
     try:
-        safe_run([python_path, process_script, "--results_dir", "results"])
+        safe_run([python_path, str(process_script), "--results_dir", str(results_dir)])
         logger.info("Successfully processed results.")
     except (subprocess.SubprocessError, ValueError) as e:
         logger.exception("Failed to process results")
         raise click.ClickException(str(e))
 
-    run_asv_command(["publish", "--verbose"], check=False)
-    dashboard = BenchmarkDashboard()
+    run_asv_command(["publish", "--verbose"], results_dir=results_dir)
+    dashboard = BenchmarkDashboard(results_dir=str(results_dir))
     dashboard.generate_static_report()
 
 

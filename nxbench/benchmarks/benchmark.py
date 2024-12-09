@@ -15,6 +15,9 @@ from nxbench.benchmarks.config import AlgorithmConfig
 from nxbench.benchmarks.utils import (
     get_available_backends,
     get_benchmark_config,
+    is_graphblas_available,
+    is_nx_cugraph_available,
+    is_nx_parallel_available,
     memory_tracker,
 )
 from nxbench.data.loader import BenchmarkDataManager
@@ -172,7 +175,8 @@ class GraphBenchmark:
 
         if backend == "networkx":
             return original_graph
-        if "parallel" in backend:
+
+        if "parallel" in backend and is_nx_parallel_available():
             try:
                 nxp = import_module("nx_parallel")
             except ImportError:
@@ -180,9 +184,9 @@ class GraphBenchmark:
                 return None
             return nxp.ParallelGraph(original_graph)
 
-        if "cugraph" in backend:
+        if "cugraph" in backend and is_nx_cugraph_available():
             try:
-                cugraph = import_module("cugraph")
+                cugraph = import_module("nx_cugraph")
             except ImportError:
                 logger.exception("cugraph backend not available")
                 return None
@@ -193,7 +197,7 @@ class GraphBenchmark:
                 logger.exception("Error converting graph to cugraph format")
                 return None
 
-        if "graphblas" in backend:
+        if "graphblas" in backend and is_graphblas_available():
             try:
                 ga = import_module("graphblas_algorithms")
             except ImportError:

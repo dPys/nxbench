@@ -7,8 +7,8 @@ from nxbench.benchmarks.utils import (
     get_available_backends,
     get_benchmark_config,
     get_python_version,
-    is_cugraph_available,
     is_graphblas_available,
+    is_nx_cugraph_available,
     is_nx_parallel_available,
 )
 
@@ -28,13 +28,13 @@ def test_backend_availability():
     with patch("importlib.util.find_spec") as mock_find_spec:
         # test when backends are available
         mock_find_spec.return_value = True
-        assert is_cugraph_available() is True
+        assert is_nx_cugraph_available() is True
         assert is_graphblas_available() is True
         assert is_nx_parallel_available() is True
 
         # test when backends are not available
         mock_find_spec.return_value = None
-        assert is_cugraph_available() is False
+        assert is_nx_cugraph_available() is False
         assert is_graphblas_available() is False
         assert is_nx_parallel_available() is False
 
@@ -42,7 +42,7 @@ def test_backend_availability():
 def test_get_available_backends():
     """Test getting list of available backends."""
     with (
-        patch("nxbench.benchmarks.utils.is_cugraph_available") as mock_cugraph,
+        patch("nxbench.benchmarks.utils.is_nx_cugraph_available") as mock_cugraph,
         patch("nxbench.benchmarks.utils.is_graphblas_available") as mock_graphblas,
         patch("nxbench.benchmarks.utils.is_nx_parallel_available") as mock_parallel,
     ):

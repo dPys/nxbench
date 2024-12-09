@@ -1,0 +1,43 @@
+algorithms:
+  - name: "pagerank"
+    func: "networkx.pagerank"
+    params:
+      alpha: 0.9
+      tol: 1.0e-6
+    requires_directed: false
+    groups: ["centrality", "random_walk"]
+    min_rounds: 10
+    warmup: true
+    warmup_iterations: 50
+
+datasets:
+  - name: "erdos_renyi_small"
+    source: "generator"
+    params:
+      generator: "networkx.erdos_renyi_graph"
+      n: 1000
+      p: 0.01
+    metadata:
+      directed: false
+      weighted: false
+
+validation:
+  skip_slow: false
+  validate_all: true
+  error_on_fail: true
+  report_memory: true
+
+matrix:
+  backend:
+    - "networkx"
+    - "graphblas"
+  num_threads:
+    - "1"
+
+asv_config:
+  repo: "https://github.com/dpys/nxbench.git"
+  branches:
+    - "main"
+  req:
+    - "networkx==3.4.2"
+    - "graphblas_algorithms==2023.10.0"
