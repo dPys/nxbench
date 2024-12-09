@@ -1,5 +1,6 @@
 import re
 import zipfile
+from pathlib import Path
 
 import networkx as nx
 
@@ -51,6 +52,9 @@ def lcc(G: nx.Graph) -> nx.Graph:
 
 
 def safe_extract(filepath, extracted_path):
+    extracted_path = Path(extracted_path)
+    if not extracted_path.exists():
+        extracted_path.mkdir(parents=True)
     with zipfile.ZipFile(filepath) as zf:
         for name in zf.namelist():
             if name.startswith("/") or ".." in name:

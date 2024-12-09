@@ -218,20 +218,33 @@ class BenchmarkDB:
             return [dict(zip(columns, row)) for row in cursor.fetchall()]
 
     def get_unique_values(self, column: str) -> list[str]:
-        """Get unique values for a given column.
+        """Get unique values for a given column."""
+        valid_columns = {
+            "id",
+            "timestamp",
+            "algorithm",
+            "backend",
+            "dataset",
+            "timing",
+            "num_nodes",
+            "num_edges",
+            "directed",
+            "weighted",
+            "parameters",
+            "error",
+            "memory_usage",
+            "git_commit",
+            "machine_info",
+            "python_version",
+            "package_versions",
+        }
 
-        Parameters
-        ----------
-        column : str
-            Column name to get unique values for
+        if column not in valid_columns:
+            raise ValueError(f"Invalid column name: {column}")
 
-        Returns
-        -------
-        list
-            Unique values in column
-        """
+        query = f"SELECT DISTINCT {column} FROM benchmarks"  # noqa: S608
         with self._connection() as conn:
-            cursor = conn.execute("SELECT DISTINCT ? FROM benchmarks", (column,))
+            cursor = conn.execute(query)
             return [row[0] for row in cursor.fetchall()]
 
     def delete_results(

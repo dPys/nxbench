@@ -99,18 +99,7 @@ def setup_logger_from_config(logging_config: LoggingConfig) -> None:
 
 
 def update_logger(name: str, action: str, value: Any = None) -> None:
-    """Update a specific logger based on action.
-
-    Parameters
-    ----------
-    name : str
-        The name of the logger to update.
-    action : str
-        The action to perform: 'add_logger', 'update_logger', 'remove_logger',
-        'verbosity_level'.
-    value : Any, optional
-        Additional value needed for certain actions (e.g., verbosity level).
-    """
+    """Update a specific logger based on action."""
     if action in ("add_logger", "update_logger"):
         logger_cfg = next(
             (
@@ -124,14 +113,16 @@ def update_logger(name: str, action: str, value: Any = None) -> None:
             setup_logger(logger_cfg)
     elif action == "remove_logger":
         logger = logging.getLogger(name)
-        logger.handlers = []
+        for handler in logger.handlers[:]:
+            logger.removeHandler(handler)
     elif action == "verbosity_level":
         verbosity_level = value  # value is expected to be an integer (0, 1, 2)
         logger_name = "nxbench"
         logger = logging.getLogger(logger_name)
 
         if verbosity_level == 0:
-            logger.handlers = []
+            for handler in logger.handlers[:]:
+                logger.removeHandler(handler)
             logger.disabled = True
         else:
             logger.disabled = False
@@ -167,7 +158,7 @@ def on_config_change(name: str, value: Any) -> None:
     if name == "verbosity_level":
         update_logger("nxbench", "verbosity_level", value)
     elif name in ("add_logger", "update_logger", "remove_logger"):
-        update_logger(name, name, value)
+        update_logger(value, name, None)
     else:
         pass
 
