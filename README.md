@@ -83,7 +83,7 @@ nxbench viz serve  # visualize results using parallel categories dashboard
 ```
 
 <p align="center">
-  <img src="docs/_static/assets/animation.gif" alt="Parallel Categories Animation" width="1000"/>
+  <img src="doc/_static/assets/animation.gif" alt="Parallel Categories Animation" width="1000"/>
 </p>
 
 
