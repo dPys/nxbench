@@ -1,3 +1,4 @@
+import tempfile
 import warnings
 import zipfile
 from pathlib import Path
@@ -5,9 +6,11 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import aiohttp
 import networkx as nx
+import pandas as pd
 import pytest
 
 from nxbench.benchmarks.config import DatasetConfig
+from nxbench.data.loader import BenchmarkDataManager
 
 warnings.filterwarnings("ignore")
 
@@ -593,3 +596,398 @@ async def test_find_graph_file_deeply_nested(data_manager, tmp_path):
     assert (
         found_file == graph_file
     ), "The graph file should be discovered in nested directories."
+
+
+def test_load_network_sync(data_manager):
+    """Test the synchronous load_network_sync method."""
+    with patch.object(
+        data_manager,
+        "load_network",
+        return_value=(nx.Graph(), {"directed": False, "weighted": False}),
+    ) as mock_load_network:
+        config = DatasetConfig(
+            name="sync_test_graph",
+            source="generator",
+            params={"generator": "networkx.empty_graph"},
+            metadata={"directed": False, "weighted": False},
+        )
+        graph, metadata = data_manager.load_network_sync(config)
+
+        mock_load_network.assert_called_once_with(config)
+        assert isinstance(graph, nx.Graph), "Graph should be an instance of nx.Graph"
+        assert metadata["directed"] is False, "Metadata 'directed' should be False"
+        assert metadata["weighted"] is False, "Metadata 'weighted' should be False"
+
+
+@pytest.mark.asyncio
+async def test_generate_graph_exception(data_manager):
+    """Test that exceptions during graph generation are logged and raised."""
+    config = DatasetConfig(
+        name="exception_graph",
+        source="generator",
+        params={"generator": "networkx.invalid_generator", "n": 100, "p": 0.1},
+        metadata={"directed": False, "weighted": False},
+    )
+
+    with patch(
+        "nxbench.data.loader.generate_graph", side_effect=Exception("Generator failed")
+    ) as mock_generate_graph:
+        with pytest.raises(Exception, match="Generator failed"):
+            await data_manager.load_network(config)
+
+        mock_generate_graph.assert_called_once_with(
+            "networkx.invalid_generator", {"n": 100, "p": 0.1}, False
+        )
+
+
+def test_generate_graph_missing_generator_name(data_manager):
+    """Test that a ValueError is raised when generator_name is missing."""
+    config = DatasetConfig(
+        name="missing_generator",
+        source="generator",
+        params={},
+        metadata={"directed": False, "weighted": False},
+    )
+
+    with pytest.raises(ValueError, match="Generator name must be specified in params."):
+        data_manager._generate_graph(config)
+
+
+@pytest.mark.asyncio
+async def test_load_local_graph_success(data_manager, create_edge_file, tmp_path):
+    """Test loading a local graph successfully."""
+    local_path = tmp_path / "local_test.edges"
+    edge_content = """A B 1.0
+    B C 2.0
+    C A 3.0
+    """
+    local_path.write_text(edge_content)
+
+    data_manager._metadata_df = pd.concat(
+        [
+            data_manager._metadata_df,
+            pd.DataFrame([{"name": "local_test", "directed": False, "weighted": True}]),
+        ],
+        ignore_index=True,
+    )
+
+    config = DatasetConfig(
+        name="local_test",
+        source="local",
+        params={"path": str(local_path)},
+        metadata={"directed": False, "weighted": True},
+    )
+
+    graph, metadata = data_manager._load_local_graph(config)
+
+    assert isinstance(graph, nx.Graph), "Graph should be an instance of nx.Graph"
+    assert graph.number_of_nodes() == 3, "Graph should have 3 nodes"
+    assert graph.number_of_edges() == 3, "Graph should have 3 edges"
+    for u, v, data in graph.edges(data=True):
+        assert "weight" in data, f"Edge ({u}, {v}) should have a 'weight'"
+        assert isinstance(data["weight"], float), "Weight should be a float"
+
+
+def test_load_local_graph_file_not_found(data_manager):
+    """Test that FileNotFoundError is raised when local graph file is missing."""
+    config = DatasetConfig(
+        name="missing_local_graph",
+        source="local",
+        params={"path": "nonexistent_path.edges"},
+        metadata={"directed": False, "weighted": False},
+    )
+
+    with pytest.raises(
+        FileNotFoundError, match="Network file not found in any location"
+    ):
+        data_manager._load_local_graph(config)
+
+
+def test_find_graph_file_supported(data_manager, tmp_path):
+    """Test that _find_graph_file finds a supported graph file."""
+    supported_file = tmp_path / "supported_test.graphml"
+    supported_file.touch()
+
+    found_file = data_manager._find_graph_file(tmp_path)
+
+    assert found_file == supported_file, "Should find the supported graph file."
+
+
+def test_find_graph_file_no_supported(data_manager, tmp_path):
+    """Test that _find_graph_file returns None when no supported graph files are
+    present.
+    """
+    unrelated_file = tmp_path / "unrelated.txt"
+    unrelated_file.touch()
+
+    found_file = data_manager._find_graph_file(tmp_path)
+
+    assert (
+        found_file is None
+    ), "Should return None when no supported graph file is found."
+
+
+@patch("aiohttp.ClientSession.get")
+@pytest.mark.asyncio
+async def test_download_file_failure(mock_get, data_manager):
+    """Test that a ConnectionError is raised when download fails with non-200 status."""
+    mock_response = MagicMock()
+    mock_response.status = 404
+    mock_get.return_value.__aenter__.return_value = mock_response
+
+    url = "http://example.com/failing_download.zip"
+    dest = data_manager.data_dir / "failing_download.zip"
+
+    with pytest.raises(ConnectionError, match="Failed to download file from"):
+        await data_manager._download_file(url, dest)
+
+    mock_get.assert_called_once_with(url)
+
+
+@patch("zipfile.ZipFile.extractall")
+@patch("zipfile.ZipFile")
+@pytest.mark.asyncio
+async def test_download_and_extract_network_no_graph_file(
+    mock_zipfile_class, mock_extractall, data_manager, create_edge_file, tmp_path
+):
+    """Test that FileNotFoundError is raised when no graph file is found after
+    extraction.
+    """
+    mock_zip = MagicMock()
+    mock_zipfile_class.return_value.__enter__.return_value = mock_zip
+    mock_zip.extractall = MagicMock()
+
+    with patch.object(data_manager, "_find_graph_file", return_value=None):
+        with patch.object(data_manager, "_download_file", return_value=None):
+            with pytest.raises(FileNotFoundError, match=r"No such file or directory"):
+                await data_manager._download_and_extract_network(
+                    "no_graph", "http://example.com/no_graph.zip"
+                )
+
+
+@patch("zipfile.ZipFile.extractall")
+@patch("zipfile.ZipFile")
+@patch("pathlib.Path.rename", side_effect=Exception("Rename failed"))
+@pytest.mark.asyncio
+async def test_download_and_extract_network_rename_failure(
+    mock_rename, mock_zipfile_class, mock_extractall, data_manager, tmp_path
+):
+    """Test that an exception is raised when renaming the extracted graph file fails."""
+    mock_zip = MagicMock()
+    mock_zipfile_class.return_value.__enter__.return_value = mock_zip
+    mock_zip.extractall = MagicMock()
+
+    extracted_graph_file = tmp_path / "test.edges"
+
+    with patch.object(
+        data_manager, "_find_graph_file", return_value=extracted_graph_file
+    ):
+        with patch.object(data_manager, "_download_file", return_value=None):
+            with pytest.raises(Exception, match="Rename failed"):
+                await data_manager._download_and_extract_network(
+                    "rename_failure", "http://example.com/rename_failure.zip"
+                )
+
+            mock_rename.assert_called_once_with(
+                data_manager.data_dir / extracted_graph_file.name
+            )
+
+    mock_zipfile_class.assert_called_once_with(
+        data_manager.data_dir / "rename_failure.zip", "r"
+    )
+    mock_zip.extractall.assert_called_once_with(
+        data_manager.data_dir / "rename_failure_extracted"
+    )
+
+
+@patch(
+    "nxbench.data.loader.BenchmarkDataManager._download_file", new_callable=AsyncMock
+)
+@patch("nxbench.data.loader.BenchmarkDataManager._find_graph_file", return_value=None)
+@patch("zipfile.ZipFile")
+@pytest.mark.asyncio
+async def test_download_and_extract_network_no_suitable_file(
+    mock_zipfile_class, mock_find_graph_file, mock_download_file, data_manager
+):
+    """Test that FileNotFoundError is raised when no suitable graph file exists after
+    download.
+    """
+    mock_zip = MagicMock()
+    mock_zipfile_class.return_value.__enter__.return_value = mock_zip
+    mock_zip.extractall = MagicMock()
+
+    config = DatasetConfig(
+        name="download_no_suitable_file",
+        source="networkrepository",
+        params={},
+        metadata={"directed": False, "weighted": False},
+    )
+
+    with patch.object(
+        data_manager,
+        "get_metadata",
+        return_value={
+            "download_url": "http://example.com/no_suitable.zip",
+            "directed": False,
+            "weighted": False,
+        },
+    ):
+        with pytest.raises(
+            FileNotFoundError, match=r"\[Errno 2\] No such file or directory"
+        ):
+            await data_manager.load_network(config)
+
+    mock_download_file.assert_awaited_once_with(
+        "http://example.com/no_suitable.zip",
+        data_manager.data_dir / "download_no_suitable_file.zip",
+        None,
+    )
+    mock_find_graph_file.assert_called_once_with(
+        data_manager.data_dir / "download_no_suitable_file_extracted"
+    )
+
+
+@pytest.mark.asyncio
+async def test_load_nr_graph_missing_download_url(data_manager):
+    """Test that ValueError is raised when download URL is missing in metadata."""
+    config = DatasetConfig(
+        name="missing_url_graph",
+        source="networkrepository",
+        params={},
+        metadata={"directed": False, "weighted": False},  # No 'download_url'
+    )
+
+    with pytest.raises(
+        ValueError, match="No download URL found for network missing_url_graph"
+    ):
+        await data_manager._load_nr_graph(
+            "missing_url_graph", {"directed": False, "weighted": False}
+        )
+
+
+def test_load_graph_file_node_id_conversion(data_manager, create_edge_file):
+    """Test that node IDs are converted to strings if they are not."""
+    edge_content = """1 2 1.0
+    2 3 2.0
+    3 4 3.0
+    """
+    create_edge_file("numeric_nodes.edges", edge_content)
+
+    with patch.object(
+        data_manager,
+        "get_metadata",
+        return_value={"directed": False, "weighted": True, "name": "numeric_nodes"},
+    ):
+        config = DatasetConfig(
+            name="numeric_nodes",
+            source="networkrepository",
+            params={},
+            metadata={"directed": False, "weighted": True},
+        )
+
+        graph, metadata = data_manager.load_network_sync(config)
+
+        assert all(
+            isinstance(node, str) for node in graph.nodes()
+        ), "All node IDs should be strings."
+
+
+@pytest.mark.asyncio
+async def test_load_graphml_file(data_manager, tmp_path):
+    """Test loading a .graphml graph file."""
+    graphml_content = """<?xml version="1.0" encoding="UTF-8"?>
+    <graphml xmlns="http://graphml.graphdrawing.org/xmlns">
+      <graph id="G" edgedefault="undirected">
+        <node id="n0"/>
+        <node id="n1"/>
+        <node id="n2"/>
+        <edge id="e0" source="n0" target="n1" />
+        <edge id="e1" source="n1" target="n2" />
+        <edge id="e2" source="n2" target="n0" />
+      </graph>
+    </graphml>
+    """
+    graphml_file = tmp_path / "test_graph.graphml"
+    graphml_file.write_text(graphml_content)
+
+    with patch.object(data_manager, "_find_graph_file", return_value=graphml_file):
+        graph = data_manager._load_graph_file(graphml_file, {"directed": False})
+
+    assert isinstance(graph, nx.Graph), "Graph should be an instance of nx.Graph"
+    assert graph.number_of_nodes() == 3, "Graph should have 3 nodes"
+    assert graph.number_of_edges() == 3, "Graph should have 3 edges"
+
+
+@pytest.mark.asyncio
+async def test_load_edge_list_parsing_exception(data_manager, create_edge_file):
+    """Test that an exception during edge list parsing is logged and raised."""
+    edge_content = """A B 1.0
+    B C invalid_weight
+    C D 3.0
+    """
+    create_edge_file("parsing_exception.edges", edge_content)
+
+    config = DatasetConfig(
+        name="parsing_exception",
+        source="networkrepository",
+        params={},
+        metadata={"directed": False, "weighted": True},
+    )
+
+    with patch.object(
+        data_manager, "_load_graph_file", side_effect=ValueError("Parsing failed")
+    ):
+        with pytest.raises(
+            ValueError, match="Network parsing_exception not found in metadata cache"
+        ):
+            await data_manager.load_network(config)
+
+
+@pytest.mark.asyncio
+async def test_load_mtx_exception(data_manager, create_edge_file):
+    """Test that an exception during .mtx file loading is logged and raised."""
+    mtx_content = """%%MatrixMarket matrix coordinate real symmetric
+    % Incomplete Matrix Market file
+    4 4 6
+    1 2 1.0
+    """
+    create_edge_file("malformed.mtx", mtx_content)
+
+    config = DatasetConfig(
+        name="malformed",
+        source="networkrepository",
+        params={},
+        metadata={"directed": False, "weighted": True},
+    )
+
+    with pytest.raises(
+        ValueError, match="Network malformed not found in metadata cache"
+    ):
+        await data_manager.load_network(config)
+
+
+def test_load_network_invalid_source(data_manager):
+    """Test that ValueError is raised for an invalid network source."""
+    config = DatasetConfig(
+        name="invalid_source_graph",
+        source="invalidsource",
+        params={},
+        metadata={"directed": False, "weighted": False},
+    )
+
+    with pytest.raises(
+        ValueError, match="Network invalid_source_graph not found in metadata cache"
+    ):
+        data_manager.load_network_sync(config)
+
+
+def test_load_metadata_exception():
+    """Test that RuntimeError is raised when metadata loading fails."""
+    with patch.object(
+        BenchmarkDataManager,
+        "_load_metadata",
+        side_effect=RuntimeError("Metadata load failed"),
+    ):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            with pytest.raises(RuntimeError, match="Metadata load failed"):
+                BenchmarkDataManager(data_dir=temp_dir)

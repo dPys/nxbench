@@ -388,12 +388,8 @@ class BenchmarkDataManager:
                 f"{[str(p) for p in paths_to_try]}"
             )
 
-        _format = config.params.get("format", path.suffix[1:])
-        weighted = config.metadata.get("weighted", False)
-        directed = config.metadata.get("directed", False)
-
-        graph_file = path
-        return self._load_graph_file(graph_file, config.metadata)
+        graph = self._load_graph_file(path, config.metadata)
+        return graph, config.metadata
 
     def _generate_graph(
         self, config: DatasetConfig
