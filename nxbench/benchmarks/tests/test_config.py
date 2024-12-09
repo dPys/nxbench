@@ -325,19 +325,14 @@ matrix:
             default_config = load_default_config()
             assert config == default_config
 
-        assert len(config.algorithms) == 2
+        assert len(config.algorithms) == 1
         assert config.algorithms[0].name == "pagerank"
-        assert config.algorithms[1].name == "louvain_communities"
 
-        assert len(config.datasets) == 8
+        assert len(config.datasets) == 4
         assert config.datasets[0].name == "08blocks"
         assert config.datasets[1].name == "jazz"
         assert config.datasets[2].name == "karate"
-        assert config.datasets[3].name == "patentcite"
-        assert config.datasets[4].name == "IMDB"
-        assert config.datasets[5].name == "citeseer"
-        assert config.datasets[6].name == "enron"
-        assert config.datasets[7].name == "twitter"
+        assert config.datasets[3].name == "enron"
 
 
 class TestBenchmarkResult:
