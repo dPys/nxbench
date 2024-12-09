@@ -1,4 +1,5 @@
 import warnings
+import zipfile
 from pathlib import Path
 from unittest.mock import AsyncMock, MagicMock, patch
 
@@ -522,3 +523,73 @@ def test_normalize_graph(data_manager, tmp_path):
     assert all(isinstance(n, str) for n in normalized.nodes())
     assert normalized.number_of_nodes() == 3
     assert normalized.number_of_edges() == 2
+
+
+def test_load_graph_file_unsupported_format(data_manager, tmp_path):
+    unsupported_file = tmp_path / "unsupported.xyz"
+    unsupported_file.write_text("This is a test file with an unsupported format.")
+    with pytest.raises(ValueError, match="Unsupported file format"):
+        data_manager._load_graph_file(unsupported_file, {})
+
+
+def test_get_metadata_missing_network(data_manager):
+    with pytest.raises(ValueError, match="Network .* not found in metadata cache"):
+        data_manager.get_metadata("nonexistent_network")
+
+
+@patch(
+    "nxbench.data.loader.BenchmarkDataManager._download_file", new_callable=AsyncMock
+)
+@patch("nxbench.data.loader.zipfile.ZipFile")
+@pytest.mark.asyncio
+async def test_download_and_extract_network_corrupted_zip(
+    mock_zipfile_class, mock_download_file, data_manager
+):
+    mock_download_file.return_value = None
+
+    mock_zipfile_class.side_effect = zipfile.BadZipFile
+
+    with pytest.raises(zipfile.BadZipFile):
+        await data_manager._download_and_extract_network(
+            "test_network", "http://example.com/test.zip"
+        )
+
+
+def test_load_empty_edge_file(data_manager, tmp_path):
+    empty_file = tmp_path / "empty.edges"
+    empty_file.touch()
+    with pytest.raises(ValueError, match="contains no valid edges"):
+        data_manager._load_graph_file(empty_file, {"directed": False})
+
+
+@pytest.mark.asyncio
+async def test_find_graph_file_no_matching_format(data_manager, tmp_path):
+    extracted_folder = tmp_path / "extracted"
+    extracted_folder.mkdir()
+    (extracted_folder / "unrelated_file.txt").touch()
+    graph_file = data_manager._find_graph_file(extracted_folder)
+    assert graph_file is None, "No graph file should be found in the folder."
+
+
+def test_generate_empty_graph(data_manager):
+    config = DatasetConfig(
+        name="empty_generated_graph",
+        source="generator",
+        params={"generator": "networkx.empty_graph", "n": 0},
+        metadata={"directed": False},
+    )
+    graph, _ = data_manager._generate_graph(config)
+    assert graph.number_of_nodes() == 0, "Generated graph should have no nodes."
+    assert graph.number_of_edges() == 0, "Generated graph should have no edges."
+
+
+@pytest.mark.asyncio
+async def test_find_graph_file_deeply_nested(data_manager, tmp_path):
+    nested_folder = tmp_path / "level1" / "level2"
+    nested_folder.mkdir(parents=True)
+    graph_file = nested_folder / "test.edges"
+    graph_file.touch()
+    found_file = data_manager._find_graph_file(tmp_path)
+    assert (
+        found_file == graph_file
+    ), "The graph file should be discovered in nested directories."

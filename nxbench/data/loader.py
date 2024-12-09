@@ -108,6 +108,11 @@ class BenchmarkDataManager:
             """Handle unsupported file formats."""
             raise ValueError(f"Unsupported file format: {suffix}")
 
+        def check_graph_validity(graph, file_path):
+            """Check if the graph is valid and contains edges."""
+            if graph.number_of_edges() == 0:
+                raise ValueError(f"Graph file {file_path} contains no valid edges.")
+
         try:
             suffix = graph_file.suffix.lower()
             if suffix == ".mtx":
@@ -122,6 +127,7 @@ class BenchmarkDataManager:
                             else nx.Graph()
                         ),
                     )
+                    check_graph_validity(graph, graph_file)
                 except ValueError:
                     logger.exception(f"Failed to load Matrix Market file {graph_file}")
                     raise ValueError("Matrix Market file not in expected format")
@@ -192,6 +198,7 @@ class BenchmarkDataManager:
                                 create_using=create_using,
                                 data=False,
                             )
+                    check_graph_validity(graph, graph_file)
                 else:
                     logger.debug(
                         "No weights detected or weights not required. Reading as "
@@ -213,7 +220,7 @@ class BenchmarkDataManager:
                             f"Failed to read unweighted edgelist from {graph_file}"
                         )
                         raise
-
+                    check_graph_validity(graph, graph_file)
                 initial_num_edges = graph.number_of_edges()
                 graph.remove_edges_from(nx.selfloop_edges(graph))
                 final_num_edges = graph.number_of_edges()
@@ -230,6 +237,7 @@ class BenchmarkDataManager:
 
             elif suffix == ".graphml":
                 graph = nx.read_graphml(graph_file)
+                check_graph_validity(graph, graph_file)
             else:
                 return handle_unsupported_format(suffix)
         except Exception:
