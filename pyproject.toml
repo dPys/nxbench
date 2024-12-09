@@ -152,7 +152,21 @@ python_functions = [
 [tool.coverage.run]
 branch = true
 source = ["nxbench"]
-omit = []
+omit = [
+    "nxbench/__init__.py",
+    "nxbench/_version.py",
+    "nxbench/benchmarks/tests/test_benchmark.py",
+    "nxbench/benchmarks/tests/test_config.py",
+    "nxbench/benchmarks/tests/test_utils.py",
+    "nxbench/data/tests/test_loader.py",
+    "nxbench/data/tests/test_utils.py",
+    "nxbench/data/tests/conftest.py",
+    "nxbench/validation/tests/conftest.py",
+    "nxbench/validation/tests/test_base.py",
+    "nxbench/validation/tests/test_registry.py",
+    "nxbench/data/scripts/scrape_nr.py",
+    "nxbench/data/constants.py"
+]
 
 [tool.coverage.report]
 ignore_errors = false

@@ -1,7 +1,16 @@
+import tempfile
+import zipfile
+from pathlib import Path
+
 import networkx as nx
 import pytest
 
-from nxbench.data.utils import get_connected_components, lcc, normalize_name
+from nxbench.data.utils import (
+    get_connected_components,
+    lcc,
+    normalize_name,
+    safe_extract,
+)
 
 # ========================
 # Tests for normalize_name
@@ -232,3 +241,61 @@ def test_normalize_name_leading_hyphens():
     input_name = "---Network"
     expected = "Network"
     assert normalize_name(input_name) == expected
+
+
+# ========================
+# Tests for safe_extract
+# ========================
+
+
+def test_safe_extract_valid_archive():
+    with tempfile.TemporaryDirectory() as tmpdir:
+        tmpdir_path = Path(tmpdir)
+        zip_path = tmpdir_path / "valid.zip"
+        extracted_path = tmpdir_path / "extracted"
+
+        with zipfile.ZipFile(zip_path, "w") as zf:
+            zf.writestr("file1.txt", "This is a test file.")
+            zf.writestr("folder/file2.txt", "This is another test file.")
+
+        safe_extract(str(zip_path), str(extracted_path))
+        assert (extracted_path / "file1.txt").exists()
+        assert (extracted_path / "folder" / "file2.txt").exists()
+
+
+def test_safe_extract_malicious_path_absolute():
+    with tempfile.TemporaryDirectory() as tmpdir:
+        tmpdir_path = Path(tmpdir)
+        zip_path = tmpdir_path / "malicious_absolute.zip"
+
+        with zipfile.ZipFile(zip_path, "w") as zf:
+            zf.writestr("/etc/passwd", "This should not be extracted.")
+
+        with pytest.raises(ValueError, match="Malicious path in archive"):
+            safe_extract(str(zip_path), str(tmpdir_path))
+
+
+def test_safe_extract_malicious_path_relative():
+    with tempfile.TemporaryDirectory() as tmpdir:
+        tmpdir_path = Path(tmpdir)
+        zip_path = tmpdir_path / "malicious_relative.zip"
+
+        with zipfile.ZipFile(zip_path, "w") as zf:
+            zf.writestr("../malicious.txt", "This should not be extracted.")
+
+        with pytest.raises(ValueError, match="Malicious path in archive"):
+            safe_extract(str(zip_path), str(tmpdir_path))
+
+
+def test_safe_extract_empty_archive():
+    with tempfile.TemporaryDirectory() as tmpdir:
+        tmpdir_path = Path(tmpdir)
+        zip_path = tmpdir_path / "empty.zip"
+        extracted_path = tmpdir_path / "extracted"
+
+        with zipfile.ZipFile(zip_path, "w") as zf:
+            pass
+
+        safe_extract(str(zip_path), str(extracted_path))
+        assert extracted_path.exists()
+        assert not any(extracted_path.iterdir())
