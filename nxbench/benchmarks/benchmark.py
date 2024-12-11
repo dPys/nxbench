@@ -199,13 +199,14 @@ class GraphBenchmark:
 
         if "graphblas" in backend and is_graphblas_available():
             try:
+                gb = import_module("graphblas")
                 ga = import_module("graphblas_algorithms")
             except ImportError:
                 logger.exception("graphblas_algorithms backend not available")
                 return None
             try:
                 logger.info(
-                    f"GraphBlas Algorithms nthreads={ga.ss.config['nthreads']} "
+                    f"GraphBlas Algorithms nthreads={gb.ss.config['nthreads']} "
                 )
                 return ga.Graph.from_networkx(original_graph)
             except Exception:

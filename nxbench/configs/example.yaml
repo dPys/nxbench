@@ -241,6 +241,7 @@ validation:
 matrix:
   backend:
     - "networkx"
+    - "parallel"
     - "graphblas"
   num_threads:
     - "1"
@@ -250,6 +251,7 @@ matrix:
 env_config:
   req:
     - "networkx==3.4.2"
+    - "nx-parallel-0.3rc0.dev0"
     - "graphblas_algorithms==2023.10.0"
   pythons:
     - "3.10"
