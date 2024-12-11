@@ -8,7 +8,11 @@ import networkx as nx
 import pandas as pd
 
 from nxbench.benchmarks.config import BenchmarkResult, MachineInfo
-from nxbench.benchmarks.utils import get_benchmark_config, get_python_version
+from nxbench.benchmarks.utils import (
+    get_available_algorithms,
+    get_benchmark_config,
+    get_python_version,
+)
 from nxbench.data.db import BenchmarkDB
 from nxbench.data.loader import BenchmarkDataManager
 
@@ -126,22 +130,21 @@ class ResultsExporter:
         date: int,
     ) -> BenchmarkResult | None:
         """Create a benchmark result object."""
-        dataset_config = next(
-            (ds for ds in self.benchmark_config.datasets if ds.name == dataset),
-            None,
-        )
+        dataset_configs = self.benchmark_config.datasets
 
-        if dataset_config is None:
-            logger.warning(f"No DatasetConfig found for dataset '{dataset}'")
+        try:
+            dataset_config = next(d for d in dataset_configs if d.name == dataset)
+            graph, metadata = self.data_manager.load_network_sync(dataset_config)
+        except StopIteration:
+            logger.warning(
+                f"No dataset configuration found for '{dataset}', using dummy "
+                f"graph/metadata."
+            )
             graph = nx.Graph()
-            graph.graph["name"] = dataset
             metadata = {}
-        else:
-            try:
-                graph, metadata = self.data_manager.load_network_sync(dataset_config)
-            except Exception:
-                logger.exception(f"Failed to load network for dataset '{dataset}'")
-                return None
+        except Exception:
+            logger.exception(f"Failed to load network for dataset '{dataset}'")
+            return None
 
         asv_result = {
             "algorithm": algorithm,
@@ -189,24 +192,79 @@ class ResultsExporter:
             return result
 
     def _parse_benchmark_name(self, bench_name: str) -> tuple[str, str, str] | None:
-        """Parse the benchmark name to extract algorithm, dataset, and backend."""
-        pattern = (
-            r"^(?:benchmark\.)?GraphBenchmark\.track_(.+?)_([^_]+)_([^_]+)(?:_\d+)?$"
-        )
-        match = re.search(pattern, bench_name)
-        if match:
-            algorithm = match.group(1)
-            dataset = match.group(2)
-            backend = match.group(3)
-            logger.debug(
-                f"Parsed benchmark name '{bench_name}': algorithm={algorithm}, "
-                f"dataset={dataset}, backend={backend}"
+        """Parse the benchmark name to extract algorithm, dataset, and backend.
+
+        Parameters
+        ----------
+        bench_name : str
+            The benchmark name to parse
+
+        Returns
+        -------
+        tuple[str, str, str] | None
+            A tuple of (algorithm, dataset, backend) if parsing succeeds, None otherwise
+
+        Notes
+        -----
+        Handles benchmark names in the format:
+        [benchmark.]GraphBenchmark.track_<algorithm>_<dataset>_<backend>[_threads]
+
+        Where:
+        - `algorithm` is the first token.
+        - `backend` is the last token before optional numeric threads.
+        - `dataset` is everything in between algorithm and backend.
+        The dataset can contain multiple underscores.
+        """
+        if not bench_name:
+            logger.warning(
+                f"Benchmark name '{bench_name}' does not match expected patterns."
             )
-            return algorithm, dataset, backend
-        logger.warning(
-            f"Benchmark name '{bench_name}' does not match expected patterns."
+            return None
+
+        prefix_pattern = r"^(?:benchmark\.)?GraphBenchmark\.track_"
+        bench_name_cleaned = re.sub(prefix_pattern, "", bench_name)
+
+        parts = bench_name_cleaned.split("_")
+        if not parts or len(parts) < 3:
+            logger.warning(
+                f"Benchmark name '{bench_name}' does not match expected patterns."
+            )
+            return None
+
+        if parts[-1].isdigit():
+            parts = parts[:-1]
+
+        if len(parts) < 3:
+            logger.warning(
+                f"Benchmark name '{bench_name}' does not match expected patterns."
+            )
+            return None
+
+        backend = parts[-1]
+
+        all_algs = list(get_available_algorithms().keys())
+
+        matches = []
+        for i in range(len(parts) - 1):
+            candidate_alg = "_".join(parts[:i])
+            if candidate_alg in all_algs:
+                matches.append((candidate_alg, i))
+
+        if matches:
+            # pick the match with the largest i (longest prefix)
+            best_match = max(matches, key=lambda x: len(x[0]))
+            best_i = best_match[1]
+            algorithm = best_match[0]
+            dataset = "_".join(parts[best_i:-1])
+        else:
+            return None
+
+        logger.debug(
+            f"Parsed benchmark name '{bench_name}': "
+            f"algorithm={algorithm}, dataset={dataset}, backend={backend}"
         )
-        return None
+
+        return algorithm, dataset, backend
 
     def load_results(self) -> list[BenchmarkResult]:
         """Load benchmark results and machine information."""
@@ -275,7 +333,6 @@ class ResultsExporter:
 
             commit_hash = data.get("commit_hash", "unknown")
             date = data.get("date", 0)
-
             for bench_name, bench_data in data.get("results", {}).items():
                 if not isinstance(bench_data, list) or len(bench_data) < 2:
                     logger.warning(

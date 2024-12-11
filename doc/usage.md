@@ -26,7 +26,7 @@
 3. **Export Results**:
 
    ```bash
-   nxbench benchmark export 'results/results.csv' --output-format csv  # convert benchmark results into CSV format.
+   nxbench --config 'nxbench/configs/example.yaml' benchmark export 'results/results.csv' --output-format csv  # convert benchmark results into CSV format.
    ```
 
 4. **View Results**:
@@ -64,7 +64,7 @@ The CLI provides comprehensive management of benchmarks, datasets, and visualiza
 - **Export Results to a SQL Database**:
 
   ```bash
-  nxbench benchmark export 'results/benchmarks.sqlite' --output-format sql
+  nxbench --config 'nxbench/configs/example.yaml' benchmark export 'results/benchmarks.sqlite' --output-format sql
   ```
 
 - **Compare Benchmarks Between Commits**:
@@ -117,11 +117,11 @@ docker-compose up dashboard
 ### Running Benchmarks with a Specific Backend
 
 ```bash
-docker-compose run --rm nxbench benchmark run --backend networkx
+docker-compose run --rm nxbench --config 'nxbench/configs/example.yaml' benchmark run --backend networkx
 ```
 
 ### Viewing Results
 
 ```bash
-docker-compose run --rm nxbench benchmark export results.csv
+docker-compose run --rm nxbench --config 'nxbench/configs/example.yaml' benchmark export results.csv
 ```

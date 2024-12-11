@@ -3,7 +3,7 @@ Welcome to NxBench's Documentation
 
 Overview
 ========
-is a comprehensive benchmarking suite designed to facilitate comparative profiling of graph analytic algorithms across NetworkX and compatible backends. Built on top of [Airspeed Velocity (ASV)](https://github.com/airspeed-velocity/asv), nxbench places an emphasis on extensible and granular performance analysis, enabling developers and researchers to optimize their graph analysis workflows efficiently and reproducibly.
+is a comprehensive benchmarking suite designed to facilitate comparative profiling of graph analytic algorithms across NetworkX and compatible backends. Built on top of `Airspeed Velocity (ASV) <https://github.com/airspeed-velocity/asv>`_, nxbench places an emphasis on extensible and granular performance analysis, enabling developers and researchers to optimize their graph analysis workflows efficiently and reproducibly.
 
 Key Features
 ============

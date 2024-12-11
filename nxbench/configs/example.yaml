@@ -86,6 +86,7 @@ algorithms:
   #   requires_directed: false
   #   groups: ["efficiency", "graph_measure"]
   #   min_rounds: 3
+  #   validate_result: "nxbench.validation.validate_node_scores"
 
   - name: "number_of_isolates"
     func: "networkx.number_of_isolates"
@@ -102,12 +103,13 @@ algorithms:
   #   groups: ["paths", "all_pairs"]
   #   min_rounds: 3
 
-  - name: "all_pairs_shortest_path_length"
-    func: "networkx.all_pairs_shortest_path_length"
-    params: {}
-    requires_directed: false
-    groups: ["paths", "distance"]
-    min_rounds: 3
+  # - name: "all_pairs_shortest_path_length"
+  #   func: "networkx.all_pairs_shortest_path_length"
+  #   params: {}
+  #   requires_directed: false
+  #   groups: ["paths", "distance"]
+  #   min_rounds: 3
+  #   validate_result: "nxbench.validation.validate_scalar_result"
 
   # - name: "all_pairs_shortest_path"
   #   func: "networkx.all_pairs_shortest_path"
@@ -124,21 +126,23 @@ algorithms:
   #   groups: ["paths", "weighted"]
   #   min_rounds: 3
 
-  # - name: "all_pairs_dijkstra_path_length"
-  #   func: "networkx.all_pairs_dijkstra_path_length"
-  #   params:
-  #     weight: "weight"
-  #   requires_directed: false
-  #   groups: ["paths", "weighted"]
-  #   min_rounds: 3
+  - name: "all_pairs_dijkstra_path_length"
+    func: "networkx.all_pairs_dijkstra_path_length"
+    params:
+      weight: "weight"
+    requires_directed: false
+    groups: ["paths", "weighted"]
+    min_rounds: 3
+    validate_result: "nxbench.validation.validate_scalar_result"
 
-  # - name: "all_pairs_bellman_ford_path_length"
-  #   func: "networkx.all_pairs_bellman_ford_path_length"
-  #   params:
-  #     weight: "weight"
-  #   requires_directed: false
-  #   groups: ["paths", "weighted"]
-  #   min_rounds: 3
+  - name: "all_pairs_bellman_ford_path_length"
+    func: "networkx.all_pairs_bellman_ford_path_length"
+    params:
+      weight: "weight"
+    requires_directed: false
+    groups: ["paths", "weighted"]
+    min_rounds: 3
+    validate_result: "nxbench.validation.validate_scalar_result"
 
   # - name: "all_pairs_bellman_ford_path"
   #   func: "networkx.all_pairs_bellman_ford_path"
@@ -164,17 +168,17 @@ algorithms:
   #   min_rounds: 3
 
 datasets:
-  - name: "08blocks"
-    source: "networkrepository"
-    params: {}
+  # - name: "08blocks"
+  #   source: "networkrepository"
+  #   params: {}
 
-  - name: "karate"
-    source: "networkrepository"
-    params: {}
+  # - name: "karate"
+  #   source: "networkrepository"
+  #   params: {}
 
-  - name: "jazz"
-    source: "networkrepository"
-    params: {}
+  # - name: "jazz"
+  #   source: "networkrepository"
+  #   params: {}
 
   - name: "erdos_renyi_small"
     source: "generator"
@@ -197,6 +201,16 @@ datasets:
   #     directed: false
   #     weighted: false
 
+  - name: "barabasi_albert_small"
+    source: "generator"
+    params:
+      generator: "networkx.barabasi_albert_graph"
+      n: 1000
+      m: 3
+    metadata:
+      directed: false
+      weighted: false
+
   # - name: "barabasi_albert_large"
   #   source: "generator"
   #   params:
@@ -207,16 +221,16 @@ datasets:
   #     directed: false
   #     weighted: false
 
-  # - name: "powerlaw_cluster"
-  #   source: "generator"
-  #   params:
-  #     generator: "networkx.powerlaw_cluster_graph"
-  #     n: 50000
-  #     m: 2
-  #     p: 0.1
-  #   metadata:
-  #     directed: false
-  #     weighted: false
+  - name: "powerlaw_cluster"
+    source: "generator"
+    params:
+      generator: "networkx.powerlaw_cluster_graph"
+      n: 1000
+      m: 2
+      p: 0.1
+    metadata:
+      directed: false
+      weighted: false
 
 validation:
   skip_slow: false
@@ -230,7 +244,6 @@ matrix:
     - "graphblas"
   num_threads:
     - "1"
-    - "2"
     - "4"
     - "8"
 

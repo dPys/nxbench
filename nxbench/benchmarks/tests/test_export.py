@@ -370,14 +370,25 @@ class TestResultsExporter:
         )
 
     def test_parse_benchmark_name_valid(self, mock_logger):
-        exporter = ResultsExporter(results_dir=".")
-        bench_name = "GraphBenchmark.track_alg1_dataset1_backend1_001"
-        result = exporter._parse_benchmark_name(bench_name)
-        assert result == ("alg1", "dataset1", "backend1")
-        mock_logger.debug.assert_called_with(
-            f"Parsed benchmark name '{bench_name}': algorithm=alg1, dataset=dataset1, "
-            f"backend=backend1"
-        )
+        with patch(
+            "nxbench.benchmarks.export.get_available_algorithms",
+            return_value={
+                "alg1": None,
+                "pagerank": None,
+                "betweenness": None,
+                "clustering": None,
+                "transitivity": None,
+                "Pagerank": None,
+            },
+        ):
+            exporter = ResultsExporter(results_dir=".")
+            bench_name = "GraphBenchmark.track_alg1_dataset1_backend1_001"
+            result = exporter._parse_benchmark_name(bench_name)
+            assert result == ("alg1", "dataset1", "backend1")
+            mock_logger.debug.assert_called_with(
+                f"Parsed benchmark name '{bench_name}': "
+                f"algorithm=alg1, dataset=dataset1, backend=backend1"
+            )
 
     def test_parse_benchmark_name_invalid(self, mock_logger):
         exporter = ResultsExporter(results_dir=".")
@@ -820,3 +831,108 @@ class TestResultsExporter:
             assert len(results1) == 1
             mock_open_file.assert_called_once()
             mock_logger.debug.assert_any_call(f"BenchmarkResult created: {mock_result}")
+
+    def test_parse_benchmark_name_standard_format(self, mock_logger):
+        """Test parsing of standard benchmark names."""
+        with patch(
+            "nxbench.benchmarks.export.get_available_algorithms",
+            return_value={
+                "alg1": None,
+                "pagerank": None,
+                "betweenness": None,
+                "clustering": None,
+                "transitivity": None,
+                "Pagerank": None,
+            },
+        ):
+            exporter = ResultsExporter(results_dir=".")
+            test_cases = [
+                (
+                    "GraphBenchmark.track_pagerank_karate_networkx",
+                    ("pagerank", "karate", "networkx"),
+                ),
+                (
+                    "GraphBenchmark.track_betweenness_jazz_parallel_4",
+                    ("betweenness", "jazz", "parallel"),
+                ),
+                (
+                    "benchmark.GraphBenchmark.track_clustering_08blocks_graphblas",
+                    ("clustering", "08blocks", "graphblas"),
+                ),
+            ]
+
+            for bench_name, expected in test_cases:
+                result = exporter._parse_benchmark_name(bench_name)
+                assert (
+                    result == expected
+                ), f"Failed to parse standard name: {bench_name}"
+                mock_logger.debug.assert_any_call(
+                    f"Parsed benchmark name '{bench_name}': "
+                    f"algorithm={expected[0]}, dataset={expected[1]}, "
+                    f"backend={expected[2]}"
+                )
+                mock_logger.reset_mock()
+
+    def test_parse_benchmark_name_synthetic_format(self, mock_logger):
+        """Test parsing of synthetic dataset benchmark names."""
+        exporter = ResultsExporter(results_dir=".")
+        test_cases = [
+            (
+                "GraphBenchmark.track_transitivity_barabasi_albert_small_networkx",
+                ("transitivity", "barabasi_albert_small", "networkx"),
+            ),
+            (
+                "GraphBenchmark.track_pagerank_erdos_renyi_medium_parallel_4",
+                ("pagerank", "erdos_renyi_medium", "parallel"),
+            ),
+            (
+                "GraphBenchmark.track_clustering_watts_strogatz_large_graphblas",
+                ("clustering", "watts_strogatz_large", "graphblas"),
+            ),
+        ]
+
+        for bench_name, expected in test_cases:
+            result = exporter._parse_benchmark_name(bench_name)
+            assert result == expected, f"Failed to parse synthetic name: {bench_name}"
+            mock_logger.debug.assert_any_call(
+                f"Parsed benchmark name '{bench_name}': "
+                f"algorithm={expected[0]}, dataset={expected[1]}, backend={expected[2]}"
+            )
+            mock_logger.reset_mock()
+
+    def test_parse_benchmark_name_edge_cases(self, mock_logger):
+        """Test handling of edge cases in benchmark names."""
+        with patch(
+            "nxbench.benchmarks.export.get_available_algorithms",
+            return_value={
+                "alg1": None,
+                "pagerank": None,
+                "betweenness": None,
+                "clustering": None,
+                "transitivity": None,
+                "Pagerank": None,
+            },
+        ):
+            exporter = ResultsExporter(results_dir=".")
+            test_cases = [
+                # Multiple underscores in synthetic dataset name
+                (
+                    "GraphBenchmark.track_pagerank_power_law_cluster_graph_networkx",
+                    ("pagerank", "power_law_cluster_graph", "networkx"),
+                ),
+                # Numeric suffixes in backend
+                (
+                    "GraphBenchmark.track_betweenness_karate_parallel_8",
+                    ("betweenness", "karate", "parallel"),
+                ),
+                # Mixed case handling
+                (
+                    "GraphBenchmark.track_Pagerank_Karate_NetworkX",
+                    ("Pagerank", "Karate", "NetworkX"),
+                ),
+            ]
+
+            for bench_name, expected in test_cases:
+                result = exporter._parse_benchmark_name(bench_name)
+                assert result == expected, f"Failed to parse edge case: {bench_name}"
+                mock_logger.reset_mock()
