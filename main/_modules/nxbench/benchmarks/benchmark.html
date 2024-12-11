@@ -486,11 +486,15 @@
 
         <span class="k">if</span> <span class="s2">&quot;graphblas&quot;</span> <span class="ow">in</span> <span class="n">backend</span> <span class="ow">and</span> <span class="n">is_graphblas_available</span><span class="p">():</span>
             <span class="k">try</span><span class="p">:</span>
+                <span class="n">gb</span> <span class="o">=</span> <span class="n">import_module</span><span class="p">(</span><span class="s2">&quot;graphblas&quot;</span><span class="p">)</span>
                 <span class="n">ga</span> <span class="o">=</span> <span class="n">import_module</span><span class="p">(</span><span class="s2">&quot;graphblas_algorithms&quot;</span><span class="p">)</span>
             <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
                 <span class="n">logger</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="s2">&quot;graphblas_algorithms backend not available&quot;</span><span class="p">)</span>
                 <span class="k">return</span> <span class="kc">None</span>
             <span class="k">try</span><span class="p">:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;GraphBlas Algorithms nthreads=</span><span class="si">{</span><span class="n">gb</span><span class="o">.</span><span class="n">ss</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;nthreads&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2"> &quot;</span>
+                <span class="p">)</span>
                 <span class="k">return</span> <span class="n">ga</span><span class="o">.</span><span class="n">Graph</span><span class="o">.</span><span class="n">from_networkx</span><span class="p">(</span><span class="n">original_graph</span><span class="p">)</span>
             <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
                 <span class="n">logger</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="s2">&quot;Error converting graph to graphblas format&quot;</span><span class="p">)</span>
@@ -520,10 +524,11 @@
 
         <span class="k">try</span><span class="p">:</span>
             <span class="n">algo_func</span> <span class="o">=</span> <span class="n">get_algorithm_function</span><span class="p">(</span><span class="n">algo_config</span><span class="p">,</span> <span class="n">backend</span><span class="p">)</span>
-            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">algo_func</span><span class="p">,</span> <span class="n">partial</span><span class="p">):</span>
-                <span class="n">alg_func_name</span> <span class="o">=</span> <span class="n">algo_func</span><span class="o">.</span><span class="n">func</span><span class="o">.</span><span class="vm">__name__</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">alg_func_name</span> <span class="o">=</span> <span class="n">algo_func</span><span class="o">.</span><span class="vm">__name__</span>
+            <span class="n">alg_func_name</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="n">algo_func</span><span class="o">.</span><span class="n">func</span><span class="o">.</span><span class="vm">__name__</span>
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">algo_func</span><span class="p">,</span> <span class="n">partial</span><span class="p">)</span>
+                <span class="k">else</span> <span class="n">algo_func</span><span class="o">.</span><span class="vm">__name__</span>
+            <span class="p">)</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Got algorithm function: </span><span class="si">{</span><span class="n">alg_func_name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
         <span class="k">except</span> <span class="p">(</span><span class="ne">ImportError</span><span class="p">,</span> <span class="ne">AttributeError</span><span class="p">):</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Function not available for backend </span><span class="si">{</span><span class="n">backend</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>

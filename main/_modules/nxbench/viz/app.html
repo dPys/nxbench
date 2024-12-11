@@ -287,7 +287,6 @@
     <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="o">.</span><span class="n">iteritems</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="o">.</span><span class="n">items</span>
 
     <span class="n">essential_columns</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;algorithm&quot;</span><span class="p">,</span> <span class="s2">&quot;execution_time&quot;</span><span class="p">,</span> <span class="s2">&quot;memory_used&quot;</span><span class="p">]</span>
-
     <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">dropna</span><span class="p">(</span><span class="n">subset</span><span class="o">=</span><span class="n">essential_columns</span><span class="p">)</span>
 
     <span class="n">df</span><span class="p">[</span><span class="s2">&quot;execution_time&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_numeric</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="s2">&quot;execution_time&quot;</span><span class="p">],</span> <span class="n">errors</span><span class="o">=</span><span class="s2">&quot;coerce&quot;</span><span class="p">)</span>
@@ -313,7 +312,6 @@
     <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">string_columns</span><span class="p">:</span>
         <span class="n">df</span><span class="p">[</span><span class="n">col</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="n">col</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">str</span><span class="p">)</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
 
-    <span class="n">aggregation_columns</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;execution_time&quot;</span><span class="p">,</span> <span class="s2">&quot;memory_used&quot;</span><span class="p">]</span>
     <span class="n">group_columns</span> <span class="o">=</span> <span class="p">[</span>
         <span class="s2">&quot;algorithm&quot;</span><span class="p">,</span>
         <span class="s2">&quot;dataset&quot;</span><span class="p">,</span>
@@ -329,8 +327,14 @@
         <span class="s2">&quot;os&quot;</span><span class="p">,</span>
         <span class="s2">&quot;num_thread&quot;</span><span class="p">,</span>
     <span class="p">]</span>
-    <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="n">group_columns</span><span class="p">,</span> <span class="n">as_index</span><span class="o">=</span><span class="kc">False</span><span class="p">)[</span><span class="n">aggregation_columns</span><span class="p">]</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
-    <span class="n">df</span><span class="o">.</span><span class="n">set_index</span><span class="p">(</span><span class="n">group_columns</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="c1"># compute both mean and count</span>
+    <span class="n">df_agg</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="n">group_columns</span><span class="p">,</span> <span class="n">as_index</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span><span class="o">.</span><span class="n">agg</span><span class="p">(</span>
+        <span class="n">mean_execution_time</span><span class="o">=</span><span class="p">(</span><span class="s2">&quot;execution_time&quot;</span><span class="p">,</span> <span class="s2">&quot;mean&quot;</span><span class="p">),</span>
+        <span class="n">mean_memory_used</span><span class="o">=</span><span class="p">(</span><span class="s2">&quot;memory_used&quot;</span><span class="p">,</span> <span class="s2">&quot;mean&quot;</span><span class="p">),</span>
+        <span class="n">sample_count</span><span class="o">=</span><span class="p">(</span><span class="s2">&quot;execution_time&quot;</span><span class="p">,</span> <span class="s2">&quot;size&quot;</span><span class="p">),</span>
+    <span class="p">)</span>
+    <span class="n">df_agg</span><span class="o">.</span><span class="n">set_index</span><span class="p">(</span><span class="n">group_columns</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
     <span class="n">available_parcats_columns</span> <span class="o">=</span> <span class="p">[</span><span class="n">col</span> <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">group_columns</span> <span class="k">if</span> <span class="n">col</span> <span class="o">!=</span> <span class="s2">&quot;algorithm&quot;</span><span class="p">]</span>
 
@@ -345,12 +349,12 @@
                         <span class="n">options</span><span class="o">=</span><span class="p">[</span>
                             <span class="p">{</span><span class="s2">&quot;label&quot;</span><span class="p">:</span> <span class="n">alg</span><span class="o">.</span><span class="n">title</span><span class="p">(),</span> <span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="n">alg</span><span class="p">}</span>
                             <span class="k">for</span> <span class="n">alg</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span>
-                                <span class="n">df</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">get_level_values</span><span class="p">(</span><span class="s2">&quot;algorithm&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">unique</span><span class="p">()</span>
+                                <span class="n">df_agg</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">get_level_values</span><span class="p">(</span><span class="s2">&quot;algorithm&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">unique</span><span class="p">()</span>
                             <span class="p">)</span>
                         <span class="p">],</span>
-                        <span class="n">value</span><span class="o">=</span><span class="nb">sorted</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">get_level_values</span><span class="p">(</span><span class="s2">&quot;algorithm&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">unique</span><span class="p">())[</span>
-                            <span class="mi">0</span>
-                        <span class="p">],</span>
+                        <span class="n">value</span><span class="o">=</span><span class="nb">sorted</span><span class="p">(</span>
+                            <span class="n">df_agg</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">get_level_values</span><span class="p">(</span><span class="s2">&quot;algorithm&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">unique</span><span class="p">()</span>
+                        <span class="p">)[</span><span class="mi">0</span><span class="p">],</span>
                         <span class="n">clearable</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
                         <span class="n">style</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;width&quot;</span><span class="p">:</span> <span class="s2">&quot;100%&quot;</span><span class="p">},</span>
                     <span class="p">),</span>
@@ -390,7 +394,7 @@
                             <span class="p">{</span><span class="s2">&quot;label&quot;</span><span class="p">:</span> <span class="n">c</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;_&quot;</span><span class="p">,</span> <span class="s2">&quot; &quot;</span><span class="p">)</span><span class="o">.</span><span class="n">title</span><span class="p">(),</span> <span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="n">c</span><span class="p">}</span>
                             <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">available_parcats_columns</span>
                         <span class="p">],</span>
-                        <span class="n">value</span><span class="o">=</span><span class="n">available_parcats_columns</span><span class="p">,</span>  <span class="c1"># default select all</span>
+                        <span class="n">value</span><span class="o">=</span><span class="n">available_parcats_columns</span><span class="p">,</span>
                         <span class="n">multi</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
                         <span class="n">style</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;width&quot;</span><span class="p">:</span> <span class="s2">&quot;100%&quot;</span><span class="p">},</span>
                     <span class="p">),</span>
@@ -417,11 +421,12 @@
                 <span class="n">active_tab</span><span class="o">=</span><span class="s2">&quot;parcats-tab&quot;</span><span class="p">,</span>
                 <span class="n">style</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;marginTop&quot;</span><span class="p">:</span> <span class="s2">&quot;20px&quot;</span><span class="p">},</span>
             <span class="p">),</span>
+            <span class="n">dcc</span><span class="o">.</span><span class="n">Store</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="s2">&quot;mean-values-store&quot;</span><span class="p">),</span>
         <span class="p">]</span>
     <span class="p">)</span>
 
     <span class="nd">@app</span><span class="o">.</span><span class="n">callback</span><span class="p">(</span>
-        <span class="n">Output</span><span class="p">(</span><span class="s2">&quot;benchmark-graph&quot;</span><span class="p">,</span> <span class="s2">&quot;figure&quot;</span><span class="p">),</span>
+        <span class="p">[</span><span class="n">Output</span><span class="p">(</span><span class="s2">&quot;benchmark-graph&quot;</span><span class="p">,</span> <span class="s2">&quot;figure&quot;</span><span class="p">),</span> <span class="n">Output</span><span class="p">(</span><span class="s2">&quot;mean-values-store&quot;</span><span class="p">,</span> <span class="s2">&quot;data&quot;</span><span class="p">)],</span>
         <span class="p">[</span>
             <span class="n">Input</span><span class="p">(</span><span class="s2">&quot;algorithm-dropdown&quot;</span><span class="p">,</span> <span class="s2">&quot;value&quot;</span><span class="p">),</span>
             <span class="n">Input</span><span class="p">(</span><span class="s2">&quot;color-toggle&quot;</span><span class="p">,</span> <span class="s2">&quot;value&quot;</span><span class="p">),</span>
@@ -432,7 +437,7 @@
         <span class="n">selected_algorithm</span> <span class="o">=</span> <span class="n">selected_algorithm</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
 
         <span class="k">try</span><span class="p">:</span>
-            <span class="n">filtered_df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">xs</span><span class="p">(</span><span class="n">selected_algorithm</span><span class="p">,</span> <span class="n">level</span><span class="o">=</span><span class="s2">&quot;algorithm&quot;</span><span class="p">)</span>
+            <span class="n">filtered_df</span> <span class="o">=</span> <span class="n">df_agg</span><span class="o">.</span><span class="n">xs</span><span class="p">(</span><span class="n">selected_algorithm</span><span class="p">,</span> <span class="n">level</span><span class="o">=</span><span class="s2">&quot;algorithm&quot;</span><span class="p">)</span>
         <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
             <span class="n">fig</span> <span class="o">=</span> <span class="n">go</span><span class="o">.</span><span class="n">Figure</span><span class="p">()</span>
             <span class="n">fig</span><span class="o">.</span><span class="n">update_layout</span><span class="p">(</span>
@@ -447,7 +452,7 @@
                     <span class="p">}</span>
                 <span class="p">],</span>
             <span class="p">)</span>
-            <span class="k">return</span> <span class="n">fig</span>
+            <span class="k">return</span> <span class="n">fig</span><span class="p">,</span> <span class="p">[]</span>
 
         <span class="k">if</span> <span class="n">filtered_df</span><span class="o">.</span><span class="n">empty</span><span class="p">:</span>
             <span class="n">fig</span> <span class="o">=</span> <span class="n">go</span><span class="o">.</span><span class="n">Figure</span><span class="p">()</span>
@@ -463,14 +468,17 @@
                     <span class="p">}</span>
                 <span class="p">],</span>
             <span class="p">)</span>
-            <span class="k">return</span> <span class="n">fig</span>
+            <span class="k">return</span> <span class="n">fig</span><span class="p">,</span> <span class="p">[]</span>
 
         <span class="k">if</span> <span class="n">color_by</span> <span class="o">==</span> <span class="s2">&quot;execution_time&quot;</span><span class="p">:</span>
-            <span class="n">color_values</span> <span class="o">=</span> <span class="n">filtered_df</span><span class="p">[</span><span class="s2">&quot;execution_time&quot;</span><span class="p">]</span>
+            <span class="n">mean_values</span> <span class="o">=</span> <span class="n">filtered_df</span><span class="p">[</span><span class="s2">&quot;mean_execution_time&quot;</span><span class="p">]</span>
             <span class="n">colorbar_title</span> <span class="o">=</span> <span class="s2">&quot;Execution Time (s)&quot;</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">color_values</span> <span class="o">=</span> <span class="n">filtered_df</span><span class="p">[</span><span class="s2">&quot;memory_used&quot;</span><span class="p">]</span>
+            <span class="n">mean_values</span> <span class="o">=</span> <span class="n">filtered_df</span><span class="p">[</span><span class="s2">&quot;mean_memory_used&quot;</span><span class="p">]</span>
             <span class="n">colorbar_title</span> <span class="o">=</span> <span class="s2">&quot;Memory Used (GB)&quot;</span>
+
+        <span class="n">counts</span> <span class="o">=</span> <span class="n">filtered_df</span><span class="p">[</span><span class="s2">&quot;sample_count&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span>
+        <span class="n">color_values</span> <span class="o">=</span> <span class="n">mean_values</span><span class="o">.</span><span class="n">values</span>
 
         <span class="n">dims</span> <span class="o">=</span> <span class="p">[</span>
             <span class="p">{</span>
@@ -480,24 +488,27 @@
             <span class="k">for</span> <span class="n">dim_col</span> <span class="ow">in</span> <span class="n">selected_dimensions</span>
         <span class="p">]</span>
 
-        <span class="n">parcats</span> <span class="o">=</span> <span class="n">go</span><span class="o">.</span><span class="n">Parcats</span><span class="p">(</span>
-            <span class="n">dimensions</span><span class="o">=</span><span class="n">dims</span><span class="p">,</span>
-            <span class="n">line</span><span class="o">=</span><span class="p">{</span>
-                <span class="s2">&quot;color&quot;</span><span class="p">:</span> <span class="n">color_values</span><span class="p">,</span>
-                <span class="s2">&quot;colorscale&quot;</span><span class="p">:</span> <span class="s2">&quot;Tealrose&quot;</span><span class="p">,</span>
-                <span class="s2">&quot;showscale&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
-                <span class="s2">&quot;colorbar&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;title&quot;</span><span class="p">:</span> <span class="n">colorbar_title</span><span class="p">},</span>
-            <span class="p">},</span>
-            <span class="n">hoverinfo</span><span class="o">=</span><span class="s2">&quot;count&quot;</span><span class="p">,</span>
+        <span class="n">fig</span> <span class="o">=</span> <span class="n">go</span><span class="o">.</span><span class="n">Figure</span><span class="p">()</span>
+        <span class="n">fig</span><span class="o">.</span><span class="n">add_trace</span><span class="p">(</span>
+            <span class="n">go</span><span class="o">.</span><span class="n">Parcats</span><span class="p">(</span>
+                <span class="n">dimensions</span><span class="o">=</span><span class="n">dims</span><span class="p">,</span>
+                <span class="n">line</span><span class="o">=</span><span class="p">{</span>
+                    <span class="s2">&quot;color&quot;</span><span class="p">:</span> <span class="n">color_values</span><span class="p">,</span>
+                    <span class="s2">&quot;colorscale&quot;</span><span class="p">:</span> <span class="s2">&quot;Tealrose&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;showscale&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+                    <span class="s2">&quot;colorbar&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;title&quot;</span><span class="p">:</span> <span class="n">colorbar_title</span><span class="p">},</span>
+                <span class="p">},</span>
+                <span class="n">counts</span><span class="o">=</span><span class="n">counts</span><span class="p">,</span>
+                <span class="n">hoverinfo</span><span class="o">=</span><span class="s2">&quot;count&quot;</span><span class="p">,</span>
+                <span class="n">hovertemplate</span><span class="o">=</span><span class="s2">&quot;Count: %</span><span class="si">{count}</span><span class="se">\n</span><span class="s2">Mean: REPLACE_ME&lt;extra&gt;&lt;/extra&gt;&quot;</span><span class="p">,</span>
+            <span class="p">)</span>
         <span class="p">)</span>
-
-        <span class="n">fig</span> <span class="o">=</span> <span class="n">go</span><span class="o">.</span><span class="n">Figure</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="n">parcats</span><span class="p">)</span>
         <span class="n">fig</span><span class="o">.</span><span class="n">update_layout</span><span class="p">(</span>
             <span class="n">title</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;Benchmark Results for </span><span class="si">{</span><span class="n">selected_algorithm</span><span class="o">.</span><span class="n">title</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
             <span class="n">template</span><span class="o">=</span><span class="s2">&quot;plotly_white&quot;</span><span class="p">,</span>
         <span class="p">)</span>
 
-        <span class="k">return</span> <span class="n">fig</span>
+        <span class="k">return</span> <span class="n">fig</span><span class="p">,</span> <span class="n">color_values</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
 
     <span class="nd">@app</span><span class="o">.</span><span class="n">callback</span><span class="p">(</span>
         <span class="n">Output</span><span class="p">(</span><span class="s2">&quot;violin-graph&quot;</span><span class="p">,</span> <span class="s2">&quot;figure&quot;</span><span class="p">),</span>
@@ -510,7 +521,7 @@
     <span class="k">def</span> <span class="nf">update_violin</span><span class="p">(</span><span class="n">selected_algorithm</span><span class="p">,</span> <span class="n">color_by</span><span class="p">,</span> <span class="n">selected_dimensions</span><span class="p">):</span>
         <span class="n">selected_algorithm</span> <span class="o">=</span> <span class="n">selected_algorithm</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
         <span class="k">try</span><span class="p">:</span>
-            <span class="n">filtered_df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">xs</span><span class="p">(</span><span class="n">selected_algorithm</span><span class="p">,</span> <span class="n">level</span><span class="o">=</span><span class="s2">&quot;algorithm&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">reset_index</span><span class="p">()</span>
+            <span class="n">filtered_df</span> <span class="o">=</span> <span class="n">df_agg</span><span class="o">.</span><span class="n">xs</span><span class="p">(</span><span class="n">selected_algorithm</span><span class="p">,</span> <span class="n">level</span><span class="o">=</span><span class="s2">&quot;algorithm&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">reset_index</span><span class="p">()</span>
         <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
             <span class="n">fig</span> <span class="o">=</span> <span class="n">go</span><span class="o">.</span><span class="n">Figure</span><span class="p">()</span>
             <span class="n">fig</span><span class="o">.</span><span class="n">update_layout</span><span class="p">(</span>
@@ -543,7 +554,11 @@
             <span class="p">)</span>
             <span class="k">return</span> <span class="n">fig</span>
 
-        <span class="n">y_metric</span> <span class="o">=</span> <span class="s2">&quot;execution_time&quot;</span> <span class="k">if</span> <span class="n">color_by</span> <span class="o">==</span> <span class="s2">&quot;execution_time&quot;</span> <span class="k">else</span> <span class="s2">&quot;memory_used&quot;</span>
+        <span class="n">y_metric</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="s2">&quot;mean_execution_time&quot;</span>
+            <span class="k">if</span> <span class="n">color_by</span> <span class="o">==</span> <span class="s2">&quot;execution_time&quot;</span>
+            <span class="k">else</span> <span class="s2">&quot;mean_memory_used&quot;</span>
+        <span class="p">)</span>
         <span class="n">y_label</span> <span class="o">=</span> <span class="s2">&quot;Execution Time&quot;</span> <span class="k">if</span> <span class="n">color_by</span> <span class="o">==</span> <span class="s2">&quot;execution_time&quot;</span> <span class="k">else</span> <span class="s2">&quot;Memory Used&quot;</span>
 
         <span class="n">violin_dimension</span> <span class="o">=</span> <span class="n">selected_dimensions</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">if</span> <span class="n">selected_dimensions</span> <span class="k">else</span> <span class="s2">&quot;backend&quot;</span>
@@ -569,6 +584,7 @@
                 <span class="s2">&quot;cpu&quot;</span><span class="p">,</span>
                 <span class="s2">&quot;os&quot;</span><span class="p">,</span>
                 <span class="s2">&quot;num_thread&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;sample_count&quot;</span><span class="p">,</span>
             <span class="p">],</span>
             <span class="n">title</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">y_label</span><span class="si">}</span><span class="s2"> Distribution for </span><span class="si">{</span><span class="n">selected_algorithm</span><span class="o">.</span><span class="n">title</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
         <span class="p">)</span>
@@ -577,22 +593,55 @@
 
     <span class="n">app</span><span class="o">.</span><span class="n">clientside_callback</span><span class="p">(</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        function(hoverData) {</span>
-<span class="sd">            setTimeout(() =&gt; {</span>
-<span class="sd">                const tooltips = document.querySelectorAll(&#39;.hoverlayer .hovertext&#39;);</span>
-<span class="sd">                tooltips.forEach(tooltip =&gt; {</span>
-<span class="sd">                    const textNode = tooltip.querySelector(&#39;text&#39;);</span>
-<span class="sd">                    if (textNode &amp;&amp; textNode.textContent.includes(&#39;Count:&#39;)) {</span>
-<span class="sd">                        textNode.textContent = textNode.textContent.replace(&#39;Count:&#39;,</span>
-<span class="sd">                        &#39;Mean:&#39;);</span>
+<span class="sd">        function(hoverData, meanValues) {</span>
+<span class="sd">            if (!hoverData || !hoverData.points || hoverData.points.length === 0) {</span>
+<span class="sd">                return null;</span>
+<span class="sd">            }</span>
+
+<span class="sd">            if (!meanValues) {</span>
+<span class="sd">                // No mean values available yet</span>
+<span class="sd">                return null;</span>
+<span class="sd">            }</span>
+
+<span class="sd">            var point = hoverData.points[0];</span>
+<span class="sd">            var pointIndex = point.pointNumber;</span>
+<span class="sd">            var meanValue = meanValues[pointIndex];</span>
+
+<span class="sd">            const tooltips = document.querySelectorAll(&#39;.hoverlayer .hovertext&#39;);</span>
+<span class="sd">            // Create a MutationObserver that waits for the tooltip to appear</span>
+<span class="sd">            const observer = new MutationObserver(mutations =&gt; {</span>
+<span class="sd">                let replaced = false;</span>
+<span class="sd">                mutations.forEach(mutation =&gt; {</span>
+<span class="sd">                    if (mutation.type === &#39;childList&#39;) {</span>
+<span class="sd">                        const tooltips = document.querySelectorAll(&#39;.hoverlayer .</span>
+<span class="sd">                        hovertext text&#39;);</span>
+<span class="sd">                        tooltips.forEach(tNode =&gt; {</span>
+<span class="sd">                            if (tNode.textContent.includes(&#39;REPLACE_ME&#39;)) {</span>
+<span class="sd">                                tNode.textContent = tNode.textContent.replace(</span>
+<span class="sd">                                    &#39;REPLACE_ME&#39;,</span>
+<span class="sd">                                    meanValue.toFixed(3)</span>
+<span class="sd">                                );</span>
+<span class="sd">                                replaced = true;</span>
+<span class="sd">                            }</span>
+<span class="sd">                        });</span>
 <span class="sd">                    }</span>
 <span class="sd">                });</span>
-<span class="sd">            }, 100);</span>
+<span class="sd">                // Once replaced, disconnect the observer to stop unnecessary monitoring</span>
+<span class="sd">                if (replaced) {</span>
+<span class="sd">                    observer.disconnect();</span>
+<span class="sd">                }</span>
+<span class="sd">            });</span>
+
+<span class="sd">            const hoverlayer = document.querySelector(&#39;.hoverlayer&#39;);</span>
+<span class="sd">            if (hoverlayer) {</span>
+<span class="sd">                observer.observe(hoverlayer, { childList: true, subtree: true });</span>
+<span class="sd">            }</span>
+
 <span class="sd">            return null;</span>
 <span class="sd">        }</span>
 <span class="sd">        &quot;&quot;&quot;</span><span class="p">,</span>
         <span class="n">Output</span><span class="p">(</span><span class="s2">&quot;hover-text-hack&quot;</span><span class="p">,</span> <span class="s2">&quot;children&quot;</span><span class="p">),</span>
-        <span class="p">[</span><span class="n">Input</span><span class="p">(</span><span class="s2">&quot;benchmark-graph&quot;</span><span class="p">,</span> <span class="s2">&quot;hoverData&quot;</span><span class="p">)],</span>
+        <span class="p">[</span><span class="n">Input</span><span class="p">(</span><span class="s2">&quot;benchmark-graph&quot;</span><span class="p">,</span> <span class="s2">&quot;hoverData&quot;</span><span class="p">),</span> <span class="n">Input</span><span class="p">(</span><span class="s2">&quot;mean-values-store&quot;</span><span class="p">,</span> <span class="s2">&quot;data&quot;</span><span class="p">)],</span>
     <span class="p">)</span>
 
     <span class="n">app</span><span class="o">.</span><span class="n">run_server</span><span class="p">(</span><span class="n">port</span><span class="o">=</span><span class="n">port</span><span class="p">,</span> <span class="n">debug</span><span class="o">=</span><span class="n">debug</span><span class="p">)</span></div>
