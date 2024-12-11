@@ -587,9 +587,11 @@
     <span class="k">except</span> <span class="ne">FileNotFoundError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
         <span class="k">raise</span> <span class="n">click</span><span class="o">.</span><span class="n">ClickException</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">))</span>
 
+    <span class="n">machine</span> <span class="o">=</span> <span class="n">platform</span><span class="o">.</span><span class="n">node</span><span class="p">()</span>
     <span class="n">env_data</span> <span class="o">=</span> <span class="n">get_benchmark_config</span><span class="p">()</span><span class="o">.</span><span class="n">env_data</span>
     <span class="n">config_data</span><span class="p">[</span><span class="s2">&quot;pythons&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">env_data</span><span class="p">[</span><span class="s2">&quot;pythons&quot;</span><span class="p">]</span>
     <span class="n">config_data</span><span class="p">[</span><span class="s2">&quot;req&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">env_data</span><span class="p">[</span><span class="s2">&quot;req&quot;</span><span class="p">]</span>
+    <span class="n">config_data</span><span class="p">[</span><span class="s2">&quot;machine&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">machine</span>
 
     <span class="k">if</span> <span class="n">results_dir</span><span class="p">:</span>
         <span class="n">config_data</span><span class="p">[</span><span class="s2">&quot;results_dir&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">results_dir</span><span class="p">)</span>
@@ -633,6 +635,12 @@
             <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
                 <span class="s2">&quot;Could not determine git commit hash. Proceeding without it.&quot;</span>
             <span class="p">)</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">safe_args</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;--machine=</span><span class="si">{</span><span class="n">machine</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Set machine to: </span><span class="si">{</span><span class="n">machine</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">except</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">CalledProcessError</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Could not determine machine. Proceeding without it.&quot;</span><span class="p">)</span>
 
         <span class="n">old_cwd</span> <span class="o">=</span> <span class="n">Path</span><span class="o">.</span><span class="n">cwd</span><span class="p">()</span>
         <span class="k">if</span> <span class="n">_has_git</span><span class="p">:</span>
