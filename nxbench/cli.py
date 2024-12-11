@@ -1,6 +1,7 @@
 import json
 import logging
 import os
+import platform
 import shutil
 import subprocess
 import sys
@@ -11,8 +12,10 @@ from pathlib import Path
 
 import click
 import pandas as pd
+import psutil
 import requests
 
+from nxbench._version import __version__
 from nxbench.benchmarks.config import DatasetConfig
 from nxbench.benchmarks.utils import get_benchmark_config
 from nxbench.data.loader import BenchmarkDataManager
@@ -31,6 +34,33 @@ def validate_executable(path: str | Path) -> Path:
     if not os.access(executable, os.X_OK):
         raise ValueError(f"Path is not executable: {executable}")
     return executable
+
+
+def generate_machine_info(results_dir: Path) -> None:
+    """Generate machine info JSON file if it doesn't already exist."""
+    machine = platform.node()
+    results_dir = Path(f"{results_dir}/{machine}")
+    results_dir.mkdir(parents=True, exist_ok=True)
+    machine_info_path = results_dir / "machine.json"
+
+    if machine_info_path.exists():
+        logger.debug(f"Machine info already exists: {machine_info_path}")
+        return
+
+    machine_info = {
+        "arch": platform.machine(),
+        "cpu": platform.processor(),
+        "machine": machine,
+        "num_cpu": str(psutil.cpu_count(logical=True)),
+        "os": f"{platform.system()} {platform.release()}",
+        "ram": str(psutil.virtual_memory().total),
+        "version": __version__,
+    }
+
+    with machine_info_path.open("w") as f:
+        json.dump(machine_info, f, indent=4)
+
+    logger.info(f"Generated machine info at: {machine_info_path}")
 
 
 def get_latest_commit_hash(github_url: str) -> str:
