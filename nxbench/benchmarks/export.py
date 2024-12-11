@@ -4,6 +4,7 @@ import re
 from pathlib import Path
 from typing import Any
 
+import networkx as nx
 import pandas as pd
 
 from nxbench.benchmarks.config import BenchmarkResult, MachineInfo
@@ -131,10 +132,16 @@ class ResultsExporter:
         """Create a benchmark result object."""
         dataset_configs = self.benchmark_config.datasets
 
-        dataset_config = next(d for d in dataset_configs if d.name == dataset)
-
         try:
+            dataset_config = next(d for d in dataset_configs if d.name == dataset)
             graph, metadata = self.data_manager.load_network_sync(dataset_config)
+        except StopIteration:
+            logger.warning(
+                f"No dataset configuration found for '{dataset}', using dummy "
+                f"graph/metadata."
+            )
+            graph = nx.Graph()
+            metadata = {}
         except Exception:
             logger.exception(f"Failed to load network for dataset '{dataset}'")
             return None
