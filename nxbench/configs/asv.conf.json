@@ -8,7 +8,7 @@
         "main"
     ],
     "repo": "https://github.com/dpys/nxbench",
-    "environment_type": "virtualenv",
+    "environment_type": "conda",
     "show_commit_url": "https://github.com/dpys/nxbench/commit/",
     "matrix": {},
     "benchmark_dir": "nxbench/benchmarks",

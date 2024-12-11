@@ -298,8 +298,8 @@ matrix:
     - "cugraph"
   num_threads:
     - "1"
+    - "2"
     - "4"
-    - "8"
 
 env_config:
   req:
