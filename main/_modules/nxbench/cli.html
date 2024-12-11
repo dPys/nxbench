@@ -546,6 +546,12 @@
     <span class="k">if</span> <span class="n">asv_path</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">raise</span> <span class="n">click</span><span class="o">.</span><span class="n">ClickException</span><span class="p">(</span><span class="s2">&quot;ASV executable not found&quot;</span><span class="p">)</span>
 
+    <span class="k">if</span> <span class="n">results_dir</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">results_dir</span> <span class="o">=</span> <span class="n">Path</span><span class="o">.</span><span class="n">cwd</span><span class="p">()</span> <span class="o">/</span> <span class="s2">&quot;results&quot;</span>
+    <span class="n">results_dir</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="n">generate_machine_info</span><span class="p">(</span><span class="n">results_dir</span><span class="p">)</span>
+
     <span class="n">project_root</span> <span class="o">=</span> <span class="n">find_project_root</span><span class="p">()</span>
     <span class="n">_has_git</span> <span class="o">=</span> <span class="n">has_git</span><span class="p">(</span><span class="n">project_root</span><span class="p">)</span>
     <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Project root: </span><span class="si">{</span><span class="n">project_root</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
