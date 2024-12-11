@@ -4,11 +4,15 @@ import re
 from pathlib import Path
 from typing import Any
 
-import networkx as nx
 import pandas as pd
 
-from nxbench.benchmarks.config import BenchmarkResult, MachineInfo
-from nxbench.benchmarks.utils import get_benchmark_config, get_python_version
+from nxbench.benchmarks.config import BenchmarkResult, DatasetConfig, MachineInfo
+from nxbench.benchmarks.utils import (
+    get_available_algorithms,
+    get_benchmark_config,
+    get_generators,
+    get_python_version,
+)
 from nxbench.data.db import BenchmarkDB
 from nxbench.data.loader import BenchmarkDataManager
 
@@ -126,22 +130,30 @@ class ResultsExporter:
         date: int,
     ) -> BenchmarkResult | None:
         """Create a benchmark result object."""
-        dataset_config = next(
-            (ds for ds in self.benchmark_config.datasets if ds.name == dataset),
-            None,
+        generators = get_generators()
+
+        dataset_config = DatasetConfig(
+            name=dataset,
+            source=(
+                "generator"
+                if (
+                    sum(
+                        [
+                            gen in dataset
+                            for gen in [g[0].split("_graph")[0] for g in generators]
+                        ]
+                    )
+                    > 0
+                )
+                else "networkrepository"
+            ),
         )
 
-        if dataset_config is None:
-            logger.warning(f"No DatasetConfig found for dataset '{dataset}'")
-            graph = nx.Graph()
-            graph.graph["name"] = dataset
-            metadata = {}
-        else:
-            try:
-                graph, metadata = self.data_manager.load_network_sync(dataset_config)
-            except Exception:
-                logger.exception(f"Failed to load network for dataset '{dataset}'")
-                return None
+        try:
+            graph, metadata = self.data_manager.load_network_sync(dataset_config)
+        except Exception:
+            logger.exception(f"Failed to load network for dataset '{dataset}'")
+            return None
 
         asv_result = {
             "algorithm": algorithm,
@@ -237,9 +249,24 @@ class ResultsExporter:
             )
             return None
 
-        algorithm = parts[0]
         backend = parts[-1]
-        dataset = "_".join(parts[1:-1])
+
+        all_algs = list(get_available_algorithms().keys())
+
+        matches = []
+        for i in range(len(parts) - 1):
+            candidate_alg = "_".join(parts[:i])
+            if candidate_alg in all_algs:
+                matches.append((candidate_alg, i))
+
+        if matches:
+            # pick the match with the largest i (longest prefix)
+            best_match = max(matches, key=lambda x: len(x[0]))
+            best_i = best_match[1]
+            algorithm = best_match[0]
+            dataset = "_".join(parts[best_i:-1])
+        else:
+            return None
 
         logger.debug(
             f"Parsed benchmark name '{bench_name}': "
@@ -315,7 +342,6 @@ class ResultsExporter:
 
             commit_hash = data.get("commit_hash", "unknown")
             date = data.get("date", 0)
-
             for bench_name, bench_data in data.get("results", {}).items():
                 if not isinstance(bench_data, list) or len(bench_data) < 2:
                     logger.warning(

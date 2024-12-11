@@ -1,6 +1,7 @@
 import dash
 import dash_bootstrap_components as dbc
 import pandas as pd
+import plotly.express as px
 import plotly.graph_objects as go
 from dash import dcc, html
 from dash.dependencies import Input, Output
@@ -11,18 +12,8 @@ def run_server(port=8050, debug=False):
 
     df = pd.read_csv("results/results.csv")
     pd.DataFrame.iteritems = pd.DataFrame.items
-    essential_columns = [
-        "algorithm",
-        "dataset",
-        "backend",
-        "execution_time",
-        "memory_used",
-        "num_nodes",
-        "num_edges",
-        "is_directed",
-        "is_weighted",
-        # "density",
-    ]
+
+    essential_columns = ["algorithm", "execution_time", "memory_used"]
 
     df = df.dropna(subset=essential_columns)
 
@@ -30,24 +21,24 @@ def run_server(port=8050, debug=False):
     df["memory_used"] = pd.to_numeric(df["memory_used"], errors="coerce")
     df["num_nodes"] = pd.to_numeric(df["num_nodes"], errors="coerce")
     df["num_edges"] = pd.to_numeric(df["num_edges"], errors="coerce")
-    # df["density"] = pd.to_numeric(df["density"], errors="coerce")
+    df["num_thread"] = pd.to_numeric(df["num_thread"], errors="coerce")
 
-    df = df.dropna(
-        subset=[
-            "execution_time",
-            "memory_used",
-            "num_nodes",
-            "num_edges",
-            # "density"
-        ]
-    )
+    df = df.dropna(subset=["algorithm", "execution_time", "memory_used"])
 
-    df["is_directed"] = df["is_directed"].astype(str)
-    df["is_weighted"] = df["is_weighted"].astype(str)
-
-    string_columns = ["algorithm", "dataset", "backend", "is_directed", "is_weighted"]
+    string_columns = [
+        "algorithm",
+        "dataset",
+        "backend",
+        "is_directed",
+        "is_weighted",
+        "commit_hash",
+        "version",
+        "python_version",
+        "cpu",
+        "os",
+    ]
     for col in string_columns:
-        df[col] = df[col].str.strip().str.lower()
+        df[col] = df[col].astype(str).str.strip().str.lower()
 
     aggregation_columns = ["execution_time", "memory_used"]
     group_columns = [
@@ -58,11 +49,17 @@ def run_server(port=8050, debug=False):
         "num_edges",
         "is_directed",
         "is_weighted",
-        # "density",
+        "commit_hash",
+        "version",
+        "python_version",
+        "cpu",
+        "os",
+        "num_thread",
     ]
     df = df.groupby(group_columns, as_index=False)[aggregation_columns].mean()
-
     df.set_index(group_columns, inplace=True)
+
+    available_parcats_columns = [col for col in group_columns if col != "algorithm"]
 
     app.layout = html.Div(
         [
@@ -108,16 +105,57 @@ def run_server(port=8050, debug=False):
                     "padding": "0 20px",
                 },
             ),
-            dcc.Graph(id="benchmark-graph"),
-            html.Div(id="hover-text-hack", style={"display": "none"}),
+            html.Div(
+                [
+                    html.Label(
+                        "Select Parallel Categories Dimensions:",
+                        style={"fontWeight": "bold"},
+                    ),
+                    dcc.Dropdown(
+                        id="parcats-dimensions-dropdown",
+                        options=[
+                            {"label": c.replace("_", " ").title(), "value": c}
+                            for c in available_parcats_columns
+                        ],
+                        value=available_parcats_columns,  # default select all
+                        multi=True,
+                        style={"width": "100%"},
+                    ),
+                ],
+                style={"width": "100%", "display": "block", "padding": "20px"},
+            ),
+            dbc.Tabs(
+                [
+                    dbc.Tab(
+                        label="Parallel Categories",
+                        tab_id="parcats-tab",
+                        children=[
+                            dcc.Graph(id="benchmark-graph"),
+                            html.Div(id="hover-text-hack", style={"display": "none"}),
+                        ],
+                    ),
+                    dbc.Tab(
+                        label="Violin Plots",
+                        tab_id="violin-tab",
+                        children=[dcc.Graph(id="violin-graph")],
+                    ),
+                ],
+                id="tabs",
+                active_tab="parcats-tab",
+                style={"marginTop": "20px"},
+            ),
         ]
     )
 
     @app.callback(
         Output("benchmark-graph", "figure"),
-        [Input("algorithm-dropdown", "value"), Input("color-toggle", "value")],
+        [
+            Input("algorithm-dropdown", "value"),
+            Input("color-toggle", "value"),
+            Input("parcats-dimensions-dropdown", "value"),
+        ],
     )
-    def update_graph(selected_algorithm, color_by):
+    def update_graph(selected_algorithm, color_by, selected_dimensions):
         selected_algorithm = selected_algorithm.lower()
 
         try:
@@ -161,53 +199,28 @@ def run_server(port=8050, debug=False):
             color_values = filtered_df["memory_used"]
             colorbar_title = "Memory Used (GB)"
 
-        counts = color_values.values
-
-        dimensions = [
-            {
-                "label": "Dataset",
-                "values": filtered_df.index.get_level_values("dataset"),
-            },
-            {
-                "label": "Backend",
-                "values": filtered_df.index.get_level_values("backend"),
-            },
-            {
-                "label": "Number of Nodes",
-                "values": filtered_df.index.get_level_values("num_nodes"),
-            },
-            {
-                "label": "Number of Edges",
-                "values": filtered_df.index.get_level_values("num_edges"),
-            },
-            {
-                "label": "Is Directed",
-                "values": filtered_df.index.get_level_values("is_directed"),
-            },
-            {
-                "label": "Is Weighted",
-                "values": filtered_df.index.get_level_values("is_weighted"),
-            },
-            # {
-            #     "label": "Density",
-            #     "values": filtered_df.index.get_level_values("density"),
-            # },
+        dims = [
+            (
+                {
+                    "label": dim_col.replace("_", " ").title(),
+                    "values": filtered_df.index.get_level_values(dim_col),
+                }
+            )
+            for dim_col in selected_dimensions
         ]
 
         parcats = go.Parcats(
-            dimensions=dimensions,
+            dimensions=dims,
             line={
                 "color": color_values,
                 "colorscale": "Tealrose",
                 "showscale": True,
                 "colorbar": {"title": colorbar_title},
             },
-            counts=counts,
             hoverinfo="count",
         )
 
         fig = go.Figure(data=parcats)
-
         fig.update_layout(
             title=f"Benchmark Results for {selected_algorithm.title()}",
             template="plotly_white",
@@ -215,11 +228,78 @@ def run_server(port=8050, debug=False):
 
         return fig
 
+    @app.callback(
+        Output("violin-graph", "figure"),
+        [Input("algorithm-dropdown", "value"), Input("color-toggle", "value")],
+    )
+    def update_violin(selected_algorithm, color_by):
+        selected_algorithm = selected_algorithm.lower()
+        try:
+            filtered_df = df.xs(selected_algorithm, level="algorithm").reset_index()
+        except KeyError:
+            fig = go.Figure()
+            fig.update_layout(
+                title="No Data Available",
+                annotations=[
+                    {
+                        "text": "No data available for the selected algorithm.",
+                        "x": 0.5,
+                        "y": 0.5,
+                        "showarrow": False,
+                        "font": {"size": 20},
+                    }
+                ],
+            )
+            return fig
+
+        if filtered_df.empty:
+            fig = go.Figure()
+            fig.update_layout(
+                title="No Data Available",
+                annotations=[
+                    {
+                        "text": "No data available for the selected algorithm.",
+                        "x": 0.5,
+                        "y": 0.5,
+                        "showarrow": False,
+                        "font": {"size": 20},
+                    }
+                ],
+            )
+            return fig
+
+        y_metric = "execution_time" if color_by == "execution_time" else "memory_used"
+        y_label = "Execution Time" if color_by == "execution_time" else "Memory Used"
+
+        fig = px.violin(
+            filtered_df,
+            x="backend",
+            y=y_metric,
+            color="backend",
+            box=True,
+            points="all",
+            hover_data=[
+                "dataset",
+                "num_nodes",
+                "num_edges",
+                "is_directed",
+                "is_weighted",
+                "commit_hash",
+                "version",
+                "python_version",
+                "cpu",
+                "os",
+                "num_thread",
+            ],
+            title=f"{y_label} Distribution for {selected_algorithm.title()}",
+        )
+        fig.update_layout(template="plotly_white")
+        return fig
+
     app.clientside_callback(
         """
-        function(clickData) {
+        function(hoverData) {
             setTimeout(() => {
-                // Select all tooltip elements
                 const tooltips = document.querySelectorAll('.hoverlayer .hovertext');
                 tooltips.forEach(tooltip => {
                     const textNode = tooltip.querySelector('text');
@@ -228,7 +308,7 @@ def run_server(port=8050, debug=False):
                         'Mean:');
                     }
                 });
-            }, 10);  // Delay to ensure tooltips are rendered
+            }, 100);
             return null;
         }
         """,

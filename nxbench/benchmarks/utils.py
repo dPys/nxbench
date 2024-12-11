@@ -1,12 +1,21 @@
 import gc
+import importlib
+import inspect
 import logging
 import os
 import sys
 import tracemalloc
 from contextlib import contextmanager
 from pathlib import Path
+from typing import TYPE_CHECKING
+
+import networkx as nx
 
 from nxbench.benchmarks.config import AlgorithmConfig, BenchmarkConfig, DatasetConfig
+from nxbench.benchmarks.constants import ALGORITHM_SUBMODULES
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
 
 logger = logging.getLogger("nxbench")
 
@@ -181,3 +190,65 @@ def memory_tracker():
 
     finally:
         tracemalloc.stop()
+
+
+def get_available_algorithms():
+    """Get algorithms from specified NetworkX submodules and custom
+    algorithms.
+
+    Returns
+    -------
+    Dict[str, Callable]
+        Dictionary of available algorithms.
+    """
+    nx_algorithm_dict: dict[str, Callable] = {}
+
+    for submodule in ALGORITHM_SUBMODULES:
+        spec = importlib.util.find_spec(submodule)
+        if spec is None:
+            continue
+        module = importlib.import_module(submodule)
+
+        for attr_name in dir(module):
+            if not attr_name.startswith("_") and not any(
+                attr_name.startswith(prefix)
+                for prefix in [
+                    "is_",
+                    "has_",
+                    "get_",
+                    "set_",
+                    "contains_",
+                    "write_",
+                    "read_",
+                    "to_",
+                    "from_",
+                    "generate_",
+                    "make_",
+                    "create_",
+                    "build_",
+                    "delete_",
+                    "remove_",
+                    "not_implemented",
+                    "np_random_state",
+                ]
+            ):
+                try:
+                    attr = getattr(module, attr_name)
+                except AttributeError:
+                    continue
+                if inspect.isfunction(attr):
+                    if "approximation" in module.__name__:
+                        nx_algorithm_dict[f"approximate_{attr_name}"] = attr
+                    else:
+                        nx_algorithm_dict[attr_name] = attr
+
+    return nx_algorithm_dict
+
+
+def get_generators() -> list[dict]:
+    try:
+        nx_generators = inspect.getmembers(nx.generators, inspect.isfunction)
+    except Exception as e:
+        logger.exception("Failed to retrieve networkx generators.", exc_info=e)
+        nx_generators = set({})
+    return nx_generators
