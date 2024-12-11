@@ -189,24 +189,64 @@ class ResultsExporter:
             return result
 
     def _parse_benchmark_name(self, bench_name: str) -> tuple[str, str, str] | None:
-        """Parse the benchmark name to extract algorithm, dataset, and backend."""
-        pattern = (
-            r"^(?:benchmark\.)?GraphBenchmark\.track_(.+?)_([^_]+)_([^_]+)(?:_\d+)?$"
-        )
-        match = re.search(pattern, bench_name)
-        if match:
-            algorithm = match.group(1)
-            dataset = match.group(2)
-            backend = match.group(3)
-            logger.debug(
-                f"Parsed benchmark name '{bench_name}': algorithm={algorithm}, "
-                f"dataset={dataset}, backend={backend}"
+        """Parse the benchmark name to extract algorithm, dataset, and backend.
+
+        Parameters
+        ----------
+        bench_name : str
+            The benchmark name to parse
+
+        Returns
+        -------
+        tuple[str, str, str] | None
+            A tuple of (algorithm, dataset, backend) if parsing succeeds, None otherwise
+
+        Notes
+        -----
+        Handles benchmark names in the format:
+        [benchmark.]GraphBenchmark.track_<algorithm>_<dataset>_<backend>[_threads]
+
+        Where:
+        - `algorithm` is the first token.
+        - `backend` is the last token before optional numeric threads.
+        - `dataset` is everything in between algorithm and backend.
+        The dataset can contain multiple underscores.
+        """
+        if not bench_name:
+            logger.warning(
+                f"Benchmark name '{bench_name}' does not match expected patterns."
             )
-            return algorithm, dataset, backend
-        logger.warning(
-            f"Benchmark name '{bench_name}' does not match expected patterns."
+            return None
+
+        prefix_pattern = r"^(?:benchmark\.)?GraphBenchmark\.track_"
+        bench_name_cleaned = re.sub(prefix_pattern, "", bench_name)
+
+        parts = bench_name_cleaned.split("_")
+        if not parts or len(parts) < 3:
+            logger.warning(
+                f"Benchmark name '{bench_name}' does not match expected patterns."
+            )
+            return None
+
+        if parts[-1].isdigit():
+            parts = parts[:-1]
+
+        if len(parts) < 3:
+            logger.warning(
+                f"Benchmark name '{bench_name}' does not match expected patterns."
+            )
+            return None
+
+        algorithm = parts[0]
+        backend = parts[-1]
+        dataset = "_".join(parts[1:-1])
+
+        logger.debug(
+            f"Parsed benchmark name '{bench_name}': "
+            f"algorithm={algorithm}, dataset={dataset}, backend={backend}"
         )
-        return None
+
+        return algorithm, dataset, backend
 
     def load_results(self) -> list[BenchmarkResult]:
         """Load benchmark results and machine information."""

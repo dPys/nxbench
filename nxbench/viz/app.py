@@ -21,7 +21,7 @@ def run_server(port=8050, debug=False):
         "num_edges",
         "is_directed",
         "is_weighted",
-        "density",
+        # "density",
     ]
 
     df = df.dropna(subset=essential_columns)
@@ -30,10 +30,16 @@ def run_server(port=8050, debug=False):
     df["memory_used"] = pd.to_numeric(df["memory_used"], errors="coerce")
     df["num_nodes"] = pd.to_numeric(df["num_nodes"], errors="coerce")
     df["num_edges"] = pd.to_numeric(df["num_edges"], errors="coerce")
-    df["density"] = pd.to_numeric(df["density"], errors="coerce")
+    # df["density"] = pd.to_numeric(df["density"], errors="coerce")
 
     df = df.dropna(
-        subset=["execution_time", "memory_used", "num_nodes", "num_edges", "density"]
+        subset=[
+            "execution_time",
+            "memory_used",
+            "num_nodes",
+            "num_edges",
+            # "density"
+        ]
     )
 
     df["is_directed"] = df["is_directed"].astype(str)
@@ -52,7 +58,7 @@ def run_server(port=8050, debug=False):
         "num_edges",
         "is_directed",
         "is_weighted",
-        "density",
+        # "density",
     ]
     df = df.groupby(group_columns, as_index=False)[aggregation_columns].mean()
 
@@ -182,10 +188,10 @@ def run_server(port=8050, debug=False):
                 "label": "Is Weighted",
                 "values": filtered_df.index.get_level_values("is_weighted"),
             },
-            {
-                "label": "Density",
-                "values": filtered_df.index.get_level_values("density"),
-            },
+            # {
+            #     "label": "Density",
+            #     "values": filtered_df.index.get_level_values("density"),
+            # },
         ]
 
         parcats = go.Parcats(
