@@ -240,6 +240,12 @@ def run_asv_command(
     if asv_path is None:
         raise click.ClickException("ASV executable not found")
 
+    if results_dir is None:
+        results_dir = Path.cwd() / "results"
+    results_dir.mkdir(parents=True, exist_ok=True)
+
+    generate_machine_info(results_dir)
+
     project_root = find_project_root()
     _has_git = has_git(project_root)
     logger.debug(f"Project root: {project_root}")
