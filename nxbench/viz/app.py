@@ -14,7 +14,6 @@ def run_server(port=8050, debug=False):
     pd.DataFrame.iteritems = pd.DataFrame.items
 
     essential_columns = ["algorithm", "execution_time", "memory_used"]
-
     df = df.dropna(subset=essential_columns)
 
     df["execution_time"] = pd.to_numeric(df["execution_time"], errors="coerce")
@@ -40,7 +39,6 @@ def run_server(port=8050, debug=False):
     for col in string_columns:
         df[col] = df[col].astype(str).str.strip().str.lower()
 
-    aggregation_columns = ["execution_time", "memory_used"]
     group_columns = [
         "algorithm",
         "dataset",
@@ -56,8 +54,14 @@ def run_server(port=8050, debug=False):
         "os",
         "num_thread",
     ]
-    df = df.groupby(group_columns, as_index=False)[aggregation_columns].mean()
-    df.set_index(group_columns, inplace=True)
+
+    # compute both mean and count
+    df_agg = df.groupby(group_columns, as_index=False).agg(
+        mean_execution_time=("execution_time", "mean"),
+        mean_memory_used=("memory_used", "mean"),
+        sample_count=("execution_time", "size"),
+    )
+    df_agg.set_index(group_columns, inplace=True)
 
     available_parcats_columns = [col for col in group_columns if col != "algorithm"]
 
@@ -72,12 +76,12 @@ def run_server(port=8050, debug=False):
                         options=[
                             {"label": alg.title(), "value": alg}
                             for alg in sorted(
-                                df.index.get_level_values("algorithm").unique()
+                                df_agg.index.get_level_values("algorithm").unique()
                             )
                         ],
-                        value=sorted(df.index.get_level_values("algorithm").unique())[
-                            0
-                        ],
+                        value=sorted(
+                            df_agg.index.get_level_values("algorithm").unique()
+                        )[0],
                         clearable=False,
                         style={"width": "100%"},
                     ),
@@ -117,7 +121,7 @@ def run_server(port=8050, debug=False):
                             {"label": c.replace("_", " ").title(), "value": c}
                             for c in available_parcats_columns
                         ],
-                        value=available_parcats_columns,  # default select all
+                        value=available_parcats_columns,
                         multi=True,
                         style={"width": "100%"},
                     ),
@@ -144,11 +148,12 @@ def run_server(port=8050, debug=False):
                 active_tab="parcats-tab",
                 style={"marginTop": "20px"},
             ),
+            dcc.Store(id="mean-values-store"),
         ]
     )
 
     @app.callback(
-        Output("benchmark-graph", "figure"),
+        [Output("benchmark-graph", "figure"), Output("mean-values-store", "data")],
         [
             Input("algorithm-dropdown", "value"),
             Input("color-toggle", "value"),
@@ -159,7 +164,7 @@ def run_server(port=8050, debug=False):
         selected_algorithm = selected_algorithm.lower()
 
         try:
-            filtered_df = df.xs(selected_algorithm, level="algorithm")
+            filtered_df = df_agg.xs(selected_algorithm, level="algorithm")
         except KeyError:
             fig = go.Figure()
             fig.update_layout(
@@ -174,7 +179,7 @@ def run_server(port=8050, debug=False):
                     }
                 ],
             )
-            return fig
+            return fig, []
 
         if filtered_df.empty:
             fig = go.Figure()
@@ -190,14 +195,17 @@ def run_server(port=8050, debug=False):
                     }
                 ],
             )
-            return fig
+            return fig, []
 
         if color_by == "execution_time":
-            color_values = filtered_df["execution_time"]
+            mean_values = filtered_df["mean_execution_time"]
             colorbar_title = "Execution Time (s)"
         else:
-            color_values = filtered_df["memory_used"]
+            mean_values = filtered_df["mean_memory_used"]
             colorbar_title = "Memory Used (GB)"
+
+        counts = filtered_df["sample_count"].values
+        color_values = mean_values.values
 
         dims = [
             {
@@ -207,24 +215,27 @@ def run_server(port=8050, debug=False):
             for dim_col in selected_dimensions
         ]
 
-        parcats = go.Parcats(
-            dimensions=dims,
-            line={
-                "color": color_values,
-                "colorscale": "Tealrose",
-                "showscale": True,
-                "colorbar": {"title": colorbar_title},
-            },
-            hoverinfo="count",
+        fig = go.Figure()
+        fig.add_trace(
+            go.Parcats(
+                dimensions=dims,
+                line={
+                    "color": color_values,
+                    "colorscale": "Tealrose",
+                    "showscale": True,
+                    "colorbar": {"title": colorbar_title},
+                },
+                counts=counts,
+                hoverinfo="count",
+                hovertemplate="Count: %{count}\nMean: REPLACE_ME<extra></extra>",
+            )
         )
-
-        fig = go.Figure(data=parcats)
         fig.update_layout(
             title=f"Benchmark Results for {selected_algorithm.title()}",
             template="plotly_white",
         )
 
-        return fig
+        return fig, color_values.tolist()
 
     @app.callback(
         Output("violin-graph", "figure"),
@@ -237,7 +248,7 @@ def run_server(port=8050, debug=False):
     def update_violin(selected_algorithm, color_by, selected_dimensions):
         selected_algorithm = selected_algorithm.lower()
         try:
-            filtered_df = df.xs(selected_algorithm, level="algorithm").reset_index()
+            filtered_df = df_agg.xs(selected_algorithm, level="algorithm").reset_index()
         except KeyError:
             fig = go.Figure()
             fig.update_layout(
@@ -270,7 +281,11 @@ def run_server(port=8050, debug=False):
             )
             return fig
 
-        y_metric = "execution_time" if color_by == "execution_time" else "memory_used"
+        y_metric = (
+            "mean_execution_time"
+            if color_by == "execution_time"
+            else "mean_memory_used"
+        )
         y_label = "Execution Time" if color_by == "execution_time" else "Memory Used"
 
         violin_dimension = selected_dimensions[0] if selected_dimensions else "backend"
@@ -296,6 +311,7 @@ def run_server(port=8050, debug=False):
                 "cpu",
                 "os",
                 "num_thread",
+                "sample_count",
             ],
             title=f"{y_label} Distribution for {selected_algorithm.title()}",
         )
@@ -304,22 +320,55 @@ def run_server(port=8050, debug=False):
 
     app.clientside_callback(
         """
-        function(hoverData) {
-            setTimeout(() => {
-                const tooltips = document.querySelectorAll('.hoverlayer .hovertext');
-                tooltips.forEach(tooltip => {
-                    const textNode = tooltip.querySelector('text');
-                    if (textNode && textNode.textContent.includes('Count:')) {
-                        textNode.textContent = textNode.textContent.replace('Count:',
-                        'Mean:');
+        function(hoverData, meanValues) {
+            if (!hoverData || !hoverData.points || hoverData.points.length === 0) {
+                return null;
+            }
+
+            if (!meanValues) {
+                // No mean values available yet
+                return null;
+            }
+
+            var point = hoverData.points[0];
+            var pointIndex = point.pointNumber;
+            var meanValue = meanValues[pointIndex];
+
+            const tooltips = document.querySelectorAll('.hoverlayer .hovertext');
+            // Create a MutationObserver that waits for the tooltip to appear
+            const observer = new MutationObserver(mutations => {
+                let replaced = false;
+                mutations.forEach(mutation => {
+                    if (mutation.type === 'childList') {
+                        const tooltips = document.querySelectorAll('.hoverlayer .
+                        hovertext text');
+                        tooltips.forEach(tNode => {
+                            if (tNode.textContent.includes('REPLACE_ME')) {
+                                tNode.textContent = tNode.textContent.replace(
+                                    'REPLACE_ME',
+                                    meanValue.toFixed(3)
+                                );
+                                replaced = true;
+                            }
+                        });
                     }
                 });
-            }, 100);
+                // Once replaced, disconnect the observer to stop unnecessary monitoring
+                if (replaced) {
+                    observer.disconnect();
+                }
+            });
+
+            const hoverlayer = document.querySelector('.hoverlayer');
+            if (hoverlayer) {
+                observer.observe(hoverlayer, { childList: true, subtree: true });
+            }
+
             return null;
         }
         """,
         Output("hover-text-hack", "children"),
-        [Input("benchmark-graph", "hoverData")],
+        [Input("benchmark-graph", "hoverData"), Input("mean-values-store", "data")],
     )
 
     app.run_server(port=port, debug=debug)

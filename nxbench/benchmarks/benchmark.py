@@ -199,11 +199,15 @@ class GraphBenchmark:
 
         if "graphblas" in backend and is_graphblas_available():
             try:
+                gb = import_module("graphblas")
                 ga = import_module("graphblas_algorithms")
             except ImportError:
                 logger.exception("graphblas_algorithms backend not available")
                 return None
             try:
+                logger.info(
+                    f"GraphBlas Algorithms nthreads={gb.ss.config['nthreads']} "
+                )
                 return ga.Graph.from_networkx(original_graph)
             except Exception:
                 logger.exception("Error converting graph to graphblas format")
@@ -230,10 +234,11 @@ class GraphBenchmark:
 
         try:
             algo_func = get_algorithm_function(algo_config, backend)
-            if isinstance(algo_func, partial):
-                alg_func_name = algo_func.func.__name__
-            else:
-                alg_func_name = algo_func.__name__
+            alg_func_name = (
+                algo_func.func.__name__
+                if isinstance(algo_func, partial)
+                else algo_func.__name__
+            )
             logger.debug(f"Got algorithm function: {alg_func_name}")
         except (ImportError, AttributeError):
             logger.exception(f"Function not available for backend {backend}")
