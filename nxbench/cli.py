@@ -281,9 +281,11 @@ def run_asv_command(
     except FileNotFoundError as e:
         raise click.ClickException(str(e))
 
+    machine = platform.node()
     env_data = get_benchmark_config().env_data
     config_data["pythons"] = env_data["pythons"]
     config_data["req"] = env_data["req"]
+    config_data["machine"] = machine
 
     if results_dir:
         config_data["results_dir"] = str(results_dir)
@@ -327,6 +329,12 @@ def run_asv_command(
             logger.warning(
                 "Could not determine git commit hash. Proceeding without it."
             )
+
+        try:
+            safe_args.append(f"--machine={machine}")
+            logger.debug(f"Set machine to: {machine}")
+        except subprocess.CalledProcessError:
+            logger.warning("Could not determine machine. Proceeding without it.")
 
         old_cwd = Path.cwd()
         if _has_git:
