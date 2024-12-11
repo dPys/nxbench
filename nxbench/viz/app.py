@@ -200,12 +200,10 @@ def run_server(port=8050, debug=False):
             colorbar_title = "Memory Used (GB)"
 
         dims = [
-            (
-                {
-                    "label": dim_col.replace("_", " ").title(),
-                    "values": filtered_df.index.get_level_values(dim_col),
-                }
-            )
+            {
+                "label": dim_col.replace("_", " ").title(),
+                "values": filtered_df.index.get_level_values(dim_col),
+            }
             for dim_col in selected_dimensions
         ]
 
@@ -230,9 +228,13 @@ def run_server(port=8050, debug=False):
 
     @app.callback(
         Output("violin-graph", "figure"),
-        [Input("algorithm-dropdown", "value"), Input("color-toggle", "value")],
+        [
+            Input("algorithm-dropdown", "value"),
+            Input("color-toggle", "value"),
+            Input("parcats-dimensions-dropdown", "value"),
+        ],
     )
-    def update_violin(selected_algorithm, color_by):
+    def update_violin(selected_algorithm, color_by, selected_dimensions):
         selected_algorithm = selected_algorithm.lower()
         try:
             filtered_df = df.xs(selected_algorithm, level="algorithm").reset_index()
@@ -271,11 +273,15 @@ def run_server(port=8050, debug=False):
         y_metric = "execution_time" if color_by == "execution_time" else "memory_used"
         y_label = "Execution Time" if color_by == "execution_time" else "Memory Used"
 
+        violin_dimension = selected_dimensions[0] if selected_dimensions else "backend"
+        if violin_dimension not in filtered_df.columns:
+            violin_dimension = "backend"
+
         fig = px.violin(
             filtered_df,
-            x="backend",
+            x=violin_dimension,
             y=y_metric,
-            color="backend",
+            color=violin_dimension,
             box=True,
             points="all",
             hover_data=[

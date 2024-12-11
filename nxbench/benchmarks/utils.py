@@ -9,8 +9,6 @@ from contextlib import contextmanager
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-import networkx as nx
-
 from nxbench.benchmarks.config import AlgorithmConfig, BenchmarkConfig, DatasetConfig
 from nxbench.benchmarks.constants import ALGORITHM_SUBMODULES
 
@@ -243,12 +241,3 @@ def get_available_algorithms():
                         nx_algorithm_dict[attr_name] = attr
 
     return nx_algorithm_dict
-
-
-def get_generators() -> list[dict]:
-    try:
-        nx_generators = inspect.getmembers(nx.generators, inspect.isfunction)
-    except Exception as e:
-        logger.exception("Failed to retrieve networkx generators.", exc_info=e)
-        nx_generators = set({})
-    return nx_generators

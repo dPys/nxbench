@@ -6,11 +6,10 @@ from typing import Any
 
 import pandas as pd
 
-from nxbench.benchmarks.config import BenchmarkResult, DatasetConfig, MachineInfo
+from nxbench.benchmarks.config import BenchmarkResult, MachineInfo
 from nxbench.benchmarks.utils import (
     get_available_algorithms,
     get_benchmark_config,
-    get_generators,
     get_python_version,
 )
 from nxbench.data.db import BenchmarkDB
@@ -130,24 +129,9 @@ class ResultsExporter:
         date: int,
     ) -> BenchmarkResult | None:
         """Create a benchmark result object."""
-        generators = get_generators()
+        dataset_configs = self.benchmark_config.datasets
 
-        dataset_config = DatasetConfig(
-            name=dataset,
-            source=(
-                "generator"
-                if (
-                    sum(
-                        [
-                            gen in dataset
-                            for gen in [g[0].split("_graph")[0] for g in generators]
-                        ]
-                    )
-                    > 0
-                )
-                else "networkrepository"
-            ),
-        )
+        dataset_config = next(d for d in dataset_configs if d.name == dataset)
 
         try:
             graph, metadata = self.data_manager.load_network_sync(dataset_config)

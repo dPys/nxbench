@@ -73,7 +73,7 @@ nxbench --config 'nxbench/configs/example.yaml' benchmark run
 3. Export results:
 
 ```bash
-nxbench benchmark export 'results/results.csv' --output-format csv  # convert benchmarked results into csv format.
+nxbench --config 'nxbench/configs/example.yaml' benchmark export 'results/results.csv' --output-format csv  # convert benchmarked results into csv format.
 ```
 
 4. View results:
@@ -98,11 +98,7 @@ nxbench data list --category social  # list available datasets
 
 # Benchmarking
 nxbench --config 'nxbench/configs/example.yaml' -vvv benchmark run  # debug benchmark runs
-nxbench benchmark export 'results/benchmarks.sqlite' --output-format sql # export the results into a sql database
-
-# Visualization
-nxbench viz serve  # visualize results using parallel categories dashboard
-nxbench viz publish  # generate static asv report
+nxbench --config 'nxbench/configs/example.yaml' benchmark export 'results/benchmarks.sqlite' --output-format sql # export the results into a sql database
 ```
 
 ## Configuration
@@ -144,10 +140,10 @@ docker-compose -f docker/docker-compose.cpu.yaml up nxbench
 docker-compose -f docker/docker-compose.cpu.yaml up dashboard
 
 # Run specific backend
-docker-compose -f docker/docker-compose.cpu.yaml run --rm nxbench benchmark run --backend networkx
+docker-compose -f docker/docker-compose.cpu.yaml run --rm nxbench --config 'nxbench/configs/example.yaml' benchmark run --backend networkx
 
 # View results
-docker-compose -f docker/docker-compose.cpu.yaml run --rm nxbench benchmark export results.csv
+docker-compose -f docker/docker-compose.cpu.yaml run --rm nxbench --config 'nxbench/configs/example.yaml' benchmark export results.csv
 ```
 
 ## Contributing
