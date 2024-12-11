@@ -15,7 +15,6 @@ import pandas as pd
 import psutil
 import requests
 
-from nxbench._version import __version__
 from nxbench.benchmarks.config import DatasetConfig
 from nxbench.benchmarks.utils import get_benchmark_config
 from nxbench.data.loader import BenchmarkDataManager
@@ -36,13 +35,10 @@ def validate_executable(path: str | Path) -> Path:
     return executable
 
 
-def generate_machine_info(results_dir: Path) -> None:
+def generate_machine_info(
+    machine: str, machine_info_path: Path, home: bool = False
+) -> None:
     """Generate machine info JSON file if it doesn't already exist."""
-    machine = platform.node()
-    results_dir = Path(f"{results_dir}/{machine}")
-    results_dir.mkdir(parents=True, exist_ok=True)
-    machine_info_path = results_dir / "machine.json"
-
     if machine_info_path.exists():
         logger.debug(f"Machine info already exists: {machine_info_path}")
         return
@@ -54,8 +50,13 @@ def generate_machine_info(results_dir: Path) -> None:
         "num_cpu": str(psutil.cpu_count(logical=True)),
         "os": f"{platform.system()} {platform.release()}",
         "ram": str(psutil.virtual_memory().total),
-        "version": __version__,
+        "version": 1,
     }
+
+    if home:
+        machine_info = {machine: machine_info, "version": 1}
+    else:
+        del machine_info["version"]
 
     with machine_info_path.open("w") as f:
         json.dump(machine_info, f, indent=4)
@@ -244,7 +245,16 @@ def run_asv_command(
         results_dir = Path.cwd() / "results"
     results_dir.mkdir(parents=True, exist_ok=True)
 
-    generate_machine_info(results_dir)
+    machine = platform.node()
+
+    results_dir = Path(f"{results_dir}/{machine}")
+    results_dir.mkdir(parents=True, exist_ok=True)
+    machine_info_path = results_dir / "machine.json"
+
+    generate_machine_info(machine, machine_info_path)
+
+    asv_machine_file = Path.home() / ".asv-machine.json"
+    generate_machine_info(machine, asv_machine_file, home=True)
 
     project_root = find_project_root()
     _has_git = has_git(project_root)
@@ -259,13 +269,13 @@ def run_asv_command(
 
     if not _has_git:
         logger.debug(
-            "No .git directory found. Modifying asv.conf.json for remote repo and "
-            "virtualenv."
+            "No .git directory found. Modifying asv.conf.json for remote repo."
         )
         config_data["repo"] = str(project_root.resolve())
-        config_data["environment_type"] = "virtualenv"
     else:
-        logger.debug("Found .git directory. Using existing repository settings.")
+        logger.debug("Found .git directory.")
+
+    config_data["environment_type"] = "conda"
 
     try:
         import nxbench
@@ -281,7 +291,6 @@ def run_asv_command(
     except FileNotFoundError as e:
         raise click.ClickException(str(e))
 
-    machine = platform.node()
     env_data = get_benchmark_config().env_data
     config_data["pythons"] = env_data["pythons"]
     config_data["req"] = env_data["req"]
