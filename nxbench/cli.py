@@ -328,6 +328,13 @@ def run_asv_command(
                 "Could not determine git commit hash. Proceeding without it."
             )
 
+        try:
+            machine = platform.node()
+            safe_args.append(f"--machine={machine}")
+            logger.debug(f"Set machine to: {machine}")
+        except subprocess.CalledProcessError:
+            logger.warning("Could not determine machine. Proceeding without it.")
+
         old_cwd = Path.cwd()
         if _has_git:
             os.chdir(project_root)
