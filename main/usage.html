@@ -304,7 +304,7 @@
 </div>
 </li>
 <li><p><strong>Export Results</strong>:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>nxbench<span class="w"> </span>benchmark<span class="w"> </span><span class="nb">export</span><span class="w"> </span><span class="s1">&#39;results/results.csv&#39;</span><span class="w"> </span>--output-format<span class="w"> </span>csv<span class="w">  </span><span class="c1"># convert benchmark results into CSV format.</span>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>nxbench<span class="w"> </span>--config<span class="w"> </span><span class="s1">&#39;nxbench/configs/example.yaml&#39;</span><span class="w"> </span>benchmark<span class="w"> </span><span class="nb">export</span><span class="w"> </span><span class="s1">&#39;results/results.csv&#39;</span><span class="w"> </span>--output-format<span class="w"> </span>csv<span class="w">  </span><span class="c1"># convert benchmark results into CSV format.</span>
 </pre></div>
 </div>
 </li>
@@ -342,7 +342,7 @@
 </div>
 </li>
 <li><p><strong>Export Results to a SQL Database</strong>:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>nxbench<span class="w"> </span>benchmark<span class="w"> </span><span class="nb">export</span><span class="w"> </span><span class="s1">&#39;results/benchmarks.sqlite&#39;</span><span class="w"> </span>--output-format<span class="w"> </span>sql
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>nxbench<span class="w"> </span>--config<span class="w"> </span><span class="s1">&#39;nxbench/configs/example.yaml&#39;</span><span class="w"> </span>benchmark<span class="w"> </span><span class="nb">export</span><span class="w"> </span><span class="s1">&#39;results/benchmarks.sqlite&#39;</span><span class="w"> </span>--output-format<span class="w"> </span>sql
 </pre></div>
 </div>
 </li>
@@ -400,13 +400,13 @@
 </section>
 <section id="running-benchmarks-with-a-specific-backend">
 <h3>Running Benchmarks with a Specific Backend<a class="headerlink" href="#running-benchmarks-with-a-specific-backend" title="Link to this heading">¶</a></h3>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>docker-compose<span class="w"> </span>run<span class="w"> </span>--rm<span class="w"> </span>nxbench<span class="w"> </span>benchmark<span class="w"> </span>run<span class="w"> </span>--backend<span class="w"> </span>networkx
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>docker-compose<span class="w"> </span>run<span class="w"> </span>--rm<span class="w"> </span>nxbench<span class="w"> </span>--config<span class="w"> </span><span class="s1">&#39;nxbench/configs/example.yaml&#39;</span><span class="w"> </span>benchmark<span class="w"> </span>run<span class="w"> </span>--backend<span class="w"> </span>networkx
 </pre></div>
 </div>
 </section>
 <section id="viewing-results">
 <h3>Viewing Results<a class="headerlink" href="#viewing-results" title="Link to this heading">¶</a></h3>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>docker-compose<span class="w"> </span>run<span class="w"> </span>--rm<span class="w"> </span>nxbench<span class="w"> </span>benchmark<span class="w"> </span><span class="nb">export</span><span class="w"> </span>results.csv
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>docker-compose<span class="w"> </span>run<span class="w"> </span>--rm<span class="w"> </span>nxbench<span class="w"> </span>--config<span class="w"> </span><span class="s1">&#39;nxbench/configs/example.yaml&#39;</span><span class="w"> </span>benchmark<span class="w"> </span><span class="nb">export</span><span class="w"> </span>results.csv
 </pre></div>
 </div>
 </section>

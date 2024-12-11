@@ -272,6 +272,7 @@
 <span></span><span class="kn">import</span> <span class="nn">dash</span>
 <span class="kn">import</span> <span class="nn">dash_bootstrap_components</span> <span class="k">as</span> <span class="nn">dbc</span>
 <span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">import</span> <span class="nn">plotly.express</span> <span class="k">as</span> <span class="nn">px</span>
 <span class="kn">import</span> <span class="nn">plotly.graph_objects</span> <span class="k">as</span> <span class="nn">go</span>
 <span class="kn">from</span> <span class="nn">dash</span> <span class="kn">import</span> <span class="n">dcc</span><span class="p">,</span> <span class="n">html</span>
 <span class="kn">from</span> <span class="nn">dash.dependencies</span> <span class="kn">import</span> <span class="n">Input</span><span class="p">,</span> <span class="n">Output</span>
@@ -284,18 +285,8 @@
 
     <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="s2">&quot;results/results.csv&quot;</span><span class="p">)</span>
     <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="o">.</span><span class="n">iteritems</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="o">.</span><span class="n">items</span>
-    <span class="n">essential_columns</span> <span class="o">=</span> <span class="p">[</span>
-        <span class="s2">&quot;algorithm&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;dataset&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;backend&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;execution_time&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;memory_used&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;num_nodes&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;num_edges&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;is_directed&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;is_weighted&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;density&quot;</span><span class="p">,</span>
-    <span class="p">]</span>
+
+    <span class="n">essential_columns</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;algorithm&quot;</span><span class="p">,</span> <span class="s2">&quot;execution_time&quot;</span><span class="p">,</span> <span class="s2">&quot;memory_used&quot;</span><span class="p">]</span>
 
     <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">dropna</span><span class="p">(</span><span class="n">subset</span><span class="o">=</span><span class="n">essential_columns</span><span class="p">)</span>
 
@@ -303,18 +294,24 @@
     <span class="n">df</span><span class="p">[</span><span class="s2">&quot;memory_used&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_numeric</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="s2">&quot;memory_used&quot;</span><span class="p">],</span> <span class="n">errors</span><span class="o">=</span><span class="s2">&quot;coerce&quot;</span><span class="p">)</span>
     <span class="n">df</span><span class="p">[</span><span class="s2">&quot;num_nodes&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_numeric</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="s2">&quot;num_nodes&quot;</span><span class="p">],</span> <span class="n">errors</span><span class="o">=</span><span class="s2">&quot;coerce&quot;</span><span class="p">)</span>
     <span class="n">df</span><span class="p">[</span><span class="s2">&quot;num_edges&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_numeric</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="s2">&quot;num_edges&quot;</span><span class="p">],</span> <span class="n">errors</span><span class="o">=</span><span class="s2">&quot;coerce&quot;</span><span class="p">)</span>
-    <span class="n">df</span><span class="p">[</span><span class="s2">&quot;density&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_numeric</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="s2">&quot;density&quot;</span><span class="p">],</span> <span class="n">errors</span><span class="o">=</span><span class="s2">&quot;coerce&quot;</span><span class="p">)</span>
+    <span class="n">df</span><span class="p">[</span><span class="s2">&quot;num_thread&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_numeric</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="s2">&quot;num_thread&quot;</span><span class="p">],</span> <span class="n">errors</span><span class="o">=</span><span class="s2">&quot;coerce&quot;</span><span class="p">)</span>
 
-    <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">dropna</span><span class="p">(</span>
-        <span class="n">subset</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;execution_time&quot;</span><span class="p">,</span> <span class="s2">&quot;memory_used&quot;</span><span class="p">,</span> <span class="s2">&quot;num_nodes&quot;</span><span class="p">,</span> <span class="s2">&quot;num_edges&quot;</span><span class="p">,</span> <span class="s2">&quot;density&quot;</span><span class="p">]</span>
-    <span class="p">)</span>
+    <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">dropna</span><span class="p">(</span><span class="n">subset</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;algorithm&quot;</span><span class="p">,</span> <span class="s2">&quot;execution_time&quot;</span><span class="p">,</span> <span class="s2">&quot;memory_used&quot;</span><span class="p">])</span>
 
-    <span class="n">df</span><span class="p">[</span><span class="s2">&quot;is_directed&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="s2">&quot;is_directed&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">str</span><span class="p">)</span>
-    <span class="n">df</span><span class="p">[</span><span class="s2">&quot;is_weighted&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="s2">&quot;is_weighted&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">str</span><span class="p">)</span>
-
-    <span class="n">string_columns</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;algorithm&quot;</span><span class="p">,</span> <span class="s2">&quot;dataset&quot;</span><span class="p">,</span> <span class="s2">&quot;backend&quot;</span><span class="p">,</span> <span class="s2">&quot;is_directed&quot;</span><span class="p">,</span> <span class="s2">&quot;is_weighted&quot;</span><span class="p">]</span>
+    <span class="n">string_columns</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="s2">&quot;algorithm&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;dataset&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;backend&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;is_directed&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;is_weighted&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;commit_hash&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;version&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;python_version&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;cpu&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;os&quot;</span><span class="p">,</span>
+    <span class="p">]</span>
     <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">string_columns</span><span class="p">:</span>
-        <span class="n">df</span><span class="p">[</span><span class="n">col</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="n">col</span><span class="p">]</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+        <span class="n">df</span><span class="p">[</span><span class="n">col</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="n">col</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">str</span><span class="p">)</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
 
     <span class="n">aggregation_columns</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;execution_time&quot;</span><span class="p">,</span> <span class="s2">&quot;memory_used&quot;</span><span class="p">]</span>
     <span class="n">group_columns</span> <span class="o">=</span> <span class="p">[</span>
@@ -325,11 +322,17 @@
         <span class="s2">&quot;num_edges&quot;</span><span class="p">,</span>
         <span class="s2">&quot;is_directed&quot;</span><span class="p">,</span>
         <span class="s2">&quot;is_weighted&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;density&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;commit_hash&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;version&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;python_version&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;cpu&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;os&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;num_thread&quot;</span><span class="p">,</span>
     <span class="p">]</span>
     <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="n">group_columns</span><span class="p">,</span> <span class="n">as_index</span><span class="o">=</span><span class="kc">False</span><span class="p">)[</span><span class="n">aggregation_columns</span><span class="p">]</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
-
     <span class="n">df</span><span class="o">.</span><span class="n">set_index</span><span class="p">(</span><span class="n">group_columns</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="n">available_parcats_columns</span> <span class="o">=</span> <span class="p">[</span><span class="n">col</span> <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">group_columns</span> <span class="k">if</span> <span class="n">col</span> <span class="o">!=</span> <span class="s2">&quot;algorithm&quot;</span><span class="p">]</span>
 
     <span class="n">app</span><span class="o">.</span><span class="n">layout</span> <span class="o">=</span> <span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">(</span>
         <span class="p">[</span>
@@ -375,16 +378,57 @@
                     <span class="s2">&quot;padding&quot;</span><span class="p">:</span> <span class="s2">&quot;0 20px&quot;</span><span class="p">,</span>
                 <span class="p">},</span>
             <span class="p">),</span>
-            <span class="n">dcc</span><span class="o">.</span><span class="n">Graph</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="s2">&quot;benchmark-graph&quot;</span><span class="p">),</span>
-            <span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="s2">&quot;hover-text-hack&quot;</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;display&quot;</span><span class="p">:</span> <span class="s2">&quot;none&quot;</span><span class="p">}),</span>
+            <span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">(</span>
+                <span class="p">[</span>
+                    <span class="n">html</span><span class="o">.</span><span class="n">Label</span><span class="p">(</span>
+                        <span class="s2">&quot;Select Parallel Categories Dimensions:&quot;</span><span class="p">,</span>
+                        <span class="n">style</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;fontWeight&quot;</span><span class="p">:</span> <span class="s2">&quot;bold&quot;</span><span class="p">},</span>
+                    <span class="p">),</span>
+                    <span class="n">dcc</span><span class="o">.</span><span class="n">Dropdown</span><span class="p">(</span>
+                        <span class="nb">id</span><span class="o">=</span><span class="s2">&quot;parcats-dimensions-dropdown&quot;</span><span class="p">,</span>
+                        <span class="n">options</span><span class="o">=</span><span class="p">[</span>
+                            <span class="p">{</span><span class="s2">&quot;label&quot;</span><span class="p">:</span> <span class="n">c</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;_&quot;</span><span class="p">,</span> <span class="s2">&quot; &quot;</span><span class="p">)</span><span class="o">.</span><span class="n">title</span><span class="p">(),</span> <span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="n">c</span><span class="p">}</span>
+                            <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">available_parcats_columns</span>
+                        <span class="p">],</span>
+                        <span class="n">value</span><span class="o">=</span><span class="n">available_parcats_columns</span><span class="p">,</span>  <span class="c1"># default select all</span>
+                        <span class="n">multi</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                        <span class="n">style</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;width&quot;</span><span class="p">:</span> <span class="s2">&quot;100%&quot;</span><span class="p">},</span>
+                    <span class="p">),</span>
+                <span class="p">],</span>
+                <span class="n">style</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;width&quot;</span><span class="p">:</span> <span class="s2">&quot;100%&quot;</span><span class="p">,</span> <span class="s2">&quot;display&quot;</span><span class="p">:</span> <span class="s2">&quot;block&quot;</span><span class="p">,</span> <span class="s2">&quot;padding&quot;</span><span class="p">:</span> <span class="s2">&quot;20px&quot;</span><span class="p">},</span>
+            <span class="p">),</span>
+            <span class="n">dbc</span><span class="o">.</span><span class="n">Tabs</span><span class="p">(</span>
+                <span class="p">[</span>
+                    <span class="n">dbc</span><span class="o">.</span><span class="n">Tab</span><span class="p">(</span>
+                        <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Parallel Categories&quot;</span><span class="p">,</span>
+                        <span class="n">tab_id</span><span class="o">=</span><span class="s2">&quot;parcats-tab&quot;</span><span class="p">,</span>
+                        <span class="n">children</span><span class="o">=</span><span class="p">[</span>
+                            <span class="n">dcc</span><span class="o">.</span><span class="n">Graph</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="s2">&quot;benchmark-graph&quot;</span><span class="p">),</span>
+                            <span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="s2">&quot;hover-text-hack&quot;</span><span class="p">,</span> <span class="n">style</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;display&quot;</span><span class="p">:</span> <span class="s2">&quot;none&quot;</span><span class="p">}),</span>
+                        <span class="p">],</span>
+                    <span class="p">),</span>
+                    <span class="n">dbc</span><span class="o">.</span><span class="n">Tab</span><span class="p">(</span>
+                        <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Violin Plots&quot;</span><span class="p">,</span>
+                        <span class="n">tab_id</span><span class="o">=</span><span class="s2">&quot;violin-tab&quot;</span><span class="p">,</span>
+                        <span class="n">children</span><span class="o">=</span><span class="p">[</span><span class="n">dcc</span><span class="o">.</span><span class="n">Graph</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="s2">&quot;violin-graph&quot;</span><span class="p">)],</span>
+                    <span class="p">),</span>
+                <span class="p">],</span>
+                <span class="nb">id</span><span class="o">=</span><span class="s2">&quot;tabs&quot;</span><span class="p">,</span>
+                <span class="n">active_tab</span><span class="o">=</span><span class="s2">&quot;parcats-tab&quot;</span><span class="p">,</span>
+                <span class="n">style</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;marginTop&quot;</span><span class="p">:</span> <span class="s2">&quot;20px&quot;</span><span class="p">},</span>
+            <span class="p">),</span>
         <span class="p">]</span>
     <span class="p">)</span>
 
     <span class="nd">@app</span><span class="o">.</span><span class="n">callback</span><span class="p">(</span>
         <span class="n">Output</span><span class="p">(</span><span class="s2">&quot;benchmark-graph&quot;</span><span class="p">,</span> <span class="s2">&quot;figure&quot;</span><span class="p">),</span>
-        <span class="p">[</span><span class="n">Input</span><span class="p">(</span><span class="s2">&quot;algorithm-dropdown&quot;</span><span class="p">,</span> <span class="s2">&quot;value&quot;</span><span class="p">),</span> <span class="n">Input</span><span class="p">(</span><span class="s2">&quot;color-toggle&quot;</span><span class="p">,</span> <span class="s2">&quot;value&quot;</span><span class="p">)],</span>
+        <span class="p">[</span>
+            <span class="n">Input</span><span class="p">(</span><span class="s2">&quot;algorithm-dropdown&quot;</span><span class="p">,</span> <span class="s2">&quot;value&quot;</span><span class="p">),</span>
+            <span class="n">Input</span><span class="p">(</span><span class="s2">&quot;color-toggle&quot;</span><span class="p">,</span> <span class="s2">&quot;value&quot;</span><span class="p">),</span>
+            <span class="n">Input</span><span class="p">(</span><span class="s2">&quot;parcats-dimensions-dropdown&quot;</span><span class="p">,</span> <span class="s2">&quot;value&quot;</span><span class="p">),</span>
+        <span class="p">],</span>
     <span class="p">)</span>
-    <span class="k">def</span> <span class="nf">update_graph</span><span class="p">(</span><span class="n">selected_algorithm</span><span class="p">,</span> <span class="n">color_by</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">update_graph</span><span class="p">(</span><span class="n">selected_algorithm</span><span class="p">,</span> <span class="n">color_by</span><span class="p">,</span> <span class="n">selected_dimensions</span><span class="p">):</span>
         <span class="n">selected_algorithm</span> <span class="o">=</span> <span class="n">selected_algorithm</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
 
         <span class="k">try</span><span class="p">:</span>
@@ -428,53 +472,26 @@
             <span class="n">color_values</span> <span class="o">=</span> <span class="n">filtered_df</span><span class="p">[</span><span class="s2">&quot;memory_used&quot;</span><span class="p">]</span>
             <span class="n">colorbar_title</span> <span class="o">=</span> <span class="s2">&quot;Memory Used (GB)&quot;</span>
 
-        <span class="n">counts</span> <span class="o">=</span> <span class="n">color_values</span><span class="o">.</span><span class="n">values</span>
-
-        <span class="n">dimensions</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">dims</span> <span class="o">=</span> <span class="p">[</span>
             <span class="p">{</span>
-                <span class="s2">&quot;label&quot;</span><span class="p">:</span> <span class="s2">&quot;Dataset&quot;</span><span class="p">,</span>
-                <span class="s2">&quot;values&quot;</span><span class="p">:</span> <span class="n">filtered_df</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">get_level_values</span><span class="p">(</span><span class="s2">&quot;dataset&quot;</span><span class="p">),</span>
-            <span class="p">},</span>
-            <span class="p">{</span>
-                <span class="s2">&quot;label&quot;</span><span class="p">:</span> <span class="s2">&quot;Backend&quot;</span><span class="p">,</span>
-                <span class="s2">&quot;values&quot;</span><span class="p">:</span> <span class="n">filtered_df</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">get_level_values</span><span class="p">(</span><span class="s2">&quot;backend&quot;</span><span class="p">),</span>
-            <span class="p">},</span>
-            <span class="p">{</span>
-                <span class="s2">&quot;label&quot;</span><span class="p">:</span> <span class="s2">&quot;Number of Nodes&quot;</span><span class="p">,</span>
-                <span class="s2">&quot;values&quot;</span><span class="p">:</span> <span class="n">filtered_df</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">get_level_values</span><span class="p">(</span><span class="s2">&quot;num_nodes&quot;</span><span class="p">),</span>
-            <span class="p">},</span>
-            <span class="p">{</span>
-                <span class="s2">&quot;label&quot;</span><span class="p">:</span> <span class="s2">&quot;Number of Edges&quot;</span><span class="p">,</span>
-                <span class="s2">&quot;values&quot;</span><span class="p">:</span> <span class="n">filtered_df</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">get_level_values</span><span class="p">(</span><span class="s2">&quot;num_edges&quot;</span><span class="p">),</span>
-            <span class="p">},</span>
-            <span class="p">{</span>
-                <span class="s2">&quot;label&quot;</span><span class="p">:</span> <span class="s2">&quot;Is Directed&quot;</span><span class="p">,</span>
-                <span class="s2">&quot;values&quot;</span><span class="p">:</span> <span class="n">filtered_df</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">get_level_values</span><span class="p">(</span><span class="s2">&quot;is_directed&quot;</span><span class="p">),</span>
-            <span class="p">},</span>
-            <span class="p">{</span>
-                <span class="s2">&quot;label&quot;</span><span class="p">:</span> <span class="s2">&quot;Is Weighted&quot;</span><span class="p">,</span>
-                <span class="s2">&quot;values&quot;</span><span class="p">:</span> <span class="n">filtered_df</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">get_level_values</span><span class="p">(</span><span class="s2">&quot;is_weighted&quot;</span><span class="p">),</span>
-            <span class="p">},</span>
-            <span class="p">{</span>
-                <span class="s2">&quot;label&quot;</span><span class="p">:</span> <span class="s2">&quot;Density&quot;</span><span class="p">,</span>
-                <span class="s2">&quot;values&quot;</span><span class="p">:</span> <span class="n">filtered_df</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">get_level_values</span><span class="p">(</span><span class="s2">&quot;density&quot;</span><span class="p">),</span>
-            <span class="p">},</span>
+                <span class="s2">&quot;label&quot;</span><span class="p">:</span> <span class="n">dim_col</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;_&quot;</span><span class="p">,</span> <span class="s2">&quot; &quot;</span><span class="p">)</span><span class="o">.</span><span class="n">title</span><span class="p">(),</span>
+                <span class="s2">&quot;values&quot;</span><span class="p">:</span> <span class="n">filtered_df</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">get_level_values</span><span class="p">(</span><span class="n">dim_col</span><span class="p">),</span>
+            <span class="p">}</span>
+            <span class="k">for</span> <span class="n">dim_col</span> <span class="ow">in</span> <span class="n">selected_dimensions</span>
         <span class="p">]</span>
 
         <span class="n">parcats</span> <span class="o">=</span> <span class="n">go</span><span class="o">.</span><span class="n">Parcats</span><span class="p">(</span>
-            <span class="n">dimensions</span><span class="o">=</span><span class="n">dimensions</span><span class="p">,</span>
+            <span class="n">dimensions</span><span class="o">=</span><span class="n">dims</span><span class="p">,</span>
             <span class="n">line</span><span class="o">=</span><span class="p">{</span>
                 <span class="s2">&quot;color&quot;</span><span class="p">:</span> <span class="n">color_values</span><span class="p">,</span>
                 <span class="s2">&quot;colorscale&quot;</span><span class="p">:</span> <span class="s2">&quot;Tealrose&quot;</span><span class="p">,</span>
                 <span class="s2">&quot;showscale&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
                 <span class="s2">&quot;colorbar&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;title&quot;</span><span class="p">:</span> <span class="n">colorbar_title</span><span class="p">},</span>
             <span class="p">},</span>
-            <span class="n">counts</span><span class="o">=</span><span class="n">counts</span><span class="p">,</span>
             <span class="n">hoverinfo</span><span class="o">=</span><span class="s2">&quot;count&quot;</span><span class="p">,</span>
         <span class="p">)</span>
 
         <span class="n">fig</span> <span class="o">=</span> <span class="n">go</span><span class="o">.</span><span class="n">Figure</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="n">parcats</span><span class="p">)</span>
-
         <span class="n">fig</span><span class="o">.</span><span class="n">update_layout</span><span class="p">(</span>
             <span class="n">title</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;Benchmark Results for </span><span class="si">{</span><span class="n">selected_algorithm</span><span class="o">.</span><span class="n">title</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
             <span class="n">template</span><span class="o">=</span><span class="s2">&quot;plotly_white&quot;</span><span class="p">,</span>
@@ -482,11 +499,86 @@
 
         <span class="k">return</span> <span class="n">fig</span>
 
+    <span class="nd">@app</span><span class="o">.</span><span class="n">callback</span><span class="p">(</span>
+        <span class="n">Output</span><span class="p">(</span><span class="s2">&quot;violin-graph&quot;</span><span class="p">,</span> <span class="s2">&quot;figure&quot;</span><span class="p">),</span>
+        <span class="p">[</span>
+            <span class="n">Input</span><span class="p">(</span><span class="s2">&quot;algorithm-dropdown&quot;</span><span class="p">,</span> <span class="s2">&quot;value&quot;</span><span class="p">),</span>
+            <span class="n">Input</span><span class="p">(</span><span class="s2">&quot;color-toggle&quot;</span><span class="p">,</span> <span class="s2">&quot;value&quot;</span><span class="p">),</span>
+            <span class="n">Input</span><span class="p">(</span><span class="s2">&quot;parcats-dimensions-dropdown&quot;</span><span class="p">,</span> <span class="s2">&quot;value&quot;</span><span class="p">),</span>
+        <span class="p">],</span>
+    <span class="p">)</span>
+    <span class="k">def</span> <span class="nf">update_violin</span><span class="p">(</span><span class="n">selected_algorithm</span><span class="p">,</span> <span class="n">color_by</span><span class="p">,</span> <span class="n">selected_dimensions</span><span class="p">):</span>
+        <span class="n">selected_algorithm</span> <span class="o">=</span> <span class="n">selected_algorithm</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">filtered_df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">xs</span><span class="p">(</span><span class="n">selected_algorithm</span><span class="p">,</span> <span class="n">level</span><span class="o">=</span><span class="s2">&quot;algorithm&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">reset_index</span><span class="p">()</span>
+        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+            <span class="n">fig</span> <span class="o">=</span> <span class="n">go</span><span class="o">.</span><span class="n">Figure</span><span class="p">()</span>
+            <span class="n">fig</span><span class="o">.</span><span class="n">update_layout</span><span class="p">(</span>
+                <span class="n">title</span><span class="o">=</span><span class="s2">&quot;No Data Available&quot;</span><span class="p">,</span>
+                <span class="n">annotations</span><span class="o">=</span><span class="p">[</span>
+                    <span class="p">{</span>
+                        <span class="s2">&quot;text&quot;</span><span class="p">:</span> <span class="s2">&quot;No data available for the selected algorithm.&quot;</span><span class="p">,</span>
+                        <span class="s2">&quot;x&quot;</span><span class="p">:</span> <span class="mf">0.5</span><span class="p">,</span>
+                        <span class="s2">&quot;y&quot;</span><span class="p">:</span> <span class="mf">0.5</span><span class="p">,</span>
+                        <span class="s2">&quot;showarrow&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+                        <span class="s2">&quot;font&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;size&quot;</span><span class="p">:</span> <span class="mi">20</span><span class="p">},</span>
+                    <span class="p">}</span>
+                <span class="p">],</span>
+            <span class="p">)</span>
+            <span class="k">return</span> <span class="n">fig</span>
+
+        <span class="k">if</span> <span class="n">filtered_df</span><span class="o">.</span><span class="n">empty</span><span class="p">:</span>
+            <span class="n">fig</span> <span class="o">=</span> <span class="n">go</span><span class="o">.</span><span class="n">Figure</span><span class="p">()</span>
+            <span class="n">fig</span><span class="o">.</span><span class="n">update_layout</span><span class="p">(</span>
+                <span class="n">title</span><span class="o">=</span><span class="s2">&quot;No Data Available&quot;</span><span class="p">,</span>
+                <span class="n">annotations</span><span class="o">=</span><span class="p">[</span>
+                    <span class="p">{</span>
+                        <span class="s2">&quot;text&quot;</span><span class="p">:</span> <span class="s2">&quot;No data available for the selected algorithm.&quot;</span><span class="p">,</span>
+                        <span class="s2">&quot;x&quot;</span><span class="p">:</span> <span class="mf">0.5</span><span class="p">,</span>
+                        <span class="s2">&quot;y&quot;</span><span class="p">:</span> <span class="mf">0.5</span><span class="p">,</span>
+                        <span class="s2">&quot;showarrow&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+                        <span class="s2">&quot;font&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;size&quot;</span><span class="p">:</span> <span class="mi">20</span><span class="p">},</span>
+                    <span class="p">}</span>
+                <span class="p">],</span>
+            <span class="p">)</span>
+            <span class="k">return</span> <span class="n">fig</span>
+
+        <span class="n">y_metric</span> <span class="o">=</span> <span class="s2">&quot;execution_time&quot;</span> <span class="k">if</span> <span class="n">color_by</span> <span class="o">==</span> <span class="s2">&quot;execution_time&quot;</span> <span class="k">else</span> <span class="s2">&quot;memory_used&quot;</span>
+        <span class="n">y_label</span> <span class="o">=</span> <span class="s2">&quot;Execution Time&quot;</span> <span class="k">if</span> <span class="n">color_by</span> <span class="o">==</span> <span class="s2">&quot;execution_time&quot;</span> <span class="k">else</span> <span class="s2">&quot;Memory Used&quot;</span>
+
+        <span class="n">violin_dimension</span> <span class="o">=</span> <span class="n">selected_dimensions</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">if</span> <span class="n">selected_dimensions</span> <span class="k">else</span> <span class="s2">&quot;backend&quot;</span>
+        <span class="k">if</span> <span class="n">violin_dimension</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">filtered_df</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+            <span class="n">violin_dimension</span> <span class="o">=</span> <span class="s2">&quot;backend&quot;</span>
+
+        <span class="n">fig</span> <span class="o">=</span> <span class="n">px</span><span class="o">.</span><span class="n">violin</span><span class="p">(</span>
+            <span class="n">filtered_df</span><span class="p">,</span>
+            <span class="n">x</span><span class="o">=</span><span class="n">violin_dimension</span><span class="p">,</span>
+            <span class="n">y</span><span class="o">=</span><span class="n">y_metric</span><span class="p">,</span>
+            <span class="n">color</span><span class="o">=</span><span class="n">violin_dimension</span><span class="p">,</span>
+            <span class="n">box</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="n">points</span><span class="o">=</span><span class="s2">&quot;all&quot;</span><span class="p">,</span>
+            <span class="n">hover_data</span><span class="o">=</span><span class="p">[</span>
+                <span class="s2">&quot;dataset&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;num_nodes&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;num_edges&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;is_directed&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;is_weighted&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;commit_hash&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;version&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;python_version&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;cpu&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;os&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;num_thread&quot;</span><span class="p">,</span>
+            <span class="p">],</span>
+            <span class="n">title</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">y_label</span><span class="si">}</span><span class="s2"> Distribution for </span><span class="si">{</span><span class="n">selected_algorithm</span><span class="o">.</span><span class="n">title</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">fig</span><span class="o">.</span><span class="n">update_layout</span><span class="p">(</span><span class="n">template</span><span class="o">=</span><span class="s2">&quot;plotly_white&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">fig</span>
+
     <span class="n">app</span><span class="o">.</span><span class="n">clientside_callback</span><span class="p">(</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        function(clickData) {</span>
+<span class="sd">        function(hoverData) {</span>
 <span class="sd">            setTimeout(() =&gt; {</span>
-<span class="sd">                // Select all tooltip elements</span>
 <span class="sd">                const tooltips = document.querySelectorAll(&#39;.hoverlayer .hovertext&#39;);</span>
 <span class="sd">                tooltips.forEach(tooltip =&gt; {</span>
 <span class="sd">                    const textNode = tooltip.querySelector(&#39;text&#39;);</span>
@@ -495,7 +587,7 @@
 <span class="sd">                        &#39;Mean:&#39;);</span>
 <span class="sd">                    }</span>
 <span class="sd">                });</span>
-<span class="sd">            }, 10);  // Delay to ensure tooltips are rendered</span>
+<span class="sd">            }, 100);</span>
 <span class="sd">            return null;</span>
 <span class="sd">        }</span>
 <span class="sd">        &quot;&quot;&quot;</span><span class="p">,</span>

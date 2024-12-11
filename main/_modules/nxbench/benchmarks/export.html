@@ -279,7 +279,11 @@
 <span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
 
 <span class="kn">from</span> <span class="nn">nxbench.benchmarks.config</span> <span class="kn">import</span> <span class="n">BenchmarkResult</span><span class="p">,</span> <span class="n">MachineInfo</span>
-<span class="kn">from</span> <span class="nn">nxbench.benchmarks.utils</span> <span class="kn">import</span> <span class="n">get_benchmark_config</span><span class="p">,</span> <span class="n">get_python_version</span>
+<span class="kn">from</span> <span class="nn">nxbench.benchmarks.utils</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">get_available_algorithms</span><span class="p">,</span>
+    <span class="n">get_benchmark_config</span><span class="p">,</span>
+    <span class="n">get_python_version</span><span class="p">,</span>
+<span class="p">)</span>
 <span class="kn">from</span> <span class="nn">nxbench.data.db</span> <span class="kn">import</span> <span class="n">BenchmarkDB</span>
 <span class="kn">from</span> <span class="nn">nxbench.data.loader</span> <span class="kn">import</span> <span class="n">BenchmarkDataManager</span>
 
@@ -402,22 +406,21 @@
         <span class="n">date</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">BenchmarkResult</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Create a benchmark result object.&quot;&quot;&quot;</span>
-        <span class="n">dataset_config</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span>
-            <span class="p">(</span><span class="n">ds</span> <span class="k">for</span> <span class="n">ds</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">benchmark_config</span><span class="o">.</span><span class="n">datasets</span> <span class="k">if</span> <span class="n">ds</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="n">dataset</span><span class="p">),</span>
-            <span class="kc">None</span><span class="p">,</span>
-        <span class="p">)</span>
+        <span class="n">dataset_configs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">benchmark_config</span><span class="o">.</span><span class="n">datasets</span>
 
-        <span class="k">if</span> <span class="n">dataset_config</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;No DatasetConfig found for dataset &#39;</span><span class="si">{</span><span class="n">dataset</span><span class="si">}</span><span class="s2">&#39;&quot;</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">dataset_config</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="n">d</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">dataset_configs</span> <span class="k">if</span> <span class="n">d</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="n">dataset</span><span class="p">)</span>
+            <span class="n">graph</span><span class="p">,</span> <span class="n">metadata</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_manager</span><span class="o">.</span><span class="n">load_network_sync</span><span class="p">(</span><span class="n">dataset_config</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">StopIteration</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;No dataset configuration found for &#39;</span><span class="si">{</span><span class="n">dataset</span><span class="si">}</span><span class="s2">&#39;, using dummy &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;graph/metadata.&quot;</span>
+            <span class="p">)</span>
             <span class="n">graph</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">Graph</span><span class="p">()</span>
-            <span class="n">graph</span><span class="o">.</span><span class="n">graph</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">dataset</span>
             <span class="n">metadata</span> <span class="o">=</span> <span class="p">{}</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="k">try</span><span class="p">:</span>
-                <span class="n">graph</span><span class="p">,</span> <span class="n">metadata</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_manager</span><span class="o">.</span><span class="n">load_network_sync</span><span class="p">(</span><span class="n">dataset_config</span><span class="p">)</span>
-            <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
-                <span class="n">logger</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Failed to load network for dataset &#39;</span><span class="si">{</span><span class="n">dataset</span><span class="si">}</span><span class="s2">&#39;&quot;</span><span class="p">)</span>
-                <span class="k">return</span> <span class="kc">None</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Failed to load network for dataset &#39;</span><span class="si">{</span><span class="n">dataset</span><span class="si">}</span><span class="s2">&#39;&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">None</span>
 
         <span class="n">asv_result</span> <span class="o">=</span> <span class="p">{</span>
             <span class="s2">&quot;algorithm&quot;</span><span class="p">:</span> <span class="n">algorithm</span><span class="p">,</span>
@@ -465,24 +468,79 @@
             <span class="k">return</span> <span class="n">result</span>
 
     <span class="k">def</span> <span class="nf">_parse_benchmark_name</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">bench_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Parse the benchmark name to extract algorithm, dataset, and backend.&quot;&quot;&quot;</span>
-        <span class="n">pattern</span> <span class="o">=</span> <span class="p">(</span>
-            <span class="sa">r</span><span class="s2">&quot;^(?:benchmark\.)?GraphBenchmark\.track_(.+?)_([^_]+)_([^_]+)(?:_\d+)?$&quot;</span>
-        <span class="p">)</span>
-        <span class="n">match</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">pattern</span><span class="p">,</span> <span class="n">bench_name</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">match</span><span class="p">:</span>
-            <span class="n">algorithm</span> <span class="o">=</span> <span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
-            <span class="n">dataset</span> <span class="o">=</span> <span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
-            <span class="n">backend</span> <span class="o">=</span> <span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
-                <span class="sa">f</span><span class="s2">&quot;Parsed benchmark name &#39;</span><span class="si">{</span><span class="n">bench_name</span><span class="si">}</span><span class="s2">&#39;: algorithm=</span><span class="si">{</span><span class="n">algorithm</span><span class="si">}</span><span class="s2">, &quot;</span>
-                <span class="sa">f</span><span class="s2">&quot;dataset=</span><span class="si">{</span><span class="n">dataset</span><span class="si">}</span><span class="s2">, backend=</span><span class="si">{</span><span class="n">backend</span><span class="si">}</span><span class="s2">&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Parse the benchmark name to extract algorithm, dataset, and backend.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        bench_name : str</span>
+<span class="sd">            The benchmark name to parse</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        tuple[str, str, str] | None</span>
+<span class="sd">            A tuple of (algorithm, dataset, backend) if parsing succeeds, None otherwise</span>
+
+<span class="sd">        Notes</span>
+<span class="sd">        -----</span>
+<span class="sd">        Handles benchmark names in the format:</span>
+<span class="sd">        [benchmark.]GraphBenchmark.track_&lt;algorithm&gt;_&lt;dataset&gt;_&lt;backend&gt;[_threads]</span>
+
+<span class="sd">        Where:</span>
+<span class="sd">        - `algorithm` is the first token.</span>
+<span class="sd">        - `backend` is the last token before optional numeric threads.</span>
+<span class="sd">        - `dataset` is everything in between algorithm and backend.</span>
+<span class="sd">        The dataset can contain multiple underscores.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">bench_name</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Benchmark name &#39;</span><span class="si">{</span><span class="n">bench_name</span><span class="si">}</span><span class="s2">&#39; does not match expected patterns.&quot;</span>
             <span class="p">)</span>
-            <span class="k">return</span> <span class="n">algorithm</span><span class="p">,</span> <span class="n">dataset</span><span class="p">,</span> <span class="n">backend</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
-            <span class="sa">f</span><span class="s2">&quot;Benchmark name &#39;</span><span class="si">{</span><span class="n">bench_name</span><span class="si">}</span><span class="s2">&#39; does not match expected patterns.&quot;</span>
+            <span class="k">return</span> <span class="kc">None</span>
+
+        <span class="n">prefix_pattern</span> <span class="o">=</span> <span class="sa">r</span><span class="s2">&quot;^(?:benchmark\.)?GraphBenchmark\.track_&quot;</span>
+        <span class="n">bench_name_cleaned</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="n">prefix_pattern</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">bench_name</span><span class="p">)</span>
+
+        <span class="n">parts</span> <span class="o">=</span> <span class="n">bench_name_cleaned</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;_&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">parts</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">parts</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">3</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Benchmark name &#39;</span><span class="si">{</span><span class="n">bench_name</span><span class="si">}</span><span class="s2">&#39; does not match expected patterns.&quot;</span>
+            <span class="p">)</span>
+            <span class="k">return</span> <span class="kc">None</span>
+
+        <span class="k">if</span> <span class="n">parts</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">isdigit</span><span class="p">():</span>
+            <span class="n">parts</span> <span class="o">=</span> <span class="n">parts</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">parts</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">3</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Benchmark name &#39;</span><span class="si">{</span><span class="n">bench_name</span><span class="si">}</span><span class="s2">&#39; does not match expected patterns.&quot;</span>
+            <span class="p">)</span>
+            <span class="k">return</span> <span class="kc">None</span>
+
+        <span class="n">backend</span> <span class="o">=</span> <span class="n">parts</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+        <span class="n">all_algs</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">get_available_algorithms</span><span class="p">()</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+
+        <span class="n">matches</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">parts</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">):</span>
+            <span class="n">candidate_alg</span> <span class="o">=</span> <span class="s2">&quot;_&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">parts</span><span class="p">[:</span><span class="n">i</span><span class="p">])</span>
+            <span class="k">if</span> <span class="n">candidate_alg</span> <span class="ow">in</span> <span class="n">all_algs</span><span class="p">:</span>
+                <span class="n">matches</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">candidate_alg</span><span class="p">,</span> <span class="n">i</span><span class="p">))</span>
+
+        <span class="k">if</span> <span class="n">matches</span><span class="p">:</span>
+            <span class="c1"># pick the match with the largest i (longest prefix)</span>
+            <span class="n">best_match</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">matches</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+            <span class="n">best_i</span> <span class="o">=</span> <span class="n">best_match</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">algorithm</span> <span class="o">=</span> <span class="n">best_match</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">dataset</span> <span class="o">=</span> <span class="s2">&quot;_&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">parts</span><span class="p">[</span><span class="n">best_i</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;Parsed benchmark name &#39;</span><span class="si">{</span><span class="n">bench_name</span><span class="si">}</span><span class="s2">&#39;: &quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;algorithm=</span><span class="si">{</span><span class="n">algorithm</span><span class="si">}</span><span class="s2">, dataset=</span><span class="si">{</span><span class="n">dataset</span><span class="si">}</span><span class="s2">, backend=</span><span class="si">{</span><span class="n">backend</span><span class="si">}</span><span class="s2">&quot;</span>
         <span class="p">)</span>
-        <span class="k">return</span> <span class="kc">None</span>
+
+        <span class="k">return</span> <span class="n">algorithm</span><span class="p">,</span> <span class="n">dataset</span><span class="p">,</span> <span class="n">backend</span>
 
 <div class="viewcode-block" id="ResultsExporter.load_results">
 <a class="viewcode-back" href="../../../api/nxbench.benchmarks.html#nxbench.benchmarks.export.ResultsExporter.load_results">[docs]</a>
@@ -553,7 +611,6 @@
 
             <span class="n">commit_hash</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;commit_hash&quot;</span><span class="p">,</span> <span class="s2">&quot;unknown&quot;</span><span class="p">)</span>
             <span class="n">date</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;date&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
-
             <span class="k">for</span> <span class="n">bench_name</span><span class="p">,</span> <span class="n">bench_data</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;results&quot;</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
                 <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">bench_data</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">bench_data</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
                     <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>

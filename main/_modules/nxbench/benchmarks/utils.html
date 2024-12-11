@@ -270,14 +270,21 @@
         <article role="main" id="furo-main-content">
           <h1>Source code for nxbench.benchmarks.utils</h1><div class="highlight"><pre>
 <span></span><span class="kn">import</span> <span class="nn">gc</span>
+<span class="kn">import</span> <span class="nn">importlib</span>
+<span class="kn">import</span> <span class="nn">inspect</span>
 <span class="kn">import</span> <span class="nn">logging</span>
 <span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">sys</span>
 <span class="kn">import</span> <span class="nn">tracemalloc</span>
 <span class="kn">from</span> <span class="nn">contextlib</span> <span class="kn">import</span> <span class="n">contextmanager</span>
 <span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">TYPE_CHECKING</span>
 
 <span class="kn">from</span> <span class="nn">nxbench.benchmarks.config</span> <span class="kn">import</span> <span class="n">AlgorithmConfig</span><span class="p">,</span> <span class="n">BenchmarkConfig</span><span class="p">,</span> <span class="n">DatasetConfig</span>
+<span class="kn">from</span> <span class="nn">nxbench.benchmarks.constants</span> <span class="kn">import</span> <span class="n">ALGORITHM_SUBMODULES</span>
+
+<span class="k">if</span> <span class="n">TYPE_CHECKING</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">collections.abc</span> <span class="kn">import</span> <span class="n">Callable</span>
 
 <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">&quot;nxbench&quot;</span><span class="p">)</span>
 
@@ -490,6 +497,62 @@
 
     <span class="k">finally</span><span class="p">:</span>
         <span class="n">tracemalloc</span><span class="o">.</span><span class="n">stop</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="get_available_algorithms">
+<a class="viewcode-back" href="../../../api/nxbench.benchmarks.html#nxbench.benchmarks.utils.get_available_algorithms">[docs]</a>
+<span class="k">def</span> <span class="nf">get_available_algorithms</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Get algorithms from specified NetworkX submodules and custom</span>
+<span class="sd">    algorithms.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    Dict[str, Callable]</span>
+<span class="sd">        Dictionary of available algorithms.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">nx_algorithm_dict</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Callable</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="k">for</span> <span class="n">submodule</span> <span class="ow">in</span> <span class="n">ALGORITHM_SUBMODULES</span><span class="p">:</span>
+        <span class="n">spec</span> <span class="o">=</span> <span class="n">importlib</span><span class="o">.</span><span class="n">util</span><span class="o">.</span><span class="n">find_spec</span><span class="p">(</span><span class="n">submodule</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">spec</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">continue</span>
+        <span class="n">module</span> <span class="o">=</span> <span class="n">importlib</span><span class="o">.</span><span class="n">import_module</span><span class="p">(</span><span class="n">submodule</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">attr_name</span> <span class="ow">in</span> <span class="nb">dir</span><span class="p">(</span><span class="n">module</span><span class="p">):</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">attr_name</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;_&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">any</span><span class="p">(</span>
+                <span class="n">attr_name</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">prefix</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">prefix</span> <span class="ow">in</span> <span class="p">[</span>
+                    <span class="s2">&quot;is_&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;has_&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;get_&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;set_&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;contains_&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;write_&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;read_&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;to_&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;from_&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;generate_&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;make_&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;create_&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;build_&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;delete_&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;remove_&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;not_implemented&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;np_random_state&quot;</span><span class="p">,</span>
+                <span class="p">]</span>
+            <span class="p">):</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">attr</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">module</span><span class="p">,</span> <span class="n">attr_name</span><span class="p">)</span>
+                <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+                    <span class="k">continue</span>
+                <span class="k">if</span> <span class="n">inspect</span><span class="o">.</span><span class="n">isfunction</span><span class="p">(</span><span class="n">attr</span><span class="p">):</span>
+                    <span class="k">if</span> <span class="s2">&quot;approximation&quot;</span> <span class="ow">in</span> <span class="n">module</span><span class="o">.</span><span class="vm">__name__</span><span class="p">:</span>
+                        <span class="n">nx_algorithm_dict</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;approximate_</span><span class="si">{</span><span class="n">attr_name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">attr</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">nx_algorithm_dict</span><span class="p">[</span><span class="n">attr_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">attr</span>
+
+    <span class="k">return</span> <span class="n">nx_algorithm_dict</span></div>
 
 </pre></div>
         </article>
