@@ -281,9 +281,11 @@ def run_asv_command(
     except FileNotFoundError as e:
         raise click.ClickException(str(e))
 
+    machine = platform.node()
     env_data = get_benchmark_config().env_data
     config_data["pythons"] = env_data["pythons"]
     config_data["req"] = env_data["req"]
+    config_data["machine"] = machine
 
     if results_dir:
         config_data["results_dir"] = str(results_dir)
@@ -329,7 +331,6 @@ def run_asv_command(
             )
 
         try:
-            machine = platform.node()
             safe_args.append(f"--machine={machine}")
             logger.debug(f"Set machine to: {machine}")
         except subprocess.CalledProcessError:
