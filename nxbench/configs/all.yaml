@@ -160,19 +160,7 @@ algorithms:
   #   min_rounds: 3
 
 datasets:
-  - name: "twitter"
-    source: "networkrepository"
-    params: {}
-
   - name: "08blocks"
-    source: "networkrepository"
-    params: {}
-
-  - name: "amazon"
-    source: "networkrepository"
-    params: {}
-
-  - name: "google"
     source: "networkrepository"
     params: {}
 
@@ -180,21 +168,17 @@ datasets:
     source: "networkrepository"
     params: {}
 
-  - name: "citationCiteseer"
-    source: "networkrepository"
-    params: {}
+  # - name: "citationCiteseer"
+  #   source: "networkrepository"
+  #   params: {}
 
   - name: "karate"
     source: "networkrepository"
     params: {}
 
-  - name: "netscience"
-    source: "networkrepository"
-    params: {}
-
-  - name: "email-Eu-core"
-    source: "networkrepository"
-    params: {}
+  # - name: "ca-netscience"
+  #   source: "networkrepository"
+  #   params: {}
 
   - name: "jazz"
     source: "networkrepository"
@@ -295,7 +279,7 @@ matrix:
     - "networkx"
     - "parallel"
     - "graphblas"
-    - "cugraph"
+    # - "cugraph"
   num_threads:
     - "1"
     - "2"
@@ -306,7 +290,7 @@ env_config:
     - "networkx==3.4.2"
     - "nx-parallel-0.3rc0.dev0"
     - "graphblas_algorithms==2023.10.0"
-    - "nx-cugraph_cu11==24.8.0"
+    # - "nx-cugraph_cu11==24.8.0"
   pythons:
     - "3.10"
     - "3.11"
