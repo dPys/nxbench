@@ -14,7 +14,7 @@ from scipy.io import mmread
 
 from nxbench.benchmarks.config import DatasetConfig
 from nxbench.data.synthesize import generate_graph
-from nxbench.data.utils import fix_matrix_market_file
+from nxbench.data.utils import detect_delimiter, fix_matrix_market_file
 
 warnings.filterwarnings("ignore")
 
@@ -56,27 +56,19 @@ class BenchmarkDataManager:
         normalized_name = self._normalize_name(name)
         network = self._metadata_df[self._metadata_df["name"] == normalized_name]
         if len(network) == 0:
-            logger.warning(
-                f"Network {name} not found in metadata cache. Returning dummy metadata."
-            )
-            return {
-                "name": name,
-                "download_url": None,
-                "directed": False,
-                "weighted": False,
-            }
+            raise ValueError(f"Network {name} not found in metadata cache")
         return network.iloc[0].to_dict()
 
     async def load_network(
         self, config: DatasetConfig, session: aiohttp.ClientSession | None = None
     ) -> tuple[nx.Graph | nx.DiGraph, dict[str, Any]]:
         """Load or generate a network based on config."""
+        metadata = self.get_metadata(config.name)
         source_lower = config.source.lower()
 
         if source_lower == "generator":
             return self._generate_graph(config)
 
-        metadata = self.get_metadata(config.name)
         if config.name in self._network_cache:
             logger.debug(f"Loading network '{config.name}' from cache")
             return self._network_cache[config.name]
@@ -150,7 +142,7 @@ class BenchmarkDataManager:
                             sparse_matrix = mmread(corrected_file)
                 except Exception:
                     logger.exception(f"Failed to load Matrix Market file {graph_file}")
-                    raise
+                    raise ValueError("Matrix Market file not in expected format")
                 else:
                     graph = nx.from_scipy_sparse_array(
                         sparse_matrix,
@@ -163,6 +155,15 @@ class BenchmarkDataManager:
                     graph.graph.update(metadata)
                     return graph
             elif suffix in [".edgelist", ".edges"]:
+                try:
+                    delimiter = detect_delimiter(graph_file)
+                    logger.debug(f"Detected delimiter: '{delimiter}'")
+                except Exception:
+                    logger.debug(
+                        "No valid delimiter found, falling back to whitespace split"
+                    )
+                    delimiter = " "
+
                 create_using = (
                     nx.DiGraph() if metadata.get("directed", False) else nx.Graph()
                 )
@@ -207,6 +208,7 @@ class BenchmarkDataManager:
                             )
                             graph = nx.read_edgelist(
                                 edge_iter,
+                                delimiter=delimiter,
                                 nodetype=str,
                                 create_using=create_using,
                                 data=False,
@@ -222,6 +224,7 @@ class BenchmarkDataManager:
                             )
                             graph = nx.read_edgelist(
                                 edge_iter,
+                                delimiter=delimiter,
                                 nodetype=str,
                                 create_using=create_using,
                                 data=False,
@@ -239,6 +242,7 @@ class BenchmarkDataManager:
                             )
                             graph = nx.read_edgelist(
                                 edge_iter,
+                                delimiter=delimiter,
                                 nodetype=str,
                                 create_using=create_using,
                                 data=False,
@@ -273,6 +277,8 @@ class BenchmarkDataManager:
             raise
         else:
             graph.graph.update(metadata)
+            if graph.number_of_edges() == 0:
+                raise ValueError(f"Graph file {graph_file} contains no valid edges.")
             logger.info(f"Loaded network from '{graph_file}' successfully.")
             return graph
 

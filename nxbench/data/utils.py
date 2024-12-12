@@ -1,5 +1,6 @@
 import re
 import zipfile
+from collections import Counter
 from pathlib import Path
 
 import networkx as nx
@@ -176,3 +177,25 @@ def fix_matrix_market_file(in_path: Path) -> Path:
             out_f.write(dl + "\n")
 
     return out_file_path
+
+
+def detect_delimiter(file_path: Path, sample_size: int = 5) -> str:
+    """Detect the most common delimiter in the first few lines of a file."""
+    delimiters = [",", "\t", " ", ";"]
+    delimiter_counts = Counter()
+
+    with file_path.open("r") as f:
+        for i, line in enumerate(f):
+            if i >= sample_size:
+                break
+            line = line.strip()
+            if not line or line.startswith(("#", "%")):
+                continue
+            for delimiter in delimiters:
+                if delimiter in line:
+                    delimiter_counts[delimiter] += line.count(delimiter)
+
+    if delimiter_counts:
+        return delimiter_counts.most_common(1)[0][0]
+
+    raise ValueError("No valid delimiter found in the file.")

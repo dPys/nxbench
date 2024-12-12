@@ -160,29 +160,25 @@ algorithms:
   #   min_rounds: 3
 
 datasets:
-  - name: "08blocks"
-    source: "networkrepository"
-    params: {}
-
   - name: "enron"
     source: "networkrepository"
     params: {}
 
-  # - name: "citationCiteseer"
-  #   source: "networkrepository"
-  #   params: {}
+  - name: "citationCiteseer"
+    source: "networkrepository"
+    params: {}
 
   - name: "karate"
+    source: "networkrepository"
+    params: {}
+
+  - name: "patentcite"
     source: "networkrepository"
     params: {}
 
   # - name: "ca-netscience"
   #   source: "networkrepository"
   #   params: {}
-
-  - name: "jazz"
-    source: "networkrepository"
-    params: {}
 
   - name: "erdos_renyi_small"
     source: "generator"

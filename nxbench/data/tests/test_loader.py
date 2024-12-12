@@ -209,7 +209,7 @@ E,F
         graph, (nx.Graph, nx.DiGraph)
     ), "Graph should be NetworkX Graph or DiGraph"
     assert graph.number_of_nodes() == 4, "Graph should have 4 nodes"
-    assert graph.number_of_edges() == 3, "Graph should have 3 edges"
+    assert graph.number_of_edges() == 2, "Graph should have 2 edges"
 
     for u, v, data in graph.edges(data=True):
         assert "weight" not in data, f"Edge ({u}, {v}) should not have a 'weight'"
@@ -629,15 +629,21 @@ async def test_generate_graph_exception(data_manager):
         metadata={"directed": False, "weighted": False},
     )
 
-    with patch(
-        "nxbench.data.loader.generate_graph", side_effect=Exception("Generator failed")
-    ) as mock_generate_graph:
-        with pytest.raises(Exception, match="Generator failed"):
-            await data_manager.load_network(config)
+    with patch.object(
+        data_manager,
+        "get_metadata",
+        return_value={"directed": False, "weighted": False},
+    ):
+        with patch(
+            "nxbench.data.loader.generate_graph",
+            side_effect=Exception("Generator failed"),
+        ) as mock_generate_graph:
+            with pytest.raises(Exception, match="Generator failed"):
+                await data_manager.load_network(config)
 
-        mock_generate_graph.assert_called_once_with(
-            "networkx.invalid_generator", {"n": 100, "p": 0.1}, False
-        )
+            mock_generate_graph.assert_called_once_with(
+                "networkx.invalid_generator", {"n": 100, "p": 0.1}, False
+            )
 
 
 def test_generate_graph_missing_generator_name(data_manager):

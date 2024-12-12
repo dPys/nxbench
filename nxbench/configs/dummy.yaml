@@ -8,31 +8,15 @@ algorithms:
     validate_result: "nxbench.validation.validate_scalar_result"
 
 datasets:
-  # - name: "erdos_renyi_small"
-  #   source: "generator"
-  #   params:
-  #     generator: "networkx.erdos_renyi_graph"
-  #     n: 1000
-  #     p: 0.01
-  #   metadata:
-  #     directed: false
-  #     weighted: false
-
-  # - name: "enron"
-  #   source: "networkrepository"
-  #   params: {}
-
-  # - name: "citationCiteseer"
-  #   source: "networkrepository"
-  #   params: {}
-
-  - name: "patentcite"
-    source: "networkrepository"
-    params: {}
-
-  # - name: "ca-netscience"
-  #   source: "networkrepository"
-  #   params: {}
+  - name: "erdos_renyi_small"
+    source: "generator"
+    params:
+      generator: "networkx.erdos_renyi_graph"
+      n: 1000
+      p: 0.01
+    metadata:
+      directed: false
+      weighted: false
 
 validation:
   skip_slow: false
