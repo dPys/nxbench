@@ -18,11 +18,15 @@ datasets:
   #     directed: false
   #     weighted: false
 
-  - name: "enron"
-    source: "networkrepository"
-    params: {}
+  # - name: "enron"
+  #   source: "networkrepository"
+  #   params: {}
 
-  - name: "citationCiteseer"
+  # - name: "citationCiteseer"
+  #   source: "networkrepository"
+  #   params: {}
+
+  - name: "patentcite"
     source: "networkrepository"
     params: {}
 
