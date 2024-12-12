@@ -63,11 +63,12 @@ class BenchmarkDataManager:
         self, config: DatasetConfig, session: aiohttp.ClientSession | None = None
     ) -> tuple[nx.Graph | nx.DiGraph, dict[str, Any]]:
         """Load or generate a network based on config."""
-        metadata = self.get_metadata(config.name)
         source_lower = config.source.lower()
 
         if source_lower == "generator":
             return self._generate_graph(config)
+
+        metadata = self.get_metadata(config.name)
 
         if config.name in self._network_cache:
             logger.debug(f"Loading network '{config.name}' from cache")
