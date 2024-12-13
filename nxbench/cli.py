@@ -110,7 +110,7 @@ def get_latest_commit_hash(github_url: str) -> str:
 
 def safe_run(
     cmd: Sequence[str | Path],
-    check: bool = True,
+    check: bool = False,
     capture_output: bool = False,
     **kwargs,
 ) -> subprocess.CompletedProcess:
@@ -121,7 +121,7 @@ def safe_run(
     ----------
     cmd : Sequence[str | Path]
         The command and arguments to execute.
-    check : bool, default=True
+    check : bool, default=False
         If True, raise an exception if the command fails.
     capture_output : bool, default=False
         If True, capture stdout and stderr.

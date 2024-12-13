@@ -19,17 +19,17 @@ algorithms:
     warmup_iterations: 20
     validate_result: "nxbench.validation.validate_node_scores"
 
-  - name: "betweenness_centrality"
-    func: "networkx.betweenness_centrality"
-    params:
-      normalized: true
-      endpoints: false
-    requires_directed: false
-    groups: ["centrality", "path_based"]
-    min_rounds: 5
-    warmup: true
-    warmup_iterations: 20
-    validate_result: "nxbench.validation.validate_node_scores"
+  # - name: "betweenness_centrality"
+  #   func: "networkx.betweenness_centrality"
+  #   params:
+  #     normalized: true
+  #     endpoints: false
+  #   requires_directed: false
+  #   groups: ["centrality", "path_based"]
+  #   min_rounds: 5
+  #   warmup: true
+  #   warmup_iterations: 20
+  #   validate_result: "nxbench.validation.validate_node_scores"
 
   # - name: "edge_betweenness_centrality"
   #   func: "networkx.edge_betweenness_centrality"
@@ -65,13 +65,13 @@ algorithms:
     min_rounds: 3
     validate_result: "nxbench.validation.validate_node_scores"
 
-  - name: "transitivity"
-    func: "networkx.transitivity"
-    params: {}
-    requires_directed: false
-    groups: ["clustering", "graph_structure"]
-    min_rounds: 3
-    validate_result: "nxbench.validation.validate_scalar_result"
+  # - name: "transitivity"
+  #   func: "networkx.transitivity"
+  #   params: {}
+  #   requires_directed: false
+  #   groups: ["clustering", "graph_structure"]
+  #   min_rounds: 3
+  #   validate_result: "nxbench.validation.validate_scalar_result"
 
   # - name: "all_pairs_node_connectivity"
   #   func: "networkx.algorithms.connectivity.connectivity.all_pairs_node_connectivity"
@@ -160,23 +160,19 @@ algorithms:
   #   min_rounds: 3
 
 datasets:
-  - name: "enron"
-    source: "networkrepository"
-    params: {}
+  # - name: "enron"
+  #   source: "networkrepository"
+  #   params: {}
 
-  - name: "citationCiteseer"
-    source: "networkrepository"
-    params: {}
+  # - name: "citationCiteseer"
+  #   source: "networkrepository"
+  #   params: {}
 
-  - name: "karate"
-    source: "networkrepository"
-    params: {}
+  # - name: "karate"
+  #   source: "networkrepository"
+  #   params: {}
 
-  - name: "patentcite"
-    source: "networkrepository"
-    params: {}
-
-  # - name: "ca-netscience"
+  # - name: "patentcite"
   #   source: "networkrepository"
   #   params: {}
 
@@ -190,47 +186,47 @@ datasets:
       directed: false
       weighted: false
 
-  - name: "watts_strogatz_small"
-    source: "generator"
-    params:
-      generator: "networkx.watts_strogatz_graph"
-      n: 10000
-      k: 6
-      p: 0.1
-    metadata:
-      directed: false
-      weighted: false
+  # - name: "watts_strogatz_small"
+  #   source: "generator"
+  #   params:
+  #     generator: "networkx.watts_strogatz_graph"
+  #     n: 10000
+  #     k: 6
+  #     p: 0.1
+  #   metadata:
+  #     directed: false
+  #     weighted: false
 
-  - name: "barabasi_albert_small"
-    source: "generator"
-    params:
-      generator: "networkx.barabasi_albert_graph"
-      n: 1000
-      m: 3
-    metadata:
-      directed: false
-      weighted: false
+  # - name: "barabasi_albert_small"
+  #   source: "generator"
+  #   params:
+  #     generator: "networkx.barabasi_albert_graph"
+  #     n: 1000
+  #     m: 3
+  #   metadata:
+  #     directed: false
+  #     weighted: false
 
-  - name: "powerlaw_cluster_small"
-    source: "generator"
-    params:
-      generator: "networkx.powerlaw_cluster_graph"
-      n: 1000
-      m: 2
-      p: 0.1
-    metadata:
-      directed: false
-      weighted: false
+  # - name: "powerlaw_cluster_small"
+  #   source: "generator"
+  #   params:
+  #     generator: "networkx.powerlaw_cluster_graph"
+  #     n: 1000
+  #     m: 2
+  #     p: 0.1
+  #   metadata:
+  #     directed: false
+  #     weighted: false
 
-  - name: "erdos_renyi_small"
-    source: "generator"
-    params:
-      generator: "networkx.erdos_renyi_graph"
-      n: 1000
-      p: 0.01
-    metadata:
-      directed: false
-      weighted: false
+  # - name: "erdos_renyi_small"
+  #   source: "generator"
+  #   params:
+  #     generator: "networkx.erdos_renyi_graph"
+  #     n: 1000
+  #     p: 0.01
+  #   metadata:
+  #     directed: false
+  #     weighted: false
 
   # - name: "watts_strogatz_large"
   #   source: "generator"
