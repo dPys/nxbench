@@ -112,6 +112,11 @@ class ValidationRegistry:
             params={},
             expected_type=dict,
         ),
+        "average_clustering": ValidationConfig(
+            validator=validate_node_scores,
+            params={"require_normalized": False},
+            expected_type=dict,
+        ),
         "square_clustering": ValidationConfig(
             validator=validate_node_scores,
             params={"require_normalized": False},

@@ -1,14 +1,11 @@
 algorithms:
-  - name: "pagerank"
-    func: "networkx.pagerank"
-    params:
-      alpha: 0.9
-      tol: 1.0e-6
+  - name: "average_clustering"
+    func: "networkx.average_clustering"
+    params: {}
     requires_directed: false
-    groups: ["centrality", "random_walk"]
-    min_rounds: 10
-    warmup: true
-    warmup_iterations: 50
+    groups: ["clustering", "graph_structure"]
+    min_rounds: 3
+    validate_result: "nxbench.validation.validate_scalar_result"
 
 datasets:
   - name: "erdos_renyi_small"
@@ -35,9 +32,10 @@ matrix:
     - "1"
 
 env_config:
-  repo: "https://github.com/dpys/nxbench.git"
-  branches:
-    - "main"
   req:
     - "networkx==3.4.2"
+    - "nx-parallel-0.3rc0.dev0"
     - "graphblas_algorithms==2023.10.0"
+  pythons:
+    - "3.10"
+    - "3.11"

@@ -61,18 +61,16 @@ def generate_benchmark_methods(cls):
         and number of threads combination.
         """
         algo_name = algo_config.name
-        orig_dataset_name = dataset_name
-        method_name = f"track_{algo_name}_{orig_dataset_name}_{backend}_{num_thread}"
+        safe_dataset_name = dataset_name.replace("-", "_")
+        method_name = f"track_{algo_name}_{safe_dataset_name}_{backend}_{num_thread}"
 
         def track_method(self):
             """Run benchmark and return metrics for the unique combination."""
             logger.debug(
                 f"Starting track_method for {method_name} with backend={backend}, "
-                f"threads={num_thread}, dataset={orig_dataset_name}"
+                f"threads={num_thread}, dataset={dataset_name}"
             )
-            metrics = self.do_benchmark(
-                algo_config, orig_dataset_name, backend, num_thread
-            )
+            metrics = self.do_benchmark(algo_config, dataset_name, backend, num_thread)
             logger.debug(f"Track {method_name} results: {metrics}")
             return metrics
 

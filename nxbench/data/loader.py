@@ -14,6 +14,7 @@ from scipy.io import mmread
 
 from nxbench.benchmarks.config import DatasetConfig
 from nxbench.data.synthesize import generate_graph
+from nxbench.data.utils import detect_delimiter, fix_matrix_market_file
 
 warnings.filterwarnings("ignore")
 
@@ -36,7 +37,7 @@ class BenchmarkDataManager:
         self._metadata_df = self._load_metadata()
 
     def _normalize_name(self, name: str) -> str:
-        return name.lower().replace("-", "_")
+        return name.lower().strip().replace("-", "_")
 
     def _load_metadata(self) -> pd.DataFrame:
         try:
@@ -68,6 +69,7 @@ class BenchmarkDataManager:
             return self._generate_graph(config)
 
         metadata = self.get_metadata(config.name)
+
         if config.name in self._network_cache:
             logger.debug(f"Loading network '{config.name}' from cache")
             return self._network_cache[config.name]
@@ -117,8 +119,32 @@ class BenchmarkDataManager:
             suffix = graph_file.suffix.lower()
             if suffix == ".mtx":
                 logger.info(f"Loading Matrix Market file from {graph_file}")
+                graph_path = Path(graph_file)
+                corrected_file = graph_path.with_name(
+                    f"{graph_path.stem}_corrected{graph_path.suffix}"
+                )
+
                 try:
-                    sparse_matrix = mmread(graph_file)
+                    # check if the corrected file already exists
+                    if corrected_file.exists():
+                        logger.info(
+                            f"Using existing corrected Matrix Market file: "
+                            f"{corrected_file}"
+                        )
+                        sparse_matrix = mmread(corrected_file)
+                    else:
+                        try:
+                            # attempt to read the original file
+                            sparse_matrix = mmread(graph_file)
+                        except Exception:
+                            logger.info(f"Fixing Matrix Market file: {graph_file}")
+                            # fix the file and load the corrected version
+                            corrected_file = fix_matrix_market_file(graph_path)
+                            sparse_matrix = mmread(corrected_file)
+                except Exception:
+                    logger.exception(f"Failed to load Matrix Market file {graph_file}")
+                    raise ValueError("Matrix Market file not in expected format")
+                else:
                     graph = nx.from_scipy_sparse_array(
                         sparse_matrix,
                         create_using=(
@@ -127,14 +153,18 @@ class BenchmarkDataManager:
                             else nx.Graph()
                         ),
                     )
-                    check_graph_validity(graph, graph_file)
-                except ValueError:
-                    logger.exception(f"Failed to load Matrix Market file {graph_file}")
-                    raise ValueError("Matrix Market file not in expected format")
-                except Exception:
-                    logger.exception(f"Failed to load Matrix Market file {graph_file}")
-                    raise
+                    graph.graph.update(metadata)
+                    return graph
             elif suffix in [".edgelist", ".edges"]:
+                try:
+                    delimiter = detect_delimiter(graph_file)
+                    logger.debug(f"Detected delimiter: '{delimiter}'")
+                except Exception:
+                    logger.debug(
+                        "No valid delimiter found, falling back to whitespace split"
+                    )
+                    delimiter = " "
+
                 create_using = (
                     nx.DiGraph() if metadata.get("directed", False) else nx.Graph()
                 )
@@ -179,6 +209,7 @@ class BenchmarkDataManager:
                             )
                             graph = nx.read_edgelist(
                                 edge_iter,
+                                delimiter=delimiter,
                                 nodetype=str,
                                 create_using=create_using,
                                 data=False,
@@ -194,6 +225,7 @@ class BenchmarkDataManager:
                             )
                             graph = nx.read_edgelist(
                                 edge_iter,
+                                delimiter=delimiter,
                                 nodetype=str,
                                 create_using=create_using,
                                 data=False,
@@ -211,6 +243,7 @@ class BenchmarkDataManager:
                             )
                             graph = nx.read_edgelist(
                                 edge_iter,
+                                delimiter=delimiter,
                                 nodetype=str,
                                 create_using=create_using,
                                 data=False,
@@ -245,6 +278,8 @@ class BenchmarkDataManager:
             raise
         else:
             graph.graph.update(metadata)
+            if graph.number_of_edges() == 0:
+                raise ValueError(f"Graph file {graph_file} contains no valid edges.")
             logger.info(f"Loaded network from '{graph_file}' successfully.")
             return graph
 

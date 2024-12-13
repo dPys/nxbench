@@ -14,6 +14,7 @@ from typing import Any
 from urllib.parse import urljoin
 
 import aiofiles
+import aiofiles.os
 import aiohttp
 import chardet
 from aiohttp import ClientSession, ClientTimeout
@@ -176,7 +177,7 @@ class NetworkRepository:
 
     async def _fetch_text(
         self, url: str, method: str = "GET", retries: int = 3, **kwargs
-    ) -> str:
+    ) -> str | None:
         """Fetch the text content of a URL using aiohttp with retries and robust
         encoding handling.
         """
@@ -252,7 +253,7 @@ class NetworkRepository:
 
     async def _fetch_response(
         self, url: str, method: str = "GET", retries: int = 3, **kwargs
-    ) -> aiohttp.ClientResponse:
+    ) -> aiohttp.ClientResponse | None:
         """Fetch the response object of a URL using aiohttp with retries."""
         if not self.session:
             raise RuntimeError("HTTP session is not initialized.")

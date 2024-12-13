@@ -5,10 +5,10 @@
     "project_url": "https://github.com/dpys/nxbench",
     "dvcs": "git",
     "branches": [
-        "main"
+        "cli-gotchas"
     ],
     "repo": "https://github.com/dpys/nxbench",
-    "environment_type": "conda",
+    "environment_type": "virtualenv",
     "show_commit_url": "https://github.com/dpys/nxbench/commit/",
     "matrix": {},
     "benchmark_dir": "nxbench/benchmarks",

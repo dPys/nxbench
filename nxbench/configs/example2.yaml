@@ -19,17 +19,17 @@ algorithms:
     warmup_iterations: 20
     validate_result: "nxbench.validation.validate_node_scores"
 
-  - name: "betweenness_centrality"
-    func: "networkx.betweenness_centrality"
-    params:
-      normalized: true
-      endpoints: false
-    requires_directed: false
-    groups: ["centrality", "path_based"]
-    min_rounds: 5
-    warmup: true
-    warmup_iterations: 20
-    validate_result: "nxbench.validation.validate_node_scores"
+  # - name: "betweenness_centrality"
+  #   func: "networkx.betweenness_centrality"
+  #   params:
+  #     normalized: true
+  #     endpoints: false
+  #   requires_directed: false
+  #   groups: ["centrality", "path_based"]
+  #   min_rounds: 5
+  #   warmup: true
+  #   warmup_iterations: 20
+  #   validate_result: "nxbench.validation.validate_node_scores"
 
   # - name: "edge_betweenness_centrality"
   #   func: "networkx.edge_betweenness_centrality"
@@ -160,45 +160,21 @@ algorithms:
   #   min_rounds: 3
 
 datasets:
-  - name: "twitter"
-    source: "networkrepository"
-    params: {}
+  # - name: "enron"
+  #   source: "networkrepository"
+  #   params: {}
 
-  - name: "08blocks"
-    source: "networkrepository"
-    params: {}
-
-  - name: "amazon"
-    source: "networkrepository"
-    params: {}
-
-  - name: "google"
-    source: "networkrepository"
-    params: {}
-
-  - name: "enron"
-    source: "networkrepository"
-    params: {}
-
-  - name: "citationCiteseer"
-    source: "networkrepository"
-    params: {}
+  # - name: "citationCiteseer"
+  #   source: "networkrepository"
+  #   params: {}
 
   - name: "karate"
     source: "networkrepository"
     params: {}
 
-  - name: "netscience"
-    source: "networkrepository"
-    params: {}
-
-  - name: "email-Eu-core"
-    source: "networkrepository"
-    params: {}
-
-  - name: "jazz"
-    source: "networkrepository"
-    params: {}
+  # - name: "patentcite"
+  #   source: "networkrepository"
+  #   params: {}
 
   - name: "erdos_renyi_small"
     source: "generator"
@@ -214,43 +190,43 @@ datasets:
     source: "generator"
     params:
       generator: "networkx.watts_strogatz_graph"
-      n: 10000
+      n: 1000
       k: 6
       p: 0.1
     metadata:
       directed: false
       weighted: false
 
-  - name: "barabasi_albert_small"
-    source: "generator"
-    params:
-      generator: "networkx.barabasi_albert_graph"
-      n: 1000
-      m: 3
-    metadata:
-      directed: false
-      weighted: false
+  # - name: "barabasi_albert_small"
+  #   source: "generator"
+  #   params:
+  #     generator: "networkx.barabasi_albert_graph"
+  #     n: 1000
+  #     m: 3
+  #   metadata:
+  #     directed: false
+  #     weighted: false
 
-  - name: "powerlaw_cluster_small"
-    source: "generator"
-    params:
-      generator: "networkx.powerlaw_cluster_graph"
-      n: 1000
-      m: 2
-      p: 0.1
-    metadata:
-      directed: false
-      weighted: false
+  # - name: "powerlaw_cluster_small"
+  #   source: "generator"
+  #   params:
+  #     generator: "networkx.powerlaw_cluster_graph"
+  #     n: 1000
+  #     m: 2
+  #     p: 0.1
+  #   metadata:
+  #     directed: false
+  #     weighted: false
 
-  - name: "erdos_renyi_small"
-    source: "generator"
-    params:
-      generator: "networkx.erdos_renyi_graph"
-      n: 1000
-      p: 0.01
-    metadata:
-      directed: false
-      weighted: false
+  # - name: "erdos_renyi_large"
+  #   source: "generator"
+  #   params:
+  #     generator: "networkx.erdos_renyi_graph"
+  #     n: 10000
+  #     p: 0.01
+  #   metadata:
+  #     directed: false
+  #     weighted: false
 
   # - name: "watts_strogatz_large"
   #   source: "generator"
@@ -295,7 +271,7 @@ matrix:
     - "networkx"
     - "parallel"
     - "graphblas"
-    - "cugraph"
+    # - "cugraph"
   num_threads:
     - "1"
     - "2"
@@ -306,7 +282,7 @@ env_config:
     - "networkx==3.4.2"
     - "nx-parallel-0.3rc0.dev0"
     - "graphblas_algorithms==2023.10.0"
-    - "nx-cugraph_cu11==24.8.0"
+    # - "nx-cugraph_cu11==24.8.0"
   pythons:
     - "3.10"
     - "3.11"
