@@ -392,7 +392,7 @@
 <a class="viewcode-back" href="../../api/nxbench.html#nxbench.cli.safe_run">[docs]</a>
 <span class="k">def</span> <span class="nf">safe_run</span><span class="p">(</span>
     <span class="n">cmd</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span><span class="p">],</span>
-    <span class="n">check</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="n">check</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="n">capture_output</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">CompletedProcess</span><span class="p">:</span>
@@ -403,7 +403,7 @@
 <span class="sd">    ----------</span>
 <span class="sd">    cmd : Sequence[str | Path]</span>
 <span class="sd">        The command and arguments to execute.</span>
-<span class="sd">    check : bool, default=True</span>
+<span class="sd">    check : bool, default=False</span>
 <span class="sd">        If True, raise an exception if the command fails.</span>
 <span class="sd">    capture_output : bool, default=False</span>
 <span class="sd">        If True, capture stdout and stderr.</span>

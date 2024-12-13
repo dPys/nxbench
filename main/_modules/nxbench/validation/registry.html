@@ -388,6 +388,11 @@
             <span class="n">params</span><span class="o">=</span><span class="p">{},</span>
             <span class="n">expected_type</span><span class="o">=</span><span class="nb">dict</span><span class="p">,</span>
         <span class="p">),</span>
+        <span class="s2">&quot;average_clustering&quot;</span><span class="p">:</span> <span class="n">ValidationConfig</span><span class="p">(</span>
+            <span class="n">validator</span><span class="o">=</span><span class="n">validate_node_scores</span><span class="p">,</span>
+            <span class="n">params</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;require_normalized&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">},</span>
+            <span class="n">expected_type</span><span class="o">=</span><span class="nb">dict</span><span class="p">,</span>
+        <span class="p">),</span>
         <span class="s2">&quot;square_clustering&quot;</span><span class="p">:</span> <span class="n">ValidationConfig</span><span class="p">(</span>
             <span class="n">validator</span><span class="o">=</span><span class="n">validate_node_scores</span><span class="p">,</span>
             <span class="n">params</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;require_normalized&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">},</span>

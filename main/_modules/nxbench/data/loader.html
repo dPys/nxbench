@@ -285,6 +285,7 @@
 
 <span class="kn">from</span> <span class="nn">nxbench.benchmarks.config</span> <span class="kn">import</span> <span class="n">DatasetConfig</span>
 <span class="kn">from</span> <span class="nn">nxbench.data.synthesize</span> <span class="kn">import</span> <span class="n">generate_graph</span>
+<span class="kn">from</span> <span class="nn">nxbench.data.utils</span> <span class="kn">import</span> <span class="n">detect_delimiter</span><span class="p">,</span> <span class="n">fix_matrix_market_file</span>
 
 <span class="n">warnings</span><span class="o">.</span><span class="n">filterwarnings</span><span class="p">(</span><span class="s2">&quot;ignore&quot;</span><span class="p">)</span>
 
@@ -312,7 +313,7 @@
 
 
     <span class="k">def</span> <span class="nf">_normalize_name</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">name</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;-&quot;</span><span class="p">,</span> <span class="s2">&quot;_&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">name</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;-&quot;</span><span class="p">,</span> <span class="s2">&quot;_&quot;</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_load_metadata</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
         <span class="k">try</span><span class="p">:</span>
@@ -349,6 +350,7 @@
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_generate_graph</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
 
         <span class="n">metadata</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_metadata</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+
         <span class="k">if</span> <span class="n">config</span><span class="o">.</span><span class="n">name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_network_cache</span><span class="p">:</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Loading network &#39;</span><span class="si">{</span><span class="n">config</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&#39; from cache&quot;</span><span class="p">)</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_network_cache</span><span class="p">[</span><span class="n">config</span><span class="o">.</span><span class="n">name</span><span class="p">]</span>
@@ -399,8 +401,32 @@
             <span class="n">suffix</span> <span class="o">=</span> <span class="n">graph_file</span><span class="o">.</span><span class="n">suffix</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
             <span class="k">if</span> <span class="n">suffix</span> <span class="o">==</span> <span class="s2">&quot;.mtx&quot;</span><span class="p">:</span>
                 <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Loading Matrix Market file from </span><span class="si">{</span><span class="n">graph_file</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="n">graph_path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">graph_file</span><span class="p">)</span>
+                <span class="n">corrected_file</span> <span class="o">=</span> <span class="n">graph_path</span><span class="o">.</span><span class="n">with_name</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">graph_path</span><span class="o">.</span><span class="n">stem</span><span class="si">}</span><span class="s2">_corrected</span><span class="si">{</span><span class="n">graph_path</span><span class="o">.</span><span class="n">suffix</span><span class="si">}</span><span class="s2">&quot;</span>
+                <span class="p">)</span>
+
                 <span class="k">try</span><span class="p">:</span>
-                    <span class="n">sparse_matrix</span> <span class="o">=</span> <span class="n">mmread</span><span class="p">(</span><span class="n">graph_file</span><span class="p">)</span>
+                    <span class="c1"># check if the corrected file already exists</span>
+                    <span class="k">if</span> <span class="n">corrected_file</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+                        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                            <span class="sa">f</span><span class="s2">&quot;Using existing corrected Matrix Market file: &quot;</span>
+                            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">corrected_file</span><span class="si">}</span><span class="s2">&quot;</span>
+                        <span class="p">)</span>
+                        <span class="n">sparse_matrix</span> <span class="o">=</span> <span class="n">mmread</span><span class="p">(</span><span class="n">corrected_file</span><span class="p">)</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="k">try</span><span class="p">:</span>
+                            <span class="c1"># attempt to read the original file</span>
+                            <span class="n">sparse_matrix</span> <span class="o">=</span> <span class="n">mmread</span><span class="p">(</span><span class="n">graph_file</span><span class="p">)</span>
+                        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+                            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Fixing Matrix Market file: </span><span class="si">{</span><span class="n">graph_file</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                            <span class="c1"># fix the file and load the corrected version</span>
+                            <span class="n">corrected_file</span> <span class="o">=</span> <span class="n">fix_matrix_market_file</span><span class="p">(</span><span class="n">graph_path</span><span class="p">)</span>
+                            <span class="n">sparse_matrix</span> <span class="o">=</span> <span class="n">mmread</span><span class="p">(</span><span class="n">corrected_file</span><span class="p">)</span>
+                <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+                    <span class="n">logger</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Failed to load Matrix Market file </span><span class="si">{</span><span class="n">graph_file</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Matrix Market file not in expected format&quot;</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
                     <span class="n">graph</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">from_scipy_sparse_array</span><span class="p">(</span>
                         <span class="n">sparse_matrix</span><span class="p">,</span>
                         <span class="n">create_using</span><span class="o">=</span><span class="p">(</span>
@@ -409,14 +435,18 @@
                             <span class="k">else</span> <span class="n">nx</span><span class="o">.</span><span class="n">Graph</span><span class="p">()</span>
                         <span class="p">),</span>
                     <span class="p">)</span>
-                    <span class="n">check_graph_validity</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">graph_file</span><span class="p">)</span>
-                <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
-                    <span class="n">logger</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Failed to load Matrix Market file </span><span class="si">{</span><span class="n">graph_file</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Matrix Market file not in expected format&quot;</span><span class="p">)</span>
-                <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
-                    <span class="n">logger</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Failed to load Matrix Market file </span><span class="si">{</span><span class="n">graph_file</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-                    <span class="k">raise</span>
+                    <span class="n">graph</span><span class="o">.</span><span class="n">graph</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">metadata</span><span class="p">)</span>
+                    <span class="k">return</span> <span class="n">graph</span>
             <span class="k">elif</span> <span class="n">suffix</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;.edgelist&quot;</span><span class="p">,</span> <span class="s2">&quot;.edges&quot;</span><span class="p">]:</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">delimiter</span> <span class="o">=</span> <span class="n">detect_delimiter</span><span class="p">(</span><span class="n">graph_file</span><span class="p">)</span>
+                    <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Detected delimiter: &#39;</span><span class="si">{</span><span class="n">delimiter</span><span class="si">}</span><span class="s2">&#39;&quot;</span><span class="p">)</span>
+                <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+                    <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+                        <span class="s2">&quot;No valid delimiter found, falling back to whitespace split&quot;</span>
+                    <span class="p">)</span>
+                    <span class="n">delimiter</span> <span class="o">=</span> <span class="s2">&quot; &quot;</span>
+
                 <span class="n">create_using</span> <span class="o">=</span> <span class="p">(</span>
                     <span class="n">nx</span><span class="o">.</span><span class="n">DiGraph</span><span class="p">()</span> <span class="k">if</span> <span class="n">metadata</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;directed&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span> <span class="k">else</span> <span class="n">nx</span><span class="o">.</span><span class="n">Graph</span><span class="p">()</span>
                 <span class="p">)</span>
@@ -461,6 +491,7 @@
                             <span class="p">)</span>
                             <span class="n">graph</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">read_edgelist</span><span class="p">(</span>
                                 <span class="n">edge_iter</span><span class="p">,</span>
+                                <span class="n">delimiter</span><span class="o">=</span><span class="n">delimiter</span><span class="p">,</span>
                                 <span class="n">nodetype</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span>
                                 <span class="n">create_using</span><span class="o">=</span><span class="n">create_using</span><span class="p">,</span>
                                 <span class="n">data</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
@@ -476,6 +507,7 @@
                             <span class="p">)</span>
                             <span class="n">graph</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">read_edgelist</span><span class="p">(</span>
                                 <span class="n">edge_iter</span><span class="p">,</span>
+                                <span class="n">delimiter</span><span class="o">=</span><span class="n">delimiter</span><span class="p">,</span>
                                 <span class="n">nodetype</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span>
                                 <span class="n">create_using</span><span class="o">=</span><span class="n">create_using</span><span class="p">,</span>
                                 <span class="n">data</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
@@ -493,6 +525,7 @@
                             <span class="p">)</span>
                             <span class="n">graph</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">read_edgelist</span><span class="p">(</span>
                                 <span class="n">edge_iter</span><span class="p">,</span>
+                                <span class="n">delimiter</span><span class="o">=</span><span class="n">delimiter</span><span class="p">,</span>
                                 <span class="n">nodetype</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span>
                                 <span class="n">create_using</span><span class="o">=</span><span class="n">create_using</span><span class="p">,</span>
                                 <span class="n">data</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
@@ -527,6 +560,8 @@
             <span class="k">raise</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">graph</span><span class="o">.</span><span class="n">graph</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">metadata</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">graph</span><span class="o">.</span><span class="n">number_of_edges</span><span class="p">()</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Graph file </span><span class="si">{</span><span class="n">graph_file</span><span class="si">}</span><span class="s2"> contains no valid edges.&quot;</span><span class="p">)</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Loaded network from &#39;</span><span class="si">{</span><span class="n">graph_file</span><span class="si">}</span><span class="s2">&#39; successfully.&quot;</span><span class="p">)</span>
             <span class="k">return</span> <span class="n">graph</span>
 

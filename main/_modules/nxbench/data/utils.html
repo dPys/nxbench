@@ -271,6 +271,7 @@
           <h1>Source code for nxbench.data.utils</h1><div class="highlight"><pre>
 <span></span><span class="kn">import</span> <span class="nn">re</span>
 <span class="kn">import</span> <span class="nn">zipfile</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">Counter</span>
 <span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
 
 <span class="kn">import</span> <span class="nn">networkx</span> <span class="k">as</span> <span class="nn">nx</span>
@@ -342,6 +343,150 @@
             <span class="k">if</span> <span class="n">name</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">)</span> <span class="ow">or</span> <span class="s2">&quot;..&quot;</span> <span class="ow">in</span> <span class="n">name</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Malicious path in archive: </span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
         <span class="n">zf</span><span class="o">.</span><span class="n">extractall</span><span class="p">(</span><span class="n">extracted_path</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="fix_matrix_market_file">
+<a class="viewcode-back" href="../../../api/nxbench.data.html#nxbench.data.utils.fix_matrix_market_file">[docs]</a>
+<span class="k">def</span> <span class="nf">fix_matrix_market_file</span><span class="p">(</span><span class="n">in_path</span><span class="p">:</span> <span class="n">Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Path</span><span class="p">:</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">in_path</span><span class="o">.</span><span class="n">exists</span><span class="p">()</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">in_path</span><span class="o">.</span><span class="n">is_file</span><span class="p">():</span>
+        <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;Input file &#39;</span><span class="si">{</span><span class="n">in_path</span><span class="si">!s}</span><span class="s2">&#39; does not exist or is not a file.&quot;</span>
+        <span class="p">)</span>
+
+    <span class="k">with</span> <span class="n">in_path</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="n">lines</span> <span class="o">=</span> <span class="p">[</span><span class="n">line</span><span class="o">.</span><span class="n">rstrip</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span> <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">f</span><span class="p">]</span>
+
+    <span class="n">header_index</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">line</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">lines</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">line</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%%</span><span class="s2">MatrixMarket&quot;</span><span class="p">):</span>
+            <span class="n">header_index</span> <span class="o">=</span> <span class="n">i</span>
+            <span class="k">break</span>
+
+    <span class="k">if</span> <span class="n">header_index</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;No </span><span class="si">%%</span><span class="s2">MatrixMarket header line found.&quot;</span><span class="p">)</span>
+
+    <span class="n">header_line</span> <span class="o">=</span> <span class="n">lines</span><span class="p">[</span><span class="n">header_index</span><span class="p">]</span>
+    <span class="k">if</span> <span class="s2">&quot;coordinate&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">header_line</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="s2">&quot;This fix only applies to coordinate format Matrix Market files.&quot;</span>
+        <span class="p">)</span>
+
+    <span class="n">symmetric</span> <span class="o">=</span> <span class="s2">&quot;symmetric&quot;</span> <span class="ow">in</span> <span class="n">header_line</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+    <span class="n">content_lines</span> <span class="o">=</span> <span class="n">lines</span><span class="p">[</span><span class="n">header_index</span> <span class="o">+</span> <span class="mi">1</span> <span class="p">:]</span>
+
+    <span class="n">non_comment_lines</span> <span class="o">=</span> <span class="p">[</span><span class="n">ln</span> <span class="k">for</span> <span class="n">ln</span> <span class="ow">in</span> <span class="n">content_lines</span> <span class="k">if</span> <span class="n">ln</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">ln</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;%&quot;</span><span class="p">)]</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">non_comment_lines</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;No dimension or data lines found after header and comments.&quot;</span><span class="p">)</span>
+
+    <span class="n">dimension_line</span> <span class="o">=</span> <span class="n">non_comment_lines</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">parts</span> <span class="o">=</span> <span class="n">dimension_line</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+
+    <span class="n">out_file_path</span> <span class="o">=</span> <span class="n">in_path</span><span class="o">.</span><span class="n">with_name</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">in_path</span><span class="o">.</span><span class="n">stem</span><span class="si">}</span><span class="s2">_corrected</span><span class="si">{</span><span class="n">in_path</span><span class="o">.</span><span class="n">suffix</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">parts</span><span class="p">)</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+        <span class="n">out_file_path</span><span class="o">.</span><span class="n">write_text</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">out_file_path</span>
+
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">parts</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;Dimension line &#39;</span><span class="si">{</span><span class="n">dimension_line</span><span class="si">}</span><span class="s2">&#39; does not have enough integers.&quot;</span>
+        <span class="p">)</span>
+
+    <span class="n">data_lines</span> <span class="o">=</span> <span class="n">non_comment_lines</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">data_lines</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;No data lines found; cannot infer NNZ, M, N.&quot;</span><span class="p">)</span>
+
+    <span class="c1"># parse data lines to determine M, N, and NNZ</span>
+    <span class="n">max_row</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">max_col</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">NNZ</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">data_lines</span><span class="p">:</span>
+        <span class="n">coords</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">coords</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Data line &#39;</span><span class="si">{</span><span class="n">line</span><span class="si">}</span><span class="s2">&#39; does not have two coordinates.&quot;</span><span class="p">)</span>
+
+        <span class="n">r</span><span class="p">,</span> <span class="n">c</span> <span class="o">=</span> <span class="nb">map</span><span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="n">coords</span><span class="p">[:</span><span class="mi">2</span><span class="p">])</span>  <span class="c1"># row and col are 1-based</span>
+        <span class="k">if</span> <span class="n">r</span> <span class="o">&gt;</span> <span class="n">max_row</span><span class="p">:</span>
+            <span class="n">max_row</span> <span class="o">=</span> <span class="n">r</span>
+        <span class="k">if</span> <span class="n">c</span> <span class="o">&gt;</span> <span class="n">max_col</span><span class="p">:</span>
+            <span class="n">max_col</span> <span class="o">=</span> <span class="n">c</span>
+        <span class="n">NNZ</span> <span class="o">+=</span> <span class="mi">1</span>
+
+    <span class="c1"># infer M and N from max indices</span>
+    <span class="n">M</span> <span class="o">=</span> <span class="n">max_row</span>
+    <span class="n">N</span> <span class="o">=</span> <span class="n">max_col</span>
+
+    <span class="c1"># if symmetric and not square, make it square by taking max dimension</span>
+    <span class="k">if</span> <span class="n">symmetric</span> <span class="ow">and</span> <span class="n">M</span> <span class="o">!=</span> <span class="n">N</span><span class="p">:</span>
+        <span class="n">dim</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">M</span><span class="p">,</span> <span class="n">N</span><span class="p">)</span>
+        <span class="n">M</span> <span class="o">=</span> <span class="n">dim</span>
+        <span class="n">N</span> <span class="o">=</span> <span class="n">dim</span>
+
+    <span class="c1"># construct corrected dimension line</span>
+    <span class="n">corrected_dimension_line</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">M</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">N</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">NNZ</span><span class="si">}</span><span class="s2">&quot;</span>
+
+    <span class="c1"># extract comment lines after header and before dimension line:</span>
+    <span class="n">after_header</span> <span class="o">=</span> <span class="n">lines</span><span class="p">[</span><span class="n">header_index</span> <span class="o">+</span> <span class="mi">1</span> <span class="p">:]</span>
+    <span class="n">dim_line_index_in_after</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">after_header</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">val</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="o">==</span> <span class="n">dimension_line</span><span class="p">:</span>
+            <span class="n">dim_line_index_in_after</span> <span class="o">=</span> <span class="n">idx</span>
+            <span class="k">break</span>
+
+    <span class="k">if</span> <span class="n">dim_line_index_in_after</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="s2">&quot;Could not locate dimension line in the file after header. File may be &quot;</span>
+            <span class="s2">&quot;malformed.&quot;</span>
+        <span class="p">)</span>
+
+    <span class="c1"># comment lines before dimension line:</span>
+    <span class="n">comment_lines_before_dim</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">after_header</span><span class="p">[:</span><span class="n">dim_line_index_in_after</span><span class="p">]:</span>
+        <span class="k">if</span> <span class="n">val</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;%&quot;</span><span class="p">):</span>
+            <span class="n">comment_lines_before_dim</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">val</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="ow">not</span> <span class="n">val</span><span class="o">.</span><span class="n">strip</span><span class="p">():</span>
+            <span class="k">pass</span>
+
+    <span class="k">with</span> <span class="n">out_file_path</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">out_f</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">header_index</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+            <span class="n">out_f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">lines</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">cl</span> <span class="ow">in</span> <span class="n">comment_lines_before_dim</span><span class="p">:</span>
+            <span class="n">out_f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">cl</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="n">out_f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">corrected_dimension_line</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">dl</span> <span class="ow">in</span> <span class="n">data_lines</span><span class="p">:</span>
+            <span class="n">out_f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">dl</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">out_file_path</span></div>
+
+
+
+<div class="viewcode-block" id="detect_delimiter">
+<a class="viewcode-back" href="../../../api/nxbench.data.html#nxbench.data.utils.detect_delimiter">[docs]</a>
+<span class="k">def</span> <span class="nf">detect_delimiter</span><span class="p">(</span><span class="n">file_path</span><span class="p">:</span> <span class="n">Path</span><span class="p">,</span> <span class="n">sample_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">5</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Detect the most common delimiter in the first few lines of a file.&quot;&quot;&quot;</span>
+    <span class="n">delimiters</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;,&quot;</span><span class="p">,</span> <span class="s2">&quot;</span><span class="se">\t</span><span class="s2">&quot;</span><span class="p">,</span> <span class="s2">&quot; &quot;</span><span class="p">,</span> <span class="s2">&quot;;&quot;</span><span class="p">]</span>
+    <span class="n">delimiter_counts</span> <span class="o">=</span> <span class="n">Counter</span><span class="p">()</span>
+
+    <span class="k">with</span> <span class="n">file_path</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">line</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">f</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">i</span> <span class="o">&gt;=</span> <span class="n">sample_size</span><span class="p">:</span>
+                <span class="k">break</span>
+            <span class="n">line</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">line</span> <span class="ow">or</span> <span class="n">line</span><span class="o">.</span><span class="n">startswith</span><span class="p">((</span><span class="s2">&quot;#&quot;</span><span class="p">,</span> <span class="s2">&quot;%&quot;</span><span class="p">)):</span>
+                <span class="k">continue</span>
+            <span class="k">for</span> <span class="n">delimiter</span> <span class="ow">in</span> <span class="n">delimiters</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">delimiter</span> <span class="ow">in</span> <span class="n">line</span><span class="p">:</span>
+                    <span class="n">delimiter_counts</span><span class="p">[</span><span class="n">delimiter</span><span class="p">]</span> <span class="o">+=</span> <span class="n">line</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="n">delimiter</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">delimiter_counts</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">delimiter_counts</span><span class="o">.</span><span class="n">most_common</span><span class="p">(</span><span class="mi">1</span><span class="p">)[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+
+    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;No valid delimiter found in the file.&quot;</span><span class="p">)</span></div>
 
 </pre></div>
         </article>
