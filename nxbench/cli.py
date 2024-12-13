@@ -243,12 +243,11 @@ def run_asv_command(
 
     if results_dir is None:
         results_dir = Path.cwd() / "results"
+    results_dir = results_dir.resolve()
     results_dir.mkdir(parents=True, exist_ok=True)
+    logger.debug(f"Results directory resolved to: {results_dir}")
 
     machine = platform.node()
-
-    results_dir = Path(f"{results_dir}/{machine}")
-    results_dir.mkdir(parents=True, exist_ok=True)
     machine_info_path = results_dir / "machine.json"
 
     generate_machine_info(machine, machine_info_path)
