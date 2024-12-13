@@ -65,13 +65,13 @@ algorithms:
     min_rounds: 3
     validate_result: "nxbench.validation.validate_node_scores"
 
-  # - name: "transitivity"
-  #   func: "networkx.transitivity"
-  #   params: {}
-  #   requires_directed: false
-  #   groups: ["clustering", "graph_structure"]
-  #   min_rounds: 3
-  #   validate_result: "nxbench.validation.validate_scalar_result"
+  - name: "transitivity"
+    func: "networkx.transitivity"
+    params: {}
+    requires_directed: false
+    groups: ["clustering", "graph_structure"]
+    min_rounds: 3
+    validate_result: "nxbench.validation.validate_scalar_result"
 
   # - name: "all_pairs_node_connectivity"
   #   func: "networkx.algorithms.connectivity.connectivity.all_pairs_node_connectivity"
@@ -160,21 +160,21 @@ algorithms:
   #   min_rounds: 3
 
 datasets:
-  # - name: "enron"
-  #   source: "networkrepository"
-  #   params: {}
+  - name: "enron"
+    source: "networkrepository"
+    params: {}
 
-  # - name: "citationCiteseer"
-  #   source: "networkrepository"
-  #   params: {}
+  - name: "citationCiteseer"
+    source: "networkrepository"
+    params: {}
 
-  # - name: "karate"
-  #   source: "networkrepository"
-  #   params: {}
+  - name: "karate"
+    source: "networkrepository"
+    params: {}
 
-  # - name: "patentcite"
-  #   source: "networkrepository"
-  #   params: {}
+  - name: "patentcite"
+    source: "networkrepository"
+    params: {}
 
   - name: "erdos_renyi_small"
     source: "generator"
@@ -186,16 +186,16 @@ datasets:
       directed: false
       weighted: false
 
-  # - name: "watts_strogatz_small"
-  #   source: "generator"
-  #   params:
-  #     generator: "networkx.watts_strogatz_graph"
-  #     n: 10000
-  #     k: 6
-  #     p: 0.1
-  #   metadata:
-  #     directed: false
-  #     weighted: false
+  - name: "watts_strogatz_small"
+    source: "generator"
+    params:
+      generator: "networkx.watts_strogatz_graph"
+      n: 1000
+      k: 6
+      p: 0.1
+    metadata:
+      directed: false
+      weighted: false
 
   # - name: "barabasi_albert_small"
   #   source: "generator"
@@ -218,11 +218,11 @@ datasets:
   #     directed: false
   #     weighted: false
 
-  # - name: "erdos_renyi_small"
+  # - name: "erdos_renyi_large"
   #   source: "generator"
   #   params:
   #     generator: "networkx.erdos_renyi_graph"
-  #     n: 1000
+  #     n: 10000
   #     p: 0.01
   #   metadata:
   #     directed: false
