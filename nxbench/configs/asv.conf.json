@@ -5,7 +5,7 @@
     "project_url": "https://github.com/dpys/nxbench",
     "dvcs": "git",
     "branches": [
-        "main"
+        "cli-gotchas"
     ],
     "repo": "https://github.com/dpys/nxbench",
     "environment_type": "virtualenv",
