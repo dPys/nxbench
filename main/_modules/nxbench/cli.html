@@ -549,12 +549,11 @@
 
     <span class="k">if</span> <span class="n">results_dir</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">results_dir</span> <span class="o">=</span> <span class="n">Path</span><span class="o">.</span><span class="n">cwd</span><span class="p">()</span> <span class="o">/</span> <span class="s2">&quot;results&quot;</span>
+    <span class="n">results_dir</span> <span class="o">=</span> <span class="n">results_dir</span><span class="o">.</span><span class="n">resolve</span><span class="p">()</span>
     <span class="n">results_dir</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Results directory resolved to: </span><span class="si">{</span><span class="n">results_dir</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
     <span class="n">machine</span> <span class="o">=</span> <span class="n">platform</span><span class="o">.</span><span class="n">node</span><span class="p">()</span>
-
-    <span class="n">results_dir</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">results_dir</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">machine</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-    <span class="n">results_dir</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="n">machine_info_path</span> <span class="o">=</span> <span class="n">results_dir</span> <span class="o">/</span> <span class="s2">&quot;machine.json&quot;</span>
 
     <span class="n">generate_machine_info</span><span class="p">(</span><span class="n">machine</span><span class="p">,</span> <span class="n">machine_info_path</span><span class="p">)</span>
