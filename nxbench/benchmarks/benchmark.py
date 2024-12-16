@@ -23,6 +23,7 @@ from nxbench.benchmarks.utils import (
 from nxbench.data.loader import BenchmarkDataManager
 from nxbench.validation.registry import BenchmarkValidator
 
+nx.config.warnings_to_ignore.add("cache")
 warnings.filterwarnings("ignore")
 
 logger = logging.getLogger("nxbench")
@@ -184,6 +185,7 @@ class GraphBenchmark:
 
         if "cugraph" in backend and is_nx_cugraph_available():
             try:
+                os.environ["NX_CUGRAPH_AUTOCONFIG"] = "True"
                 cugraph = import_module("nx_cugraph")
             except ImportError:
                 logger.exception("cugraph backend not available")
@@ -292,8 +294,14 @@ class GraphBenchmark:
 
             os.environ["NUM_THREAD"] = "1"
             os.environ["OMP_NUM_THREADS"] = "1"
-            os.environ["MKL_NUM_THREADS"] = "1"
             os.environ["OPENBLAS_NUM_THREADS"] = "1"
+            os.environ["MKL_NUM_THREADS"] = "1"
+
+        if "cugraph" in backend:
+            os.environ["NX_CUGRAPH_AUTOCONFIG"] = "False"
+
+        if "graphblas" in backend:
+            os.environ["OMP_NUM_THREADS"] = "1"
 
     def teardown(self):
         """ASV teardown method. Called after all benchmarks are run."""
