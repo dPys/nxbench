@@ -164,6 +164,13 @@ class GraphBenchmark:
             f"{original_graph.number_of_edges()} edges"
         )
 
+        # initially clear env completely
+        if hasattr(nx.config.backends, "parallel"):
+            if hasattr(nx.config.backends.parallel, "active"):
+                nx.config.backends.parallel.active = False
+            nx.config.backends.parallel.n_jobs = 1
+        os.environ["NX_CUGRAPH_AUTOCONFIG"] = "False"
+
         for var_name in [
             "NUM_THREAD",
             "OMP_NUM_THREADS",
@@ -294,16 +301,13 @@ class GraphBenchmark:
             nx.config.backends.parallel.active = False
             nx.config.backends.parallel.n_jobs = 1
 
-            os.environ["NUM_THREAD"] = "1"
-            os.environ["OMP_NUM_THREADS"] = "1"
-            os.environ["OPENBLAS_NUM_THREADS"] = "1"
-            os.environ["MKL_NUM_THREADS"] = "1"
-
         if "cugraph" in backend:
             os.environ["NX_CUGRAPH_AUTOCONFIG"] = "False"
 
-        if "graphblas" in backend:
-            os.environ["OMP_NUM_THREADS"] = "1"
+        os.environ["NUM_THREAD"] = "1"
+        os.environ["OMP_NUM_THREADS"] = "1"
+        os.environ["OPENBLAS_NUM_THREADS"] = "1"
+        os.environ["MKL_NUM_THREADS"] = "1"
 
     def teardown(self):
         """ASV teardown method. Called after all benchmarks are run."""
