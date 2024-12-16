@@ -181,6 +181,8 @@ class GraphBenchmark:
             except ImportError:
                 logger.exception("nx-parallel backend not available")
                 return None
+            nx.config.backends.parallel.active = True
+            nx.config.backends.parallel.n_jobs = num_thread
             return nxp.ParallelGraph(original_graph)
 
         if "cugraph" in backend and is_nx_cugraph_available():
