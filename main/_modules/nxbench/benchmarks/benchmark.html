@@ -294,6 +294,7 @@
 <span class="kn">from</span> <span class="nn">nxbench.data.loader</span> <span class="kn">import</span> <span class="n">BenchmarkDataManager</span>
 <span class="kn">from</span> <span class="nn">nxbench.validation.registry</span> <span class="kn">import</span> <span class="n">BenchmarkValidator</span>
 
+<span class="n">nx</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">warnings_to_ignore</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s2">&quot;cache&quot;</span><span class="p">)</span>
 <span class="n">warnings</span><span class="o">.</span><span class="n">filterwarnings</span><span class="p">(</span><span class="s2">&quot;ignore&quot;</span><span class="p">)</span>
 
 <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">&quot;nxbench&quot;</span><span class="p">)</span>
@@ -450,6 +451,13 @@
             <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">original_graph</span><span class="o">.</span><span class="n">number_of_edges</span><span class="p">()</span><span class="si">}</span><span class="s2"> edges&quot;</span>
         <span class="p">)</span>
 
+        <span class="c1"># initially clear env completely</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">nx</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">backends</span><span class="p">,</span> <span class="s2">&quot;parallel&quot;</span><span class="p">):</span>
+            <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">nx</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">backends</span><span class="o">.</span><span class="n">parallel</span><span class="p">,</span> <span class="s2">&quot;active&quot;</span><span class="p">):</span>
+                <span class="n">nx</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">backends</span><span class="o">.</span><span class="n">parallel</span><span class="o">.</span><span class="n">active</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="n">nx</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">backends</span><span class="o">.</span><span class="n">parallel</span><span class="o">.</span><span class="n">n_jobs</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;NX_CUGRAPH_AUTOCONFIG&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;False&quot;</span>
+
         <span class="k">for</span> <span class="n">var_name</span> <span class="ow">in</span> <span class="p">[</span>
             <span class="s2">&quot;NUM_THREAD&quot;</span><span class="p">,</span>
             <span class="s2">&quot;OMP_NUM_THREADS&quot;</span><span class="p">,</span>
@@ -467,10 +475,13 @@
             <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
                 <span class="n">logger</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="s2">&quot;nx-parallel backend not available&quot;</span><span class="p">)</span>
                 <span class="k">return</span> <span class="kc">None</span>
+            <span class="n">nx</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">backends</span><span class="o">.</span><span class="n">parallel</span><span class="o">.</span><span class="n">active</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="n">nx</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">backends</span><span class="o">.</span><span class="n">parallel</span><span class="o">.</span><span class="n">n_jobs</span> <span class="o">=</span> <span class="n">num_thread</span>
             <span class="k">return</span> <span class="n">nxp</span><span class="o">.</span><span class="n">ParallelGraph</span><span class="p">(</span><span class="n">original_graph</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="s2">&quot;cugraph&quot;</span> <span class="ow">in</span> <span class="n">backend</span> <span class="ow">and</span> <span class="n">is_nx_cugraph_available</span><span class="p">():</span>
             <span class="k">try</span><span class="p">:</span>
+                <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;NX_CUGRAPH_AUTOCONFIG&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;True&quot;</span>
                 <span class="n">cugraph</span> <span class="o">=</span> <span class="n">import_module</span><span class="p">(</span><span class="s2">&quot;nx_cugraph&quot;</span><span class="p">)</span>
             <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
                 <span class="n">logger</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="s2">&quot;cugraph backend not available&quot;</span><span class="p">)</span>
@@ -583,10 +594,13 @@
             <span class="n">nx</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">backends</span><span class="o">.</span><span class="n">parallel</span><span class="o">.</span><span class="n">active</span> <span class="o">=</span> <span class="kc">False</span>
             <span class="n">nx</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">backends</span><span class="o">.</span><span class="n">parallel</span><span class="o">.</span><span class="n">n_jobs</span> <span class="o">=</span> <span class="mi">1</span>
 
-            <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;NUM_THREAD&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;1&quot;</span>
-            <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;OMP_NUM_THREADS&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;1&quot;</span>
-            <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;MKL_NUM_THREADS&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;1&quot;</span>
-            <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;OPENBLAS_NUM_THREADS&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;1&quot;</span></div>
+        <span class="k">if</span> <span class="s2">&quot;cugraph&quot;</span> <span class="ow">in</span> <span class="n">backend</span><span class="p">:</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;NX_CUGRAPH_AUTOCONFIG&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;False&quot;</span>
+
+        <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;NUM_THREAD&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;1&quot;</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;OMP_NUM_THREADS&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;1&quot;</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;OPENBLAS_NUM_THREADS&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;1&quot;</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;MKL_NUM_THREADS&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;1&quot;</span></div>
 
 
 <div class="viewcode-block" id="GraphBenchmark.teardown">
