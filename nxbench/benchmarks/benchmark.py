@@ -26,15 +26,16 @@ from nxbench.validation.registry import BenchmarkValidator
 
 logger = logging.getLogger("nxbench")
 
-os.environ["PREFECT_API_DATABASE_CONNECTION_URL"] = (
-    "postgresql+asyncpg://prefect_user:pass@localhost:5432/prefect_db"
+os.environ.setdefault(
+    "PREFECT_API_DATABASE_CONNECTION_URL",
+    "postgresql+asyncpg://prefect_user:pass@localhost:5432/prefect_db",
 )
-os.environ["PREFECT_ORION_DATABASE_CONNECTION_POOL_SIZE"] = "5"
-os.environ["PREFECT_ORION_DATABASE_CONNECTION_MAX_OVERFLOW"] = "10"
-os.environ["PREFECT_API_URL"] = "http://127.0.0.1:4200/api"
-os.environ["PREFECT_ORION_API_ENABLE_TASK_RUN_DATA_PERSISTENCE"] = "false"
+os.environ.setdefault("PREFECT_ORION_DATABASE_CONNECTION_POOL_SIZE", "5")
+os.environ.setdefault("PREFECT_ORION_DATABASE_CONNECTION_MAX_OVERFLOW", "10")
+os.environ.setdefault("PREFECT_API_URL", "http://127.0.0.1:4200/api")
+os.environ.setdefault("PREFECT_ORION_API_ENABLE_TASK_RUN_DATA_PERSISTENCE", "false")
+os.environ.setdefault("MAX_WORKERS", "4")
 
-MAX_WORKERS = 4
 run_uuid = uuid.uuid4().hex
 
 
@@ -305,7 +306,7 @@ async def run_single_benchmark(
 @flow(
     name="multiverse_benchmark",
     flow_run_name=f"run_{run_uuid}",
-    task_runner=ThreadPoolTaskRunner(max_workers=MAX_WORKERS),
+    task_runner=ThreadPoolTaskRunner(max_workers=int(os.getenv["MAX_WORKERS"])),
 )
 async def benchmark_suite(
     algorithms: list[AlgorithmConfig],

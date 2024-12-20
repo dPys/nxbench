@@ -223,7 +223,6 @@ This project is licensed under the MIT License - see [LICENSE](LICENSE) for deta
 
 - NetworkX community for the core graph library and dispatching support
 - NetworkRepository.com for harmonized dataset access
-- ASV team for benchmark infrastructure
 
 ## Contact
 
