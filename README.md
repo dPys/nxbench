@@ -20,7 +20,7 @@
 - **Validation Framework**: Comprehensive result validation for correctness across implementations
 - **Performance Monitoring**: Track execution time and memory usage with detailed metrics
 - **Interactive Visualization**: Dynamic dashboard for exploring benchmark results using Plotly Dash
-- **Flexible Storage**: SQLite-based result storage with pandas integration for analysis
+- **Flexible Storage**: SQL result storage with pandas integration for dowstream analysis
 
 ## Installation (Non-Docker Setup)
 
@@ -28,8 +28,9 @@
 
 - **Python 3.10+**: Ensure you have a compatible Python environment.
 - **PostgreSQL**: To run Prefect Orion with a persistent database, we recommend PostgreSQL for better concurrency and stability than an ephemeral in-memory database.
+- **NetworkX Backend Installations**: To comparative benchmark graph algorithm performance across different [NetworkX backends](https://networkx.org/documentation/stable/reference/backends.html), you will need to install each backend.
 
-### Setting up PostgreSQL
+#### Setting up PostgreSQL
 
 1. **Install PostgreSQL**:
 
@@ -68,6 +69,13 @@
    Exit the prompt with \q.
 
    This sets up a prefect_user with password pass and a database named prefect_db.
+
+#### Supported Backends
+
+- NetworkX (default)
+- nx-CuGraph (requires separate CuGraph installation and supported GPU hardware)
+- GraphBLAS Algorithms (optional)
+- nx-parallel (optional)
 
 ### Installing `nxbench`
 
@@ -133,13 +141,13 @@ nxbench --config 'nxbench/configs/example.yaml' benchmark run
 4. Export results:
 
 ```bash
-nxbench --config 'nxbench/configs/example.yaml' benchmark export 'results/9e3e8baa4a3443c392dc8fee00373b11_20241220002902.json' --output-format csv --output-file 'results/results.csv'  # convert benchmarked results runs into csv format.
+nxbench --config 'nxbench/configs/example.yaml' benchmark export 'results/9e3e8baa4a3443c392dc8fee00373b11_20241220002902.json' --output-format csv --output-file 'results/results.csv'  # convert benchmarked results from a run with hash `9e3e8baa4a3443c392dc8fee00373b11_20241220002902` into csv format.
 ```
 
 5. View results:
 
 ```bash
-nxbench viz serve  # visualize results using parallel categories dashboard
+nxbench viz serve  # launch the interactive results visualization dashboard.
 ```
 
 <p align="center">
@@ -157,7 +165,7 @@ nxbench data list --category social  # list available datasets
 
 # Benchmarking
 nxbench --config 'nxbench/configs/example.yaml' -vvv benchmark run  # debug benchmark runs
-nxbench --config 'nxbench/configs/example.yaml' benchmark export 'results/9e3e8baa4a3443c392dc8fee00373b11_20241220002902.json' --output-format sql --output-file 'results/benchmarks.sqlite' # export the results into a sql database
+nxbench --config 'nxbench/configs/example.yaml' benchmark export 'results/9e3e8baa4a3443c392dc8fee00373b11_20241220002902.json' --output-format sql --output-file 'results/benchmarks.sqlite' # export the results from a run with hash `9e3e8baa4a3443c392dc8fee00373b11_20241220002902` into a sql database
 ```
 
 ## Configuration
@@ -179,13 +187,6 @@ datasets:
     params: {}
 ```
 
-## Supported Backends
-
-- NetworkX (default)
-- nx-CuGraph (requires separate CuGraph installation and supported GPU hardware)
-- GraphBLAS Algorithms (optional)
-- nx-parallel (optional)
-
 ## Reproducible benchmarking through containerization
 
 ```bash
@@ -201,7 +202,7 @@ docker-compose -f docker/docker-compose.cpu.yaml up dashboard
 # Run specific backend
 docker-compose -f docker/docker-compose.cpu.yaml run --rm nxbench --config 'nxbench/configs/example.yaml' benchmark run --backend networkx
 
-# Export results
+# Export results from a run with hash `9e3e8baa4a3443c392dc8fee00373b11_20241220002902`
 docker-compose -f docker/docker-compose.cpu.yaml run --rm nxbench --config 'nxbench/configs/example.yaml' benchmark export 'nxbench_results/9e3e8baa4a3443c392dc8fee00373b11_20241220002902.json' --output-format csv --output-file 'nxbench_results/results.csv'
 ```
 

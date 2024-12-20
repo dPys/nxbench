@@ -75,14 +75,12 @@ class ResultsExporter:
     def _create_benchmark_result_from_entry(
         self, entry: dict[str, Any]
     ) -> BenchmarkResult | None:
-        """Create a BenchmarkResult from a dictionary entry, assigning known fields and
-        putting unknown fields into metadata.
-        """
         try:
             known_fields = {
                 "algorithm",
                 "dataset",
                 "execution_time",
+                "execution_time_with_preloading",
                 "memory_used",
                 "num_nodes",
                 "num_edges",
@@ -100,6 +98,9 @@ class ResultsExporter:
             dataset = entry.get("dataset", "unknown")
             backend = entry.get("backend", "unknown")
             execution_time = float(entry.get("execution_time", float("nan")))
+            execution_time_with_preloading = float(
+                entry.get("execution_time_with_preloading", float("nan"))
+            )
             memory_used = float(entry.get("memory_used", float("nan")))
             num_thread = int(entry.get("num_thread", 1))
             num_nodes = int(entry.get("num_nodes", 0))
@@ -117,6 +118,7 @@ class ResultsExporter:
                 algorithm=algorithm,
                 dataset=dataset,
                 execution_time=execution_time,
+                execution_time_with_preloading=execution_time_with_preloading,
                 memory_used=memory_used,
                 num_nodes=num_nodes,
                 num_edges=num_edges,
@@ -135,12 +137,6 @@ class ResultsExporter:
             return None
 
     def to_dataframe(self) -> pd.DataFrame:
-        """Convert results to a pandas DataFrame.
-
-        Known BenchmarkResult fields become DataFrame columns. Metadata fields become
-        additional columns if they are consistent across entries. If not, they will
-        still be present as extra columns with NaNs where missing.
-        """
         results = self.load_results()
         if not results:
             raise ValueError("No benchmark results found")
@@ -154,6 +150,9 @@ class ResultsExporter:
                 "dataset": result.dataset,
                 "backend": result.backend,
                 "execution_time": result.execution_time,
+                ### ADDED:
+                "execution_time_with_preloading": result.execution_time_with_preloading,
+                ### END ADDED
                 "memory_used": result.memory_used,
                 "num_nodes": result.num_nodes,
                 "num_edges": result.num_edges,
@@ -174,12 +173,10 @@ class ResultsExporter:
             records.append(record)
 
         df = pd.DataFrame(records)
-
         for mk in all_metadata_keys:
             if mk not in df.columns:
                 df[mk] = pd.NA
 
-        logger.debug(f"Created DataFrame with shape: {df.shape}")
         return df
 
     def export_results(

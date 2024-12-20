@@ -1,3 +1,4 @@
+import asyncio
 import logging
 import os
 from pathlib import Path
@@ -142,7 +143,7 @@ def run_benchmark(ctx):
     if config:
         logger.debug(f"Config file used for benchmark run: {config}")
 
-    main_benchmark(results_dir)
+    asyncio.run(main_benchmark(results_dir))
 
 
 @benchmark.command()
@@ -179,7 +180,7 @@ def export(ctx, result_file: Path, output_format: str, output_file: Path | None)
                 f"No output file specified. Using inferred path: {output_file}"
             )
 
-        exporter.export_results(output_path=output_file, format=output_format)
+        exporter.export_results(output_path=output_file, form=output_format)
 
         logger.info(f"Exported results to {output_file}")
         click.echo(f"Exported results to {output_file}")

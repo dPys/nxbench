@@ -42,15 +42,14 @@ validation:
 
 environ:
   backend:
-    - "networkx"
-    - "graphblas"
+    networkx:
+      - "networkx==3.4.1"
+      - "networkx==3.4.2"
+    graphblas:
+      - "graphblas_algorithms==2023.10.0"
   num_threads:
     - "1"
-    - "2"
     - "4"
     - "8"
-  req:
-    - "networkx==3.4.2"
-    - "graphblas_algorithms==2023.10.0"
   pythons:
     - "3.10"

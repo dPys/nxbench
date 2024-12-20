@@ -9,6 +9,7 @@ from itertools import product
 from pathlib import Path
 from typing import Any
 
+import nest_asyncio
 import networkx as nx
 from prefect import flow, get_run_logger, task
 from prefect.task_runners import ThreadPoolTaskRunner
@@ -19,12 +20,15 @@ from nxbench.benchmarks.utils import (
     get_available_backends,
     get_benchmark_config,
     get_machine_info,
+    get_python_version,
     memory_tracker,
 )
 from nxbench.data.loader import BenchmarkDataManager
 from nxbench.validation.registry import BenchmarkValidator
 
 logger = logging.getLogger("nxbench")
+
+nest_asyncio.apply()
 
 os.environ.setdefault(
     "PREFECT_API_DATABASE_CONNECTION_URL",
@@ -179,6 +183,9 @@ def validate_results(
 @task(name="collect_metrics", cache_key_fn=None, persist_result=False)
 def collect_metrics(
     execution_time: float,
+    ### ADDED:
+    execution_time_with_preloading: float,
+    ### END ADDED
     peak_memory: int,
     graph: Any,
     algo_config: AlgorithmConfig,
@@ -189,7 +196,6 @@ def collect_metrics(
     validation_message: str,
     error: str | None = None,
 ) -> dict[str, Any]:
-    """Collect and format metrics for the benchmark run."""
     logger = get_run_logger()
 
     if not isinstance(graph, nx.Graph) and hasattr(graph, "to_networkx"):
@@ -198,6 +204,7 @@ def collect_metrics(
     if error:
         metrics = {
             "execution_time": float("nan"),
+            "execution_time_with_preloading": float("nan"),
             "memory_used": float("nan"),
             "num_nodes": (graph.number_of_nodes()),
             "num_edges": (graph.number_of_edges()),
@@ -209,14 +216,10 @@ def collect_metrics(
             "validation": validation_status,
             "validation_message": validation_message,
         }
-        metrics.update(get_machine_info())
-        logger.error(
-            f"Benchmark failed for algorithm '{algo_config.name}' on dataset '"
-            f"{dataset_name}': {error}"
-        )
     else:
         metrics = {
             "execution_time": execution_time,
+            "execution_time_with_preloading": execution_time_with_preloading,
             "memory_used": peak_memory / (1024 * 1024),  # convert to MB
             "num_nodes": (graph.number_of_nodes()),
             "num_edges": (graph.number_of_edges()),
@@ -227,12 +230,8 @@ def collect_metrics(
             "validation": validation_status,
             "validation_message": validation_message,
         }
-        metrics.update(get_machine_info())
-        logger.info(
-            f"Benchmark completed for algorithm '{algo_config.name}' on dataset '"
-            f"{dataset_name}'."
-        )
 
+    metrics.update(get_machine_info())
     return metrics
 
 
@@ -256,7 +255,6 @@ async def run_single_benchmark(
     dataset_config: DatasetConfig,
     original_graph: nx.Graph,
 ) -> dict[str, Any] | None:
-    """Benchmark flow for a single combination of parameters."""
     logger = get_run_logger()
     logger.info(
         f"Running benchmark for dataset '{dataset_config.name}' with backend "
@@ -264,15 +262,22 @@ async def run_single_benchmark(
     )
 
     try:
+        preload_start = time.perf_counter()
         graph = configure_backend(original_graph, backend, num_thread)
+        preload_time = time.perf_counter() - preload_start
+
         result, execution_time, peak_memory, error = run_algorithm(
             graph, algo_config, num_thread
         )
+
+        execution_time_with_preloading = execution_time + preload_time
+
         validation_status, validation_message = validate_results(
             result, algo_config, graph
         )
         metrics = collect_metrics(
             execution_time=execution_time,
+            execution_time_with_preloading=execution_time_with_preloading,
             peak_memory=peak_memory,
             graph=graph,
             algo_config=algo_config,
@@ -286,6 +291,7 @@ async def run_single_benchmark(
     except Exception as e:
         metrics = collect_metrics(
             execution_time=float("nan"),
+            execution_time_with_preloading=float("nan"),
             peak_memory=0,
             graph=original_graph,
             algo_config=algo_config,
@@ -306,7 +312,7 @@ async def run_single_benchmark(
 @flow(
     name="multiverse_benchmark",
     flow_run_name=f"run_{run_uuid}",
-    task_runner=ThreadPoolTaskRunner(max_workers=int(os.getenv["MAX_WORKERS"])),
+    task_runner=ThreadPoolTaskRunner(max_workers=int(os.getenv("MAX_WORKERS"))),
 )
 async def benchmark_suite(
     algorithms: list[AlgorithmConfig],
@@ -375,10 +381,10 @@ async def benchmark_suite(
             )
         )
 
-    return await asyncio.gather(*tasks)
+    return await asyncio.gather(*tasks, return_exceptions=True)
 
 
-def main_benchmark(
+async def main_benchmark(
     results_dir: Path = Path("results"),
 ):
     """Execute benchmarks using Prefect."""
@@ -394,11 +400,26 @@ def main_benchmark(
 
         available_backends = get_available_backends()
 
-        chosen_backends = [
-            backend
-            for backend in env_data.get("backend", ["networkx"])
-            if backend in available_backends
-        ]
+        pythons = env_data.get("pythons", ["3.10"])
+        backend_configs = env_data.get("backend", {"networkx": ["networkx==3.4.1"]})
+
+        # filter out backends not actually available
+        chosen_backends = []
+        for backend, requested_versions in backend_configs.items():
+            if backend in available_backends:
+                installed_version = available_backends[backend]
+                for req_ver in requested_versions:
+                    # expected format: "backendname==x.y.z"
+                    if "==" in req_ver:
+                        _, requested_version = req_ver.split("==", 1)
+                        if requested_version == installed_version:
+                            chosen_backends.append(backend)
+                            break
+                    else:
+                        # if no version pin is provided, accept the installed version
+                        chosen_backends.append(backend)
+                        break
+
         if not chosen_backends:
             logger.error("No valid backends selected. Exiting.")
             return
@@ -410,15 +431,32 @@ def main_benchmark(
 
         graphs = setup_cache(datasets)
 
-        final_results = asyncio.run(
-            benchmark_suite(
-                algorithms=algorithms,
-                datasets=datasets,
-                backends=chosen_backends,
-                threads=num_threads,
-                graphs=graphs,
-            )
-        )
+        actual_python_version = get_python_version()
+
+        for py_ver in pythons:
+            if py_ver not in actual_python_version:
+                logger.error(
+                    f"Requested Python version {py_ver} does not match the actual "
+                    f"Python version {actual_python_version}. Aborting."
+                )
+                return
+
+            for backend_name, backend_versions in backend_configs.items():
+                if backend_name not in chosen_backends:
+                    continue
+                for backend_ver in backend_versions:
+                    results = await benchmark_suite(
+                        algorithms=algorithms,
+                        datasets=datasets,
+                        backends=[backend_name],
+                        threads=num_threads,
+                        graphs=graphs,
+                    )
+                    for run_result in results:
+                        if run_result is not None:
+                            run_result["backend_version"] = backend_ver
+                            run_result["python_version"] = actual_python_version
+                            final_results.append(run_result)
 
     finally:
         results_dir = Path("results")
@@ -426,6 +464,6 @@ def main_benchmark(
         out_file = results_dir / f"{run_uuid}_{timestamp}.json"
 
         with out_file.open("w") as f:
-            json.dump(final_results, f, indent=4)
+            json.dump([r for r in final_results if isinstance(r, dict)], f, indent=4)
 
         logger.info(f"Benchmark suite results saved to {out_file}")

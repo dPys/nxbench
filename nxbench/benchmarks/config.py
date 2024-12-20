@@ -143,6 +143,7 @@ class BenchmarkResult:
     algorithm: str
     dataset: str
     execution_time: float
+    execution_time_with_preloading: float
     memory_used: float
     num_nodes: int
     num_edges: int

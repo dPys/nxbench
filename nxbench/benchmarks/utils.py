@@ -7,6 +7,8 @@ import platform
 import sys
 import tracemalloc
 from contextlib import contextmanager
+from importlib.metadata import PackageNotFoundError
+from importlib.metadata import version as get_version
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -75,13 +77,14 @@ def load_default_config() -> BenchmarkConfig:
     ]
 
     env_data = {
-        "req": {
-            "networkx": ["3.4.2"],
-            "graphblas_algorithms": ["2023.10.0"],
-        },
         "num_threads": ["1", "4"],
-        "backend": ["networkx", "graphblas", "parallel"],
+        "backend": {
+            "networkx": ["networkx==3.4.2"],
+            "graphblas": ["graphblas_algorithms==2023.10.0"],
+        },
+        "pythons": ["3.10", "3.11"],
     }
+
     return BenchmarkConfig(
         algorithms=default_algorithms,
         datasets=default_datasets,
@@ -123,20 +126,51 @@ def get_python_version() -> str:
     return f"{version_info.major}.{version_info.minor}.{version_info.micro}"
 
 
-def get_available_backends() -> list[str]:
-    backends = ["networkx"]
+def get_available_backends() -> dict[str, str]:
+    """Return a dict of available backends and their versions."""
+    available = {}
+
+    try:
+        networkx = importlib.import_module("networkx")
+        nx_version = getattr(networkx, "__version__", None)
+        if nx_version is None:
+            nx_version = get_version("networkx")
+        available["networkx"] = nx_version
+    except (ImportError, PackageNotFoundError):
+        pass
 
     if is_nx_cugraph_available():
-        backends.append("cugraph")
+        try:
+            nx_cugraph = importlib.import_module("nx_cugraph")
+            cugraph_version = getattr(nx_cugraph, "__version__", None)
+            if cugraph_version is None:
+                cugraph_version = get_version("nx_cugraph")
+            available["cugraph"] = cugraph_version
+        except (ImportError, PackageNotFoundError):
+            pass
 
     if is_graphblas_available():
-        backends.append("graphblas")
+        try:
+            graphblas_algorithms = importlib.import_module("graphblas_algorithms")
+            gb_version = getattr(graphblas_algorithms, "__version__", None)
+            if gb_version is None:
+                gb_version = get_version("graphblas_algorithms")
+            available["graphblas"] = gb_version
+        except (ImportError, PackageNotFoundError):
+            pass
 
     if is_nx_parallel_available():
-        backends.append("parallel")
+        try:
+            nx_parallel = importlib.import_module("nx_parallel")
+            parallel_version = getattr(nx_parallel, "__version__", None)
+            if parallel_version is None:
+                parallel_version = get_version("nx_parallel")
+            available["parallel"] = parallel_version
+        except (ImportError, PackageNotFoundError):
+            pass
 
-    logger.debug(f"Available backends: {backends}")
-    return backends
+    logger.debug(f"Available backends and versions: {available}")
+    return available
 
 
 class MemorySnapshot:
@@ -245,10 +279,12 @@ def get_available_algorithms():
 
 
 def get_machine_info():
-    return {
+    info = {
         "arch": platform.machine(),
         "cpu": platform.processor(),
         "num_cpu": str(psutil.cpu_count(logical=True)),
         "os": f"{platform.system()} {platform.release()}",
         "ram": str(psutil.virtual_memory().total),
     }
+    # info["docker"] = os.path.exists("/.dockerenv")
+    return info
