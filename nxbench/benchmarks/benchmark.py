@@ -282,7 +282,10 @@ async def run_single_benchmark(
         preload_time = time.perf_counter() - preload_start
 
         result, execution_time, peak_memory, error = run_algorithm(
-            graph, algo_config, num_thread
+            graph=graph,
+            algo_config=algo_config,
+            num_thread=num_thread,
+            backend=backend,
         )
 
         execution_time_with_preloading = execution_time + preload_time
