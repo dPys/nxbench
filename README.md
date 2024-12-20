@@ -21,7 +21,6 @@
 - **Performance Monitoring**: Track execution time and memory usage with detailed metrics
 - **Interactive Visualization**: Dynamic dashboard for exploring benchmark results using Plotly Dash
 - **Flexible Storage**: SQLite-based result storage with pandas integration for analysis
-- **CI Integration**: Support for automated benchmarking through ASV (Airspeed Velocity)
 
 ## Installation (Non-Docker Setup)
 
