@@ -30,8 +30,6 @@ def run_server(port=8050, debug=False):
         "backend",
         "is_directed",
         "is_weighted",
-        "commit_hash",
-        "version",
         "python_version",
         "cpu",
         "os",
@@ -39,16 +37,44 @@ def run_server(port=8050, debug=False):
     for col in string_columns:
         df[col] = df[col].astype(str).str.strip().str.lower()
 
+    unique_n_nodes = len(set(df["num_nodes"].values))
+    if unique_n_nodes > 1:
+        num_nodes_binned = pd.cut(df["num_nodes"], bins=min(unique_n_nodes, 4))
+
+        node_labels = []
+        for interval in num_nodes_binned.cat.categories:
+            lower = int(interval.left) if pd.notnull(interval.left) else float("-inf")
+            upper = int(interval.right) if pd.notnull(interval.right) else float("inf")
+            node_labels.append(f"{lower} <= x < {upper}")
+
+        node_label_map = dict(zip(num_nodes_binned.cat.categories, node_labels))
+        df["num_nodes_bin"] = num_nodes_binned.replace(node_label_map)
+    else:
+        df["num_nodes_bin"] = df["num_nodes"]
+
+    unique_n_edges = len(set(df["num_edges"].values))
+    if unique_n_edges > 1:
+        num_edges_binned = pd.cut(df["num_edges"], bins=min(unique_n_edges, 4))
+
+        edge_labels = []
+        for interval in num_edges_binned.cat.categories:
+            lower = int(interval.left) if pd.notnull(interval.left) else float("-inf")
+            upper = int(interval.right) if pd.notnull(interval.right) else float("inf")
+            edge_labels.append(f"{lower} <= x < {upper}")
+
+        edge_label_map = dict(zip(num_edges_binned.cat.categories, edge_labels))
+        df["num_edges_bin"] = num_edges_binned.replace(edge_label_map)
+    else:
+        df["num_edges_bin"] = df["num_edges"]
+
     group_columns = [
         "algorithm",
         "dataset",
         "backend",
-        "num_nodes",
-        "num_edges",
+        "num_nodes_bin",
+        "num_edges_bin",
         "is_directed",
         "is_weighted",
-        "commit_hash",
-        "version",
         "python_version",
         "cpu",
         "os",
@@ -301,12 +327,10 @@ def run_server(port=8050, debug=False):
             points="all",
             hover_data=[
                 "dataset",
-                "num_nodes",
-                "num_edges",
+                "num_nodes_bin",
+                "num_edges_bin",
                 "is_directed",
                 "is_weighted",
-                "commit_hash",
-                "version",
                 "python_version",
                 "cpu",
                 "os",

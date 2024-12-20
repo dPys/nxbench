@@ -9,7 +9,7 @@
   <img src="doc/_static/assets/nxbench_logo.png" alt="NxBench Logo" width="150"/>
 </p>
 
-**nxbench** is a comprehensive benchmarking suite designed to facilitate comparative profiling of graph analytic algorithms across NetworkX and compatible backends. Built on top of [Airspeed Velocity (ASV)](https://github.com/airspeed-velocity/asv), nxbench places an emphasis on extensible and granular performance analysis, enabling developers and researchers to optimize their graph analysis workflows efficiently and reproducibly.
+**nxbench** is a comprehensive benchmarking suite designed to facilitate comparative profiling of graph analytic algorithms across NetworkX and compatible backends. Built using Prefect and Dask, nxbench places an emphasis on extensible and granular performance analysis, enabling developers and researchers to optimize their graph analysis workflows efficiently and reproducibly.
 
 ## Key Features
 
@@ -23,7 +23,54 @@
 - **Flexible Storage**: SQLite-based result storage with pandas integration for analysis
 - **CI Integration**: Support for automated benchmarking through ASV (Airspeed Velocity)
 
-## Installation
+## Installation (Non-Docker Setup)
+
+### Prerequisites
+
+- **Python 3.10+**: Ensure you have a compatible Python environment.
+- **PostgreSQL**: To run Prefect Orion with a persistent database, we recommend PostgreSQL for better concurrency and stability than an ephemeral in-memory database.
+
+### Setting up PostgreSQL
+
+1. **Install PostgreSQL**:
+
+   - On macOS (with Homebrew):
+
+     ```bash
+     brew install postgresql
+     brew services start postgresql
+     ```
+
+   - On Linux (Debian/Ubuntu):
+
+     ```bash
+     sudo apt-get update && sudo apt-get install -y postgresql postgresql-contrib
+     sudo service postgresql start
+     ```
+
+   - On Windows:
+     Download and run the [PostgreSQL installer](https://www.postgresql.org/download/windows/) and follow the prompts.
+
+2. **Create a PostgreSQL User and Database**:
+
+   ```bash
+   psql postgres
+   ```
+
+   In the `psql` prompt, run:
+
+   ```sql
+   CREATE USER prefect_user WITH PASSWORD 'pass';
+
+   CREATE DATABASE prefect_db OWNER prefect_user;
+   GRANT ALL PRIVILEGES ON DATABASE prefect_db TO prefect_user;
+   ```
+
+   Exit the prompt with \q.
+
+   This sets up a prefect_user with password pass and a database named prefect_db.
+
+### Installing `nxbench`
 
 PyPi:
 
@@ -31,11 +78,17 @@ PyPi:
 pip install nxbench
 ```
 
-From a local clone:
+From source (local clone):
 
 ```bash
+git clone https://github.com/dpys/nxbench.git
+cd nxbench
 make install
 ```
+
+This should install nxbench and all required dependencies (including prefect, asyncpg, and related packages).
+
+## Installation (Docker Setup)
 
 Docker:
 
@@ -64,19 +117,27 @@ datasets:
     source: "networkrepository"
 ```
 
-2. Run benchmarks based on the configuration:
+2. Start an instance of an orion server in a separate terminal window:
+
+```bash
+export PREFECT_API_URL="http://127.0.0.1:4200/api"
+export PREFECT_API_DATABASE_CONNECTION_URL="postgresql+asyncpg://prefect_user:pass@localhost:5432/prefect_db"
+prefect server start
+```
+
+3. In the original terminal window, run benchmarks based on the configuration:
 
 ```bash
 nxbench --config 'nxbench/configs/example.yaml' benchmark run
 ```
 
-3. Export results:
+4. Export results:
 
 ```bash
-nxbench --config 'nxbench/configs/example.yaml' benchmark export 'results/results.csv' --output-format csv  # convert benchmarked results into csv format.
+nxbench --config 'nxbench/configs/example.yaml' benchmark export 'results/9e3e8baa4a3443c392dc8fee00373b11_20241220002902.json' --output-format csv --output-file 'results/results.csv'  # convert benchmarked results runs into csv format.
 ```
 
-4. View results:
+5. View results:
 
 ```bash
 nxbench viz serve  # visualize results using parallel categories dashboard
@@ -85,7 +146,6 @@ nxbench viz serve  # visualize results using parallel categories dashboard
 <p align="center">
   <img src="doc/_static/assets/animation.gif" alt="Parallel Categories Animation" width="1000"/>
 </p>
-
 
 ## Advanced Command Line Interface
 
@@ -98,7 +158,7 @@ nxbench data list --category social  # list available datasets
 
 # Benchmarking
 nxbench --config 'nxbench/configs/example.yaml' -vvv benchmark run  # debug benchmark runs
-nxbench --config 'nxbench/configs/example.yaml' benchmark export 'results/benchmarks.sqlite' --output-format sql # export the results into a sql database
+nxbench --config 'nxbench/configs/example.yaml' benchmark export 'results/9e3e8baa4a3443c392dc8fee00373b11_20241220002902.json' --output-format sql --output-file 'results/benchmarks.sqlite' # export the results into a sql database
 ```
 
 ## Configuration
@@ -142,8 +202,8 @@ docker-compose -f docker/docker-compose.cpu.yaml up dashboard
 # Run specific backend
 docker-compose -f docker/docker-compose.cpu.yaml run --rm nxbench --config 'nxbench/configs/example.yaml' benchmark run --backend networkx
 
-# View results
-docker-compose -f docker/docker-compose.cpu.yaml run --rm nxbench --config 'nxbench/configs/example.yaml' benchmark export results.csv
+# Export results
+docker-compose -f docker/docker-compose.cpu.yaml run --rm nxbench --config 'nxbench/configs/example.yaml' benchmark export 'nxbench_results/9e3e8baa4a3443c392dc8fee00373b11_20241220002902.json' --output-format csv --output-file 'nxbench_results/results.csv'
 ```
 
 ## Contributing

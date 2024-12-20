@@ -34,10 +34,7 @@ class ValidationError(Exception):
 def validate_graph_result(
     result: Any,
 ) -> None:
-    """Validate graph algorithm results.
-
-    Now includes ASV-specific validation for timing and memory results.
-    """
+    """Validate graph algorithm results."""
     if result is None:
         raise ValidationError("Algorithm returned None")
 
@@ -93,13 +90,12 @@ def validate_node_scores(
     3. Custom normalization factor
     4. No normalization
     """
-    if not isinstance(result, dict):
-        raise ValidationError(f"Expected dict result, got {type(result)}")
+    result = dict(result)
 
-    if hasattr(graph, "nodes"):
-        graph_nodes = set(graph.nodes())
-    else:
-        graph_nodes = set(graph)
+    if not isinstance(graph, nx.Graph) and hasattr(graph, "to_networkx"):
+        graph = graph.to_networkx()
+
+    graph_nodes = set(graph.nodes())
 
     if set(result.keys()) != graph_nodes:
         raise ValidationError(
@@ -482,15 +478,10 @@ def validate_similarity_scores(
 def validate_scalar_result(
     result: Any,
     graph: nx.Graph | nx.DiGraph,
-    expected_type: type = float,
     min_value: float | None = None,
     max_value: float | None = None,
 ) -> None:
     """Validate scalar result (e.g., float, int)."""
-    if not isinstance(result, expected_type):
-        raise ValidationError(
-            f"Expected result of type {expected_type}, got {type(result)}"
-        )
     if isinstance(result, (int, float)):
         if min_value is not None and result < min_value:
             raise ValidationError(f"Result {result} is less than minimum {min_value}")

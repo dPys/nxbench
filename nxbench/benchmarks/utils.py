@@ -3,11 +3,14 @@ import importlib
 import inspect
 import logging
 import os
+import platform
 import sys
 import tracemalloc
 from contextlib import contextmanager
 from pathlib import Path
 from typing import TYPE_CHECKING
+
+import psutil
 
 from nxbench.benchmarks.config import AlgorithmConfig, BenchmarkConfig, DatasetConfig
 from nxbench.benchmarks.constants import ALGORITHM_SUBMODULES
@@ -71,19 +74,18 @@ def load_default_config() -> BenchmarkConfig:
         DatasetConfig(name="enron", source="networkrepository"),
     ]
 
-    default_matrix = {
+    env_data = {
         "req": {
             "networkx": ["3.4.2"],
             "graphblas_algorithms": ["2023.10.0"],
         },
-        "env_nobuild": {
-            "NUM_THREAD": ["1", "4"],
-        },
+        "num_threads": ["1", "4"],
+        "backend": ["networkx", "graphblas", "parallel"],
     }
     return BenchmarkConfig(
         algorithms=default_algorithms,
         datasets=default_datasets,
-        matrix=default_matrix,
+        env_data=env_data,
         machine_info={},
     )
 
@@ -177,8 +179,8 @@ def memory_tracker():
     mem = {}
     try:
         yield mem
+    finally:
         gc.collect()
-
         end = MemorySnapshot()
         end.take()
         current, peak = end.compare_to(baseline)
@@ -186,7 +188,6 @@ def memory_tracker():
         mem["current"] = current
         mem["peak"] = peak
 
-    finally:
         tracemalloc.stop()
 
 
@@ -241,3 +242,13 @@ def get_available_algorithms():
                         nx_algorithm_dict[attr_name] = attr
 
     return nx_algorithm_dict
+
+
+def get_machine_info():
+    return {
+        "arch": platform.machine(),
+        "cpu": platform.processor(),
+        "num_cpu": str(psutil.cpu_count(logical=True)),
+        "os": f"{platform.system()} {platform.release()}",
+        "ram": str(psutil.virtual_memory().total),
+    }

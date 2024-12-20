@@ -4,8 +4,24 @@ algorithms:
     params: {}
     requires_directed: false
     groups: ["clustering", "graph_structure"]
-    min_rounds: 3
     validate_result: "nxbench.validation.validate_scalar_result"
+
+  - name: "pagerank"
+    func: "networkx.pagerank"
+    params:
+      alpha: 0.9
+      tol: 1.0e-6
+    requires_directed: false
+    groups: ["centrality", "random_walk"]
+
+  - name: "eigenvector_centrality"
+    func: "networkx.eigenvector_centrality"
+    params:
+      max_iter: 500
+      tol: 1e-06
+    requires_directed: false
+    groups: ["centrality", "path_based"]
+    validate_result: "nxbench.validation.validate_node_scores"
 
 datasets:
   - name: "erdos_renyi_small"
@@ -24,18 +40,17 @@ validation:
   error_on_fail: true
   report_memory: true
 
-matrix:
+environ:
   backend:
     - "networkx"
     - "graphblas"
   num_threads:
     - "1"
-
-env_config:
+    - "2"
+    - "4"
+    - "8"
   req:
     - "networkx==3.4.2"
-    - "nx-parallel-0.3rc0.dev0"
     - "graphblas_algorithms==2023.10.0"
   pythons:
     - "3.10"
-    - "3.11"
