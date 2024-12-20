@@ -4,14 +4,16 @@ import inspect
 import logging
 import os
 import platform
+import random
 import sys
 import tracemalloc
 from contextlib import contextmanager
 from importlib.metadata import PackageNotFoundError
 from importlib.metadata import version as get_version
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
+import numpy as np
 import psutil
 
 from nxbench.benchmarks.config import AlgorithmConfig, BenchmarkConfig, DatasetConfig
@@ -288,3 +290,79 @@ def get_machine_info():
     }
     # info["docker"] = os.path.exists("/.dockerenv")
     return info
+
+
+def process_algorithm_params(
+    params: dict[str, Any],
+) -> tuple[list[Any], dict[str, Any]]:
+    """Process and separate algorithm parameters into positional and keyword arguments.
+
+    Parameters
+    ----------
+    params : dict[str, Any]
+        A dictionary of algorithm parameters, where keys starting with "_" are treated
+        as positional arguments.
+        Other keys are treated as keyword arguments.
+        If a parameter value is a dictionary containing a "func" key, the function is
+        imported dynamically.
+
+    Returns
+    -------
+    tuple[list[Any], dict[str, Any]]
+        A tuple containing a list of positional arguments and a dictionary of keyword
+        arguments.
+    """
+    pos_args = []
+    kwargs = {}
+    for key, value in params.items():
+        if isinstance(value, dict) and "func" in value:
+            module_path, func_name = value["func"].rsplit(".", 1)
+            module = __import__(module_path, fromlist=[func_name])
+            value = getattr(module, func_name)
+        if key.startswith("_"):
+            pos_args.append(value)
+        else:
+            kwargs[key] = value
+    return pos_args, kwargs
+
+
+def add_seeding(kwargs: dict, algo_func: Any, algorithm_name: str) -> dict:
+    # 1. Retrieve optional fields from kwargs
+    #    a) user_seed: integer to set global seeds
+    #    b) use_local_random_state: boolean (if True, we might pass a local np.random.
+    # RandomState)
+    user_seed = kwargs.pop("seed", None)
+    use_local_random_state = kwargs.pop("use_local_random_state", False)
+
+    # 2. If user_seed is an int, set global seeds
+    if isinstance(user_seed, int):
+        random.seed(user_seed)
+        np.random.seed(user_seed)
+        logger.debug(f"Global random seeds set to {user_seed}.")
+
+    # 3. Introspect the function signature to see if it takes 'seed' or 'random_state'
+    func_sig = inspect.signature(algo_func)
+    can_accept_seed = "seed" in func_sig.parameters
+    can_accept_random_state = "random_state" in func_sig.parameters
+
+    # 4. If can_accept_seed and we have an int user_seed, pass it as a kwarg
+    if can_accept_seed and isinstance(user_seed, int):
+        kwargs["seed"] = user_seed
+        logger.debug(
+            f"Passing `seed={user_seed}` to algorithm function {algorithm_name}."
+        )
+
+    # 5. If can_accept_random_state and user requested a local RandomState
+    #    we create one and pass it in
+    local_random_state = None
+    if can_accept_random_state and use_local_random_state:
+        # if user_seed is int, let's seed the local RNG with it, else use default.
+        local_random_state = np.random.RandomState(
+            user_seed if isinstance(user_seed, int) else None
+        )
+        kwargs["random_state"] = local_random_state
+        logger.debug(
+            f"Created local RandomState for algorithm {algorithm_name}, seed="
+            f"{user_seed}."
+        )
+    return kwargs

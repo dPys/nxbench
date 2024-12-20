@@ -17,11 +17,13 @@ from prefect_dask.task_runners import DaskTaskRunner
 
 from nxbench.benchmarks.config import AlgorithmConfig, DatasetConfig
 from nxbench.benchmarks.utils import (
+    add_seeding,
     get_available_backends,
     get_benchmark_config,
     get_machine_info,
     get_python_version,
     memory_tracker,
+    process_algorithm_params,
 )
 from nxbench.data.loader import BenchmarkDataManager
 from nxbench.validation.registry import BenchmarkValidator
@@ -120,14 +122,22 @@ def configure_backend(original_graph: nx.Graph, backend: str, num_thread: int) -
 
 @task(name="run_algorithm", cache_key_fn=None, persist_result=False)
 def run_algorithm(
-    graph: Any, algo_config: AlgorithmConfig, num_thread: int
+    graph: Any, algo_config: AlgorithmConfig, num_thread: int, backend: str
 ) -> tuple[Any, float, int, str | None]:
-    """Run the algorithm on the configured backend."""
+    """Run the algorithm on the configured backend"""
     logger = get_run_logger()
-    algo_func = algo_config.get_func_ref()
-    if algo_func is None:
-        logger.error(f"Function '{algo_config.func}' could not be imported.")
-        return None, 0.0, 0, f"Function '{algo_config.func}' could not be imported."
+
+    try:
+        algo_func = algo_config.get_callable(backend)
+    except ImportError as e:
+        logger.exception(
+            f"Could not get a callable for {algo_config.name} from {backend}."
+        )
+        return None, 0.0, 0, str(e)
+
+    pos_args, kwargs = process_algorithm_params(algo_config.params)
+
+    kwargs = add_seeding(kwargs, algo_func, algo_config.name)
 
     error = None
     try:
@@ -144,18 +154,23 @@ def run_algorithm(
 
         with memory_tracker() as mem:
             start_time = time.perf_counter()
-            result = algo_func(graph)
+            # pass the graph plus the processed pos_args and kwargs
+            result = algo_func(graph, *pos_args, **kwargs)
             end_time = time.perf_counter()
+
         execution_time = end_time - start_time
         peak_memory = mem["peak"]
         logger.debug(f"Algorithm '{algo_config.name}' executed successfully.")
+
     except Exception as e:
         logger.exception("Algorithm run failed")
         execution_time = time.perf_counter() - start_time
         peak_memory = mem.get("peak", 0)
         result = None
         error = str(e)
+
     finally:
+        # restore environment variables
         for var_name in vars_to_set:
             if original_env[var_name] is None:
                 del os.environ[var_name]

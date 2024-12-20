@@ -3,6 +3,7 @@
 import logging
 import warnings
 from dataclasses import dataclass, field
+from functools import partial
 from pathlib import Path
 from typing import Any
 
@@ -33,9 +34,6 @@ class AlgorithmConfig:
     requires_weighted: bool = False
     validate_result: str | None = None
     groups: list[str] = field(default_factory=lambda: ["default"])
-    min_rounds: int = 3
-    warmup: bool = True
-    warmup_iterations: int = 1
 
     def get_func_ref(self):
         module_path, func_name = self.func.rsplit(".", 1)
@@ -62,6 +60,18 @@ class AlgorithmConfig:
                 return None
         else:
             return None
+
+    def get_callable(self, backend_name: str) -> Any:
+        """Retrieve a callable suitable for the given backend."""
+        func = self.get_func_ref()
+        if func is None:
+            raise ImportError(
+                f"Function '{self.func}' could not be imported for algorithm "
+                f"'{self.name}'"
+            )
+        if backend_name != "networkx":
+            return partial(func, backend=backend_name)
+        return func
 
 
 @dataclass
