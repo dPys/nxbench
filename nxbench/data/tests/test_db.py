@@ -25,6 +25,7 @@ def sample_benchmark_result():
     """Fixture for a sample BenchmarkResult object."""
     return BenchmarkResult(
         execution_time=1.23,
+        execution_time_with_preloading=1.5,
         memory_used=456.78,
         algorithm="test_algo",
         backend="test_backend",
@@ -32,11 +33,12 @@ def sample_benchmark_result():
         num_nodes=100,
         num_edges=200,
         num_thread=1,
-        commit_hash="foo",
         date=1234567,
         metadata={},
         is_directed=True,
         is_weighted=False,
+        validation="passed",
+        validation_message="OK",
     )
 
 

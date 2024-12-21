@@ -213,7 +213,9 @@ class TestResultsExporter:
             df_mock.to_json.assert_called_once_with(
                 Path("/tmp/out.json"), orient="records", indent=2
             )
-            mock_logger.info.assert_called_with("Exported results to JSON: out.json")
+            mock_logger.info.assert_called_with(
+                "Exported results to JSON: /tmp/out.json"
+            )
 
     @patch("nxbench.benchmarks.export.BenchmarkDB")
     @patch("nxbench.benchmarks.export.get_python_version", return_value="3.10.14")
