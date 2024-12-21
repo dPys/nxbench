@@ -297,32 +297,39 @@ def process_algorithm_params(
 ) -> tuple[list[Any], dict[str, Any]]:
     """Process and separate algorithm parameters into positional and keyword arguments.
 
-    Parameters
-    ----------
-    params : dict[str, Any]
-        A dictionary of algorithm parameters, where keys starting with "_" are treated
-        as positional arguments.
-        Other keys are treated as keyword arguments.
-        If a parameter value is a dictionary containing a "func" key, the function is
-        imported dynamically.
-
-    Returns
-    -------
-    tuple[list[Any], dict[str, Any]]
-        A tuple containing a list of positional arguments and a dictionary of keyword
-        arguments.
+    1. Keys starting with "_" go into pos_args (list).
+    2. Other keys become kwargs (dict).
+    3. If a param is a string that looks like a float or int, parse it.
+    4. If param is a dict containing {"func": "..."} then dynamically load that
+    function.
     """
     pos_args = []
     kwargs = {}
+
     for key, value in params.items():
+        # attempt to parse string values as float or int:
+        if isinstance(value, str):
+            # if it has a decimal point or an exponent, parse as float;
+            # else try integer. If it fails, leave as string.
+            try:
+                if "." in value or "e" in value.lower():
+                    value = float(value)
+                else:
+                    value = int(value)
+            except ValueError:
+                pass  # not numeric, leave it as-is
+
         if isinstance(value, dict) and "func" in value:
             module_path, func_name = value["func"].rsplit(".", 1)
             module = __import__(module_path, fromlist=[func_name])
             value = getattr(module, func_name)
+
+        # put underscore-prefixed params in pos_args, others in kwargs
         if key.startswith("_"):
             pos_args.append(value)
         else:
             kwargs[key] = value
+
     return pos_args, kwargs
 
 

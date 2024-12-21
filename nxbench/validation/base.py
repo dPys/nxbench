@@ -482,10 +482,13 @@ def validate_scalar_result(
     max_value: float | None = None,
 ) -> None:
     """Validate scalar result (e.g., float, int)."""
-    if isinstance(result, (int, float)):
-        if min_value is not None and result < min_value:
-            raise ValidationError(f"Result {result} is less than minimum {min_value}")
-        if max_value is not None and result > max_value:
-            raise ValidationError(
-                f"Result {result} is greater than maximum {max_value}"
-            )
+    if not isinstance(result, (int, float)):
+        raise ValidationError("Expected result of type float or int")
+
+    # heck min
+    if min_value is not None and result < min_value:
+        raise ValidationError(f"Result {result} is less than minimum {min_value}")
+
+    # check max
+    if max_value is not None and result > max_value:
+        raise ValidationError(f"Result {result} is greater than maximum {max_value}")
