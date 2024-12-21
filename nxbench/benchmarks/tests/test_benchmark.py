@@ -1,29 +1,33 @@
-import json
-import os
-import sys
-from unittest.mock import AsyncMock, MagicMock, patch
-
-import networkx as nx
-import pytest
-
-from nxbench.benchmarks.benchmark import (
-    benchmark_suite,
-    collect_metrics,
-    configure_backend,
-    load_config,
-    main_benchmark,
-    run_algorithm,
-    run_single_benchmark,
-    setup_cache,
-    teardown_specific,
-    validate_results,
+import sys  # isort:skip
+import os  # isort:skip
+from unittest.mock import MagicMock, patch, AsyncMock  # isort:skip
+from nxbench.benchmarks.config import (  # isort:skip
+    AlgorithmConfig,
+    DatasetConfig,
 )
-from nxbench.benchmarks.config import AlgorithmConfig, DatasetConfig
-from nxbench.data.loader import BenchmarkDataManager
-from nxbench.validation.registry import BenchmarkValidator
 
-sys.modules["prefect_dask"] = MagicMock()
-sys.modules["prefect_dask.task_runners"] = MagicMock()
+sys.modules["prefect_dask"] = MagicMock()  # isort:skip
+sys.modules["prefect_dask.task_runners"] = MagicMock()  # isort:skip
+
+import json  # isort:skip  # noqa: E402
+import pytest  # isort:skip  # noqa: E402
+import networkx as nx  # isort:skip  # noqa: E402
+
+from nxbench.validation.registry import BenchmarkValidator  # isort:skip  # noqa: E402
+from nxbench.data.loader import BenchmarkDataManager  # isort:skip  # noqa: E402
+
+from nxbench.benchmarks.benchmark import (  # isort:skip  # noqa: E402
+    load_config,
+    setup_cache,
+    configure_backend,
+    run_algorithm,
+    validate_results,
+    collect_metrics,
+    teardown_specific,
+    run_single_benchmark,
+    benchmark_suite,
+    main_benchmark,
+)
 
 
 @pytest.fixture(autouse=True)
