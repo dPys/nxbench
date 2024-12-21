@@ -411,70 +411,82 @@ async def main_benchmark(
 
     try:
         config = load_config()
-
         algorithms = config["algorithms"]
         datasets = config["datasets"]
         env_data = config["env_data"]
 
-        available_backends = get_available_backends()
+        available_backends = (
+            get_available_backends()
+        )  # e.g. {"networkx": "3.4.2", "graphblas": "2023.10.0"}
 
+        # parse user-specified constraints for Python versions, backends, threads
         pythons = env_data.get("pythons", ["3.10"])
         backend_configs = env_data.get("backend", {"networkx": ["networkx==3.4.1"]})
-
-        # filter out backends not actually available
-        chosen_backends = []
-        for backend, requested_versions in backend_configs.items():
-            if backend in available_backends:
-                installed_version = available_backends[backend]
-                for req_ver in requested_versions:
-                    # expected format: "backendname==x.y.z"
-                    if "==" in req_ver:
-                        _, requested_version = req_ver.split("==", 1)
-                        if requested_version == installed_version:
-                            chosen_backends.append(backend)
-                            break
-                    else:
-                        # if no version pin is provided, accept the installed version
-                        chosen_backends.append(backend)
-                        break
-
-        if not chosen_backends:
-            logger.error("No valid backends selected. Exiting.")
-            return
-
         num_threads = env_data.get("num_threads", [1])
         if not isinstance(num_threads, list):
             num_threads = [num_threads]
         num_threads = [int(x) for x in num_threads]
 
+        # check Python version
+        actual_python_version = get_python_version()  # e.g. "3.10.12"
+        if not any(py_ver in actual_python_version for py_ver in pythons):
+            logger.error(
+                f"No requested Python version matches the actual interpreter "
+                f"({actual_python_version}). Aborting."
+            )
+            return
+
+        # filter out backends not installed or not matching pinned versions
+        chosen_backends = []
+        backend_version_map = {}
+        for backend, requested_versions in backend_configs.items():
+            installed_version = available_backends.get(backend)
+            if not installed_version:
+                continue
+
+            matched = False
+            for req_ver in requested_versions:
+                if "==" in req_ver:
+                    # e.g. "networkx==3.4.1"
+                    _, pinned_version = req_ver.split("==", 1)
+                    if pinned_version == installed_version:
+                        matched = True
+                        break
+                else:
+                    # if the user didn't pin a version, accept the installed version
+                    matched = True
+                    break
+
+            if matched:
+                chosen_backends.append(backend)
+                backend_version_map[backend] = installed_version
+
+        if not chosen_backends:
+            logger.error("No valid backends found or matched. Exiting.")
+            return
+        logger.info(
+            f"Chosen backends: {chosen_backends} "
+            f"(Installed versions: {backend_version_map})"
+        )
+
         graphs = setup_cache(datasets)
 
-        actual_python_version = get_python_version()
+        results = await benchmark_suite(
+            algorithms=algorithms,
+            datasets=datasets,
+            backends=chosen_backends,
+            threads=num_threads,
+            graphs=graphs,
+        )
 
-        for py_ver in pythons:
-            if py_ver not in actual_python_version:
-                logger.error(
-                    f"Requested Python version {py_ver} does not match the actual "
-                    f"Python version {actual_python_version}. Aborting."
+        for run_result in results:
+            if run_result is not None:
+                run_result["python_version"] = actual_python_version
+                bname = run_result.get("backend", "unknown")
+                run_result["backend_version"] = backend_version_map.get(
+                    bname, "unknown"
                 )
-                return
-
-            for backend_name, backend_versions in backend_configs.items():
-                if backend_name not in chosen_backends:
-                    continue
-                for backend_ver in backend_versions:
-                    results = await benchmark_suite(
-                        algorithms=algorithms,
-                        datasets=datasets,
-                        backends=[backend_name],
-                        threads=num_threads,
-                        graphs=graphs,
-                    )
-                    for run_result in results:
-                        if run_result is not None:
-                            run_result["backend_version"] = backend_ver
-                            run_result["python_version"] = actual_python_version
-                            final_results.append(run_result)
+                final_results.append(run_result)
 
     finally:
         results_dir = Path("results")
