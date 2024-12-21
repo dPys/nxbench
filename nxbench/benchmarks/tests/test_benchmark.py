@@ -27,7 +27,7 @@ sys.modules["prefect_dask.task_runners"] = MagicMock()
 
 
 @pytest.fixture(autouse=True)
-def _patch_run_logger():
+def patch_run_logger():  # noqa: PT004
     with patch("nxbench.benchmarks.benchmark.get_run_logger", return_value=MagicMock()):
         yield
 
@@ -85,7 +85,7 @@ def mock_dataset_config():
 
 
 @pytest.fixture
-def _patch_machine_info():
+def patch_machine_info():  # noqa: PT004
     """Patch get_machine_info to return static data."""
     with patch(
         "nxbench.benchmarks.benchmark.get_machine_info",
@@ -95,7 +95,7 @@ def _patch_machine_info():
 
 
 @pytest.fixture
-def _patch_python_version():
+def patch_python_version():  # noqa: PT004
     """Patch get_python_version to return '3.10.12' by default."""
     with patch(
         "nxbench.benchmarks.benchmark.get_python_version",
@@ -501,7 +501,7 @@ async def test_benchmark_suite_success(
     example_graph,
 ):
     """
-    Replaces the @flow(...) decorator with a no-op so any subflow is
+    Replace the @flow(...) decorator with a no-op so any subflow is
     just a normal async function. Also mocks out DaskTaskRunner so we
     don't trigger Prefect's telemetry code or spawn real Dask workers.
     """
@@ -513,7 +513,7 @@ async def test_benchmark_suite_success(
     threads = [2]
     graphs = {"ds1": (example_graph, {"meta": "data"})}
 
-    # by calling __wrapped__, we avoid the main @flow on benchmark_suite
+    # by calling __wrapped__, we avoid the main @flow on benchmark_suite?
     results = await benchmark_suite.__wrapped__(
         algorithms=algorithms,
         datasets=datasets,
