@@ -309,8 +309,6 @@ def process_algorithm_params(
     for key, value in params.items():
         # attempt to parse string values as float or int:
         if isinstance(value, str):
-            # if it has a decimal point or an exponent, parse as float;
-            # else try integer. If it fails, leave as string.
             try:
                 if "." in value or "e" in value.lower():
                     value = float(value)
@@ -324,7 +322,6 @@ def process_algorithm_params(
             module = __import__(module_path, fromlist=[func_name])
             value = getattr(module, func_name)
 
-        # put underscore-prefixed params in pos_args, others in kwargs
         if key.startswith("_"):
             pos_args.append(value)
         else:
