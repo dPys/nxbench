@@ -196,10 +196,10 @@ class TestResultsExporter:
         df_mock.to_csv = MagicMock()
 
         with patch.object(exporter, "to_dataframe", return_value=df_mock):
-            exporter.export_results(Path("out.csv"), form="csv")
+            exporter.export_results(Path("/tmp/out.csv"), form="csv")
 
-            df_mock.to_csv.assert_called_once_with(Path("out.csv"), index=False)
-            mock_logger.info.assert_called_with("Exported results to CSV: out.csv")
+            df_mock.to_csv.assert_called_once_with(Path("/tmp/out.csv"), index=False)
+            mock_logger.info.assert_called_with("Exported results to CSV: /tmp/out.csv")
 
     @patch("nxbench.benchmarks.export.BenchmarkDB")
     def test_export_results_json(self, mock_db, mock_logger):
@@ -209,9 +209,9 @@ class TestResultsExporter:
         df_mock.to_json = MagicMock()
 
         with patch.object(exporter, "to_dataframe", return_value=df_mock):
-            exporter.export_results(Path("out.json"), form="json")
+            exporter.export_results(Path("/tmp/out.json"), form="json")
             df_mock.to_json.assert_called_once_with(
-                Path("out.json"), orient="records", indent=2
+                Path("/tmp/out.json"), orient="records", indent=2
             )
             mock_logger.info.assert_called_with("Exported results to JSON: out.json")
 
