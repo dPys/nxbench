@@ -253,7 +253,7 @@ def collect_metrics(
 @task(name="teardown_specific", cache_key_fn=None, persist_result=False)
 def teardown_specific(backend: str):
     logger = get_run_logger()
-    if "parallel" in backend:
+    if "parallel" in backend and hasattr(nx.config.backends, "parallel"):
         logger.debug("Tearing down parallel backend configurations.")
         nx.config.backends.parallel.active = False
         nx.config.backends.parallel.n_jobs = 1
