@@ -160,7 +160,6 @@ def test_get_available_backends():
       available
       2. Only networkx is available
     """
-    # Mock objects to emulate each library with an identifiable __version__
     mock_networkx_module = type("MockNetworkX", (), {"__version__": "3.4.1"})
     mock_cugraph_module = type("MockCugraph", (), {"__version__": "1.0.0"})
     mock_graphblas_module = type("MockGraphblas", (), {"__version__": "2023.10.0"})

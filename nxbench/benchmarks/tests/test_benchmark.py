@@ -630,16 +630,17 @@ async def test_main_benchmark_no_backends(
         return_value={"networkx": "3.4.1"},
     ):
         await main_benchmark(results_dir=tmp_path)
+
         assert any(
             "No valid backends found or matched. Exiting." in rec.message
             for rec in caplog.records
-        )
+        ), "Expected an error log about no valid backends."
 
         files = list(tmp_path.iterdir())
         assert len(files) == 1, f"Expected 1 file in {tmp_path}, found {files}"
         with files[0].open("r") as f:
             data = json.load(f)
-            assert len(data) == 0
+            assert len(data) == 0, "Expected no results due to missing valid backends."
 
 
 @pytest.mark.asyncio
