@@ -336,6 +336,7 @@ make<span class="w"> </span>install
 </section>
 <section id="setting-up-prefect-orion">
 <h3>Setting up Prefect Orion<a class="headerlink" href="#setting-up-prefect-orion" title="Link to this heading">¶</a></h3>
+<p>In a terminal window:</p>
 <ol class="arabic">
 <li><p><strong>Export environment variables pointing to your PostgreSQL database</strong>:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">export</span><span class="w"> </span><span class="nv">PREFECT_API_DATABASE_CONNECTION_URL</span><span class="o">=</span><span class="s2">&quot;postgresql+asyncpg://prefect_user:pass@localhost:5432/prefect_db&quot;</span>
@@ -357,6 +358,7 @@ make<span class="w"> </span>install
 </section>
 <section id="running-benchmarks">
 <h2>Running Benchmarks<a class="headerlink" href="#running-benchmarks" title="Link to this heading">¶</a></h2>
+<p>In a new terminal window:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>nxbench<span class="w"> </span>--config<span class="w"> </span><span class="s1">&#39;nxbench/configs/example.yaml&#39;</span><span class="w"> </span>benchmark<span class="w"> </span>run
 </pre></div>
 </div>
