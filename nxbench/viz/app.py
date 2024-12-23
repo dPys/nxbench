@@ -2,145 +2,22 @@ import logging
 
 import dash
 import dash_bootstrap_components as dbc
-import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 from dash import dcc, html
 from dash.dependencies import Input, Output
 
+from nxbench.viz.utils import load_and_prepare_data
+
 logger = logging.getLogger("nxbench")
 
 
 def run_server(port=8050, debug=False):
+    df, df_agg, group_columns, available_parcats_columns = load_and_prepare_data(
+        "results/results.csv", logger
+    )
+
     app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
-
-    df = pd.read_csv("results/results.csv")
-    pd.DataFrame.iteritems = pd.DataFrame.items
-
-    essential_columns = ["algorithm", "execution_time", "memory_used"]
-    if "execution_time_with_preloading" not in df.columns:
-        df["execution_time_with_preloading"] = df["execution_time"]
-    df = df.dropna(subset=essential_columns)
-
-    df["execution_time"] = pd.to_numeric(df["execution_time"], errors="coerce")
-    df["execution_time_with_preloading"] = pd.to_numeric(
-        df["execution_time_with_preloading"], errors="coerce"
-    )
-    df["memory_used"] = pd.to_numeric(df["memory_used"], errors="coerce")
-    df["num_nodes"] = pd.to_numeric(df["num_nodes"], errors="coerce")
-    df["num_edges"] = pd.to_numeric(df["num_edges"], errors="coerce")
-    df["num_thread"] = pd.to_numeric(df["num_thread"], errors="coerce")
-
-    df["execution_time_with_preloading"] = df["execution_time_with_preloading"].fillna(
-        df["execution_time"]
-    )
-
-    df = df.dropna(
-        subset=[
-            "algorithm",
-            "execution_time",
-            "execution_time_with_preloading",
-            "memory_used",
-        ]
-    )
-
-    string_columns = [
-        "algorithm",
-        "dataset",
-        "backend",
-        "is_directed",
-        "is_weighted",
-        "python_version",
-        "backend_version",
-        "cpu",
-        "os",
-    ]
-    for col in string_columns:
-        df[col] = df[col].astype(str).str.strip().str.lower()
-
-    unique_n_nodes = len(set(df["num_nodes"].values))
-    if unique_n_nodes > 1:
-        num_nodes_binned = pd.cut(df["num_nodes"], bins=min(unique_n_nodes, 4))
-
-        node_labels = []
-        for interval in num_nodes_binned.cat.categories:
-            lower = int(interval.left) if pd.notnull(interval.left) else float("-inf")
-            upper = int(interval.right) if pd.notnull(interval.right) else float("inf")
-            node_labels.append(f"{lower} <= x < {upper}")
-
-        node_label_map = dict(zip(num_nodes_binned.cat.categories, node_labels))
-        df["num_nodes_bin"] = num_nodes_binned.replace(node_label_map)
-    else:
-        df["num_nodes_bin"] = df["num_nodes"]
-
-    unique_n_edges = len(set(df["num_edges"].values))
-    if unique_n_edges > 1:
-        num_edges_binned = pd.cut(df["num_edges"], bins=min(unique_n_edges, 4))
-
-        edge_labels = []
-        for interval in num_edges_binned.cat.categories:
-            lower = int(interval.left) if pd.notnull(interval.left) else float("-inf")
-            upper = int(interval.right) if pd.notnull(interval.right) else float("inf")
-            edge_labels.append(f"{lower} <= x < {upper}")
-
-        edge_label_map = dict(zip(num_edges_binned.cat.categories, edge_labels))
-        df["num_edges_bin"] = num_edges_binned.replace(edge_label_map)
-    else:
-        df["num_edges_bin"] = df["num_edges"]
-
-    group_columns = [
-        "algorithm",
-        "dataset",
-        "backend",
-        "num_nodes_bin",
-        "num_edges_bin",
-        "is_directed",
-        "is_weighted",
-        "python_version",
-        "cpu",
-        "os",
-        "num_thread",
-    ]
-
-    if "backend_version" in df.columns:
-        df["backend_version"] = df["backend_version"].apply(
-            lambda x: (
-                x.split("==")[1] if isinstance(x, str) and "==" in x else "unknown"
-            )
-        )
-        df["backend_full"] = df.apply(
-            lambda row: (
-                f"{row['backend']} ({row['backend_version']})"
-                if row["backend_version"] != "unknown"
-                else row["backend"]
-            ),
-            axis=1,
-        )
-        group_columns = [
-            c if c != "backend" else "backend_full"
-            for c in group_columns
-            if c != "backend_version"
-        ]
-    else:
-        logger.warning("No 'backend_version' column found in the dataframe.")
-        group_columns = [c for c in group_columns if c not in ("backend_version",)]
-
-    # compute both mean and count
-    df_agg = df.groupby(group_columns, as_index=False, observed=True).agg(
-        mean_execution_time=("execution_time", "mean"),
-        mean_memory_used=("memory_used", "mean"),
-        sample_count=("execution_time", "size"),
-        mean_preload_execution_time=("execution_time_with_preloading", "mean"),
-    )
-    df_agg.set_index(group_columns, inplace=True)
-
-    df_index = df_agg.index.to_frame()
-
-    unique_counts = df_index.nunique()
-
-    available_parcats_columns = [
-        col for col in group_columns if col != "algorithm" and unique_counts[col] > 1
-    ]
 
     app.layout = html.Div(
         [
@@ -173,6 +50,10 @@ def run_server(port=8050, debug=False):
                         options=[
                             {"label": "Execution Time", "value": "execution_time"},
                             {"label": "Memory Used", "value": "memory_used"},
+                            {
+                                "label": "Execution Time with Preloading",
+                                "value": "execution_time_with_preloading",
+                            },
                         ],
                         value="execution_time",
                         inline=True,
@@ -290,9 +171,8 @@ def run_server(port=8050, debug=False):
                 filtered_pre = temp_agg.xs(selected_algorithm, level="algorithm")
                 mean_values = filtered_pre["mean_execution_time_with_preloading"]
             else:
-                # if this scenario occurs, just fallback to normal execution_time
+                # fallback if this column doesn't exist
                 mean_values = filtered_df["mean_execution_time"]
-
             colorbar_title = "Execution Time w/ Preloading (s)"
         else:
             mean_values = filtered_df["mean_memory_used"]
@@ -322,7 +202,7 @@ def run_server(port=8050, debug=False):
                 counts=counts,
                 hoverinfo="count",
                 hovertemplate="Count: REPLACE_COUNT\nMean: REPLACE_ME<extra></extra>",
-                arrangement="freeform",  # Add this line
+                arrangement="freeform",
             )
         )
         fig.update_layout(
@@ -411,6 +291,7 @@ def run_server(port=8050, debug=False):
         fig.update_layout(template="plotly_white")
         return fig
 
+    # client-side callback for handling the hover text replacement in go.Parcats
     app.clientside_callback(
         """
         function(hoverData, data) {
@@ -460,23 +341,6 @@ def run_server(port=8050, debug=False):
         """,  # noqa: E501
         Output("hover-text-hack", "children"),
         [Input("benchmark-graph", "hoverData"), Input("mean-values-store", "data")],
-    )
-
-    color_toggle_options = [
-        {"label": "Execution Time", "value": "execution_time"},
-        {"label": "Memory Used", "value": "memory_used"},
-        {
-            "label": "Execution Time with Preloading",
-            "value": "execution_time_with_preloading",
-        },
-    ]
-
-    app.layout.children[2].children[1] = dbc.RadioItems(
-        id="color-toggle",
-        options=color_toggle_options,
-        value="execution_time",
-        inline=True,
-        className="ml-2",
     )
 
     app.run_server(port=port, debug=debug)
