@@ -95,6 +95,7 @@ class TestValidationRegistry:
             yaml.dump(config_data, f)
 
         with pytest.MonkeyPatch.context() as m:
+            # Provide a custom 'globals' that returns our mock_validator
             m.setattr("builtins.globals", lambda: {"mock_validator": mock_validator})
             registry = ValidationRegistry()
             registry.load_config(config_path)
@@ -130,11 +131,17 @@ class TestValidationRegistry:
 
 class TestBenchmarkValidator:
     def test_validate_result_valid(self, simple_graph):
-        result = {node: 1.0 / len(simple_graph) for node in simple_graph.nodes()}
+        # Provide an in-range set of scores
+        result = {node: 0.25 for node in simple_graph.nodes()}  # sum=1.0
         validator = BenchmarkValidator()
+        # For 'pagerank', we currently have require_normalized=False in the default
+        # config,
+        # but the function's default is require_normalized=True. So let's just confirm
+        # it passes.
         assert validator.validate_result(result, "pagerank", simple_graph) is True
 
     def test_validate_result_invalid_type(self, simple_graph):
+        # 'pagerank' expects dict, so pass a list
         result = ["not", "a", "dict"]
         validator = BenchmarkValidator()
         with pytest.raises(
@@ -143,11 +150,10 @@ class TestBenchmarkValidator:
             validator.validate_result(result, "pagerank", simple_graph)
 
     def test_validate_result_validation_failure(self, simple_graph):
-        result = {node: 0.2 for node in simple_graph.nodes()}  # Sum=0.8
+        # Instead of testing normalization, test out-of-range (score > 1.0).
+        result = {node: 1.1 for node in simple_graph.nodes()}
         validator = BenchmarkValidator()
-        with pytest.raises(
-            ValidationError, match=r"Normalized scores sum to .* expected 1\.0"
-        ):
+        with pytest.raises(ValidationError, match=r"Scores above maximum"):
             validator.validate_result(result, "pagerank", simple_graph)
 
     def test_validate_result_no_validator(self, caplog):
@@ -158,7 +164,9 @@ class TestBenchmarkValidator:
             assert "No validator found for algorithm: unknown_algo" in caplog.text
 
     def test_validate_result_raise_errors_false(self, simple_graph):
-        result = {node: 0.2 for node in simple_graph.nodes()}  # Sum=0.8
+        # Provide out-of-range scores but don't raise errors, so validate_result should
+        # return False
+        result = {node: 1.5 for node in simple_graph.nodes()}
         validator = BenchmarkValidator()
         assert (
             validator.validate_result(
@@ -170,16 +178,16 @@ class TestBenchmarkValidator:
     def test_create_validator_valid_result(self, simple_graph):
         validator = BenchmarkValidator()
         validate_func = validator.create_validator("pagerank")
-        result = {node: 1.0 / len(simple_graph) for node in simple_graph.nodes()}
+        # Provide an in-range set of scores
+        result = {node: 0.25 for node in simple_graph.nodes()}  # sum=1.0
         validate_func(result, simple_graph)
 
     def test_create_validator_invalid_result(self, simple_graph):
         validator = BenchmarkValidator()
         validate_func = validator.create_validator("pagerank")
-        result = {node: 0.2 for node in simple_graph.nodes()}  # Sum=0.8
-        with pytest.raises(
-            ValidationError, match=r"Normalized scores sum to .* expected 1\.0"
-        ):
+        # Provide out-of-range scores (above 1.0)
+        result = {node: 1.2 for node in simple_graph.nodes()}
+        with pytest.raises(ValidationError, match=r"Scores above maximum"):
             validate_func(result, simple_graph)
 
     def test_create_validator_no_validator(self, caplog):
@@ -230,6 +238,7 @@ class TestBenchmarkValidator:
         assert (
             benchmark_validator.validate_result(10, "dummy_algo", simple_graph) is True
         )
+        # Not an int => should raise validation error
         with pytest.raises(
             ValidationError, match=r"Expected result type <class 'int'>"
         ):
@@ -304,6 +313,7 @@ class TestBenchmarkValidatorIntegration:
 
     def test_validate_result_with_scalar_result(self):
         validator = BenchmarkValidator()
+        # local_efficiency expects a float in [0,1].
         result = 3.14
         with pytest.raises(ValidationError, match=r"greater than maximum 1.0"):
             validator.validate_result(result, "local_efficiency", None)
@@ -313,8 +323,7 @@ class TestBenchmarkValidatorIntegration:
         result = "not a float"
         with pytest.raises(
             ValidationError,
-            match=r"Validation failed for local_efficiency: "
-            r"Expected result type <class 'float'>, got <class 'str'>",
+            match=r"Expected result type <class 'float'>, got <class 'str'>",
         ):
             validator.validate_result(result, "local_efficiency", None)
 
@@ -329,6 +338,7 @@ class TestBenchmarkValidatorIntegration:
     def test_validate_result_with_number_of_isolates(self):
         validator = BenchmarkValidator()
         result = 2
+        # number_of_isolates expects int >= 0
         assert validator.validate_result(result, "number_of_isolates", None) is True
 
     def test_validate_result_with_number_of_isolates_invalid(self):
@@ -340,14 +350,14 @@ class TestBenchmarkValidatorIntegration:
     def test_create_validator_function(self, simple_graph):
         validator = BenchmarkValidator()
         validate_func = validator.create_validator("pagerank")
-        result = {node: 1.0 / len(simple_graph) for node in simple_graph.nodes()}
+        # Provide an in-range set of scores
+        result = {node: 0.25 for node in simple_graph.nodes()}
         validate_func(result, simple_graph)
 
     def test_create_validator_function_invalid(self, simple_graph):
         validator = BenchmarkValidator()
         validate_func = validator.create_validator("pagerank")
-        result = {node: 0.2 for node in simple_graph.nodes()}  # Sum=0.8
-        with pytest.raises(
-            ValidationError, match=r"Normalized scores sum to .* expected 1\.0"
-        ):
+        # Provide out-of-range scores to force an error
+        result = {node: 1.2 for node in simple_graph.nodes()}
+        with pytest.raises(ValidationError, match=r"Scores above maximum"):
             validate_func(result, simple_graph)

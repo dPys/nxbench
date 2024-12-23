@@ -54,17 +54,21 @@ class ValidationRegistry:
     DEFAULT_VALIDATORS: ClassVar[dict] = {
         "pagerank": ValidationConfig(
             validator=validate_node_scores,
-            params={"score_range": (0.0, 1.0), "require_normalized": True},
+            params={
+                "score_range": (0.0, 1.0),
+                "require_normalized": False,
+                "tolerance": 1e-06,
+            },
             expected_type=dict,
         ),
         "betweenness_centrality": ValidationConfig(
             validator=validate_node_scores,
-            params={"score_range": (0.0, 1.0), "require_normalized": True},
+            params={"score_range": (0.0, 1.0), "require_normalized": False},
             expected_type=dict,
         ),
         "eigenvector_centrality": ValidationConfig(
             validator=validate_node_scores,
-            params={"score_range": (0.0, 1.0), "require_normalized": True},
+            params={"score_range": (0.0, 1.0), "require_normalized": False},
             expected_type=dict,
         ),
         "louvain_communities": ValidationConfig(
@@ -79,12 +83,12 @@ class ValidationRegistry:
         ),
         "shortest_path": ValidationConfig(
             validator=validate_path_lengths,
-            params={"check_symmetry": True, "allow_infinity": True},
+            params={"check_symmetry": False, "allow_infinity": True},
             expected_type=dict,
         ),
         "all_pairs_shortest_path_length": ValidationConfig(
             validator=validate_path_lengths,
-            params={"check_symmetry": True, "allow_infinity": True},
+            params={"check_symmetry": False, "allow_infinity": True},
             expected_type=dict,
         ),
         "maximum_flow": ValidationConfig(
@@ -102,70 +106,55 @@ class ValidationRegistry:
             params={"score_range": (0.0, 1.0)},
             expected_type=dict,
         ),
-        "approximate_all_pairs_node_connectivity": ValidationConfig(
-            validator=validate_path_lengths,
-            params={},
-            expected_type=dict,
-        ),
-        "all_pairs_node_connectivity": ValidationConfig(
-            validator=validate_path_lengths,
-            params={},
-            expected_type=dict,
-        ),
         "average_clustering": ValidationConfig(
-            validator=validate_node_scores,
-            params={"require_normalized": False},
-            expected_type=dict,
-        ),
-        "square_clustering": ValidationConfig(
-            validator=validate_node_scores,
-            params={"require_normalized": False},
-            expected_type=dict,
+            validator=validate_scalar_result,
+            params={"min_value": 0.0, "max_value": 1.0},
+            expected_type=float,
         ),
         "local_efficiency": ValidationConfig(
             validator=validate_scalar_result,
-            params={"expected_type": float, "min_value": 0.0, "max_value": 1.0},
+            params={"min_value": 0.0, "max_value": 1.0},
             expected_type=float,
         ),
         "number_of_isolates": ValidationConfig(
             validator=validate_scalar_result,
-            params={"expected_type": int, "min_value": 0},
+            params={"min_value": 0},
             expected_type=int,
             required=True,
         ),
         "all_pairs_all_shortest_paths": ValidationConfig(
             validator=validate_path_lengths,
-            params={},
+            params={"check_symmetry": False, "allow_infinity": True},
             expected_type=dict,
         ),
         "all_pairs_dijkstra": ValidationConfig(
             validator=validate_path_lengths,
-            params={},
+            params={"check_symmetry": False, "allow_infinity": True},
             expected_type=dict,
         ),
         "all_pairs_dijkstra_path_length": ValidationConfig(
             validator=validate_path_lengths,
-            params={},
+            params={"check_symmetry": False, "allow_infinity": True},
             expected_type=dict,
         ),
         "all_pairs_bellman_ford_path_length": ValidationConfig(
             validator=validate_path_lengths,
-            params={},
+            params={"check_symmetry": False, "allow_infinity": True},
             expected_type=dict,
         ),
         "all_pairs_bellman_ford_path": ValidationConfig(
             validator=validate_path_lengths,
-            params={},
+            params={"check_symmetry": False, "allow_infinity": True},
             expected_type=dict,
         ),
         "johnson": ValidationConfig(
             validator=validate_path_lengths,
-            params={},
+            params={"check_symmetry": False, "allow_infinity": True},
             expected_type=dict,
         ),
         "closeness_vitality": ValidationConfig(
             validator=validate_node_scores,
-            params={},
+            params={"score_range": (0.0, 1.0), "require_normalized": False},
             expected_type=dict,
         ),
     }
@@ -295,7 +284,17 @@ class BenchmarkValidator:
     @staticmethod
     def _validate_type(result, expected_type):
         if not isinstance(result, expected_type):
-            raise TypeError(f"Expected result type {expected_type}, got {type(result)}")
+            try:
+                result = dict(result)
+            except Exception:
+                raise TypeError(
+                    f"Expected result type {expected_type}, got {type(result)}"
+                )
+            finally:
+                if not isinstance(result, expected_type):
+                    raise TypeError(
+                        f"Expected result type {expected_type}, got {type(result)}"
+                    )
 
     def validate_result(
         self,

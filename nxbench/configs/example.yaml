@@ -6,158 +6,15 @@ algorithms:
       tol: 1.0e-6
     requires_directed: false
     groups: ["centrality", "random_walk"]
-    min_rounds: 10
-    warmup: true
-    warmup_iterations: 50
 
   - name: "eigenvector_centrality"
     func: "networkx.eigenvector_centrality"
+    params:
+      max_iter: 500
+      tol: 1e-06
     requires_directed: false
     groups: ["centrality", "path_based"]
-    min_rounds: 5
-    warmup: true
-    warmup_iterations: 20
     validate_result: "nxbench.validation.validate_node_scores"
-
-  # - name: "betweenness_centrality"
-  #   func: "networkx.betweenness_centrality"
-  #   params:
-  #     normalized: true
-  #     endpoints: false
-  #   requires_directed: false
-  #   groups: ["centrality", "path_based"]
-  #   min_rounds: 5
-  #   warmup: true
-  #   warmup_iterations: 20
-  #   validate_result: "nxbench.validation.validate_node_scores"
-
-  # - name: "edge_betweenness_centrality"
-  #   func: "networkx.edge_betweenness_centrality"
-  #   params:
-  #     normalized: true
-  #   requires_directed: false
-  #   groups: ["centrality", "path_based"]
-  #   min_rounds: 5
-  #   warmup: true
-  #   warmup_iterations: 20
-  #   validate_result: "nxbench.validation.validate_edge_scores"
-
-  # - name: "approximate_all_pairs_node_connectivity"
-  #   func: "networkx.algorithms.approximation.connectivity.all_pairs_node_connectivity"
-  #   params: {}
-  #   requires_directed: false
-  #   groups: ["connectivity", "approximation"]
-  #   min_rounds: 3
-
-  - name: "average_clustering"
-    func: "networkx.average_clustering"
-    params: {}
-    requires_directed: false
-    groups: ["clustering", "graph_structure"]
-    min_rounds: 3
-    validate_result: "nxbench.validation.validate_scalar_result"
-
-  - name: "square_clustering"
-    func: "networkx.square_clustering"
-    params: {}
-    requires_directed: false
-    groups: ["clustering", "graph_structure"]
-    min_rounds: 3
-    validate_result: "nxbench.validation.validate_node_scores"
-
-  - name: "transitivity"
-    func: "networkx.transitivity"
-    params: {}
-    requires_directed: false
-    groups: ["clustering", "graph_structure"]
-    min_rounds: 3
-    validate_result: "nxbench.validation.validate_scalar_result"
-
-  # - name: "all_pairs_node_connectivity"
-  #   func: "networkx.algorithms.connectivity.connectivity.all_pairs_node_connectivity"
-  #   params: {}
-  #   requires_directed: false
-  #   groups: ["connectivity", "paths"]
-  #   min_rounds: 3
-
-  # - name: "local_efficiency"
-  #   func: "networkx.local_efficiency"
-  #   params: {}
-  #   requires_directed: false
-  #   groups: ["efficiency", "graph_measure"]
-  #   min_rounds: 3
-  #   validate_result: "nxbench.validation.validate_node_scores"
-
-  - name: "number_of_isolates"
-    func: "networkx.number_of_isolates"
-    params: {}
-    requires_directed: false
-    groups: ["isolates", "graph_measure"]
-    min_rounds: 3
-
-  # - name: "all_pairs_all_shortest_paths"
-  #   func: "networkx.all_pairs_all_shortest_paths"
-  #   params:
-  #     weight: "weight"
-  #   requires_directed: false
-  #   groups: ["paths", "all_pairs"]
-  #   min_rounds: 3
-
-  # - name: "all_pairs_shortest_path_length"
-  #   func: "networkx.all_pairs_shortest_path_length"
-  #   params: {}
-  #   requires_directed: false
-  #   groups: ["paths", "distance"]
-  #   min_rounds: 3
-  #   validate_result: "nxbench.validation.validate_scalar_result"
-
-  # - name: "all_pairs_shortest_path"
-  #   func: "networkx.all_pairs_shortest_path"
-  #   params: {}
-  #   requires_directed: false
-  #   groups: ["paths", "distance"]
-  #   min_rounds: 3
-
-  # - name: "all_pairs_dijkstra"
-  #   func: "networkx.all_pairs_dijkstra"
-  #   params:
-  #     weight: "weight"
-  #   requires_directed: false
-  #   groups: ["paths", "weighted"]
-  #   min_rounds: 3
-
-  - name: "all_pairs_dijkstra_path_length"
-    func: "networkx.all_pairs_dijkstra_path_length"
-    params:
-      weight: "weight"
-    requires_directed: false
-    groups: ["paths", "weighted"]
-    min_rounds: 3
-    validate_result: "nxbench.validation.validate_scalar_result"
-
-  - name: "all_pairs_bellman_ford_path_length"
-    func: "networkx.all_pairs_bellman_ford_path_length"
-    params:
-      weight: "weight"
-    requires_directed: false
-    groups: ["paths", "weighted"]
-    min_rounds: 3
-    validate_result: "nxbench.validation.validate_scalar_result"
-
-  # - name: "johnson"
-  #   func: "networkx.johnson"
-  #   params:
-  #     weight: "weight"
-  #   requires_directed: false
-  #   groups: ["paths", "weighted"]
-  #   min_rounds: 3
-
-  # - name: "closeness_vitality"
-  #   func: "networkx.closeness_vitality"
-  #   params: {}
-  #   requires_directed: false
-  #   groups: ["vitality", "centrality"]
-  #   min_rounds: 3
 
 datasets:
   # - name: "08blocks"
@@ -230,21 +87,16 @@ validation:
   error_on_fail: true
   report_memory: true
 
-matrix:
+environ:
   backend:
-    - "networkx"
-    - "parallel"
-    - "graphblas"
+    networkx:
+      - "networkx==3.4.1"
+    graphblas:
+      - "graphblas_algorithms==2023.10.0"
   num_threads:
     - "1"
     - "4"
     - "8"
-
-env_config:
-  req:
-    - "networkx==3.4.2"
-    - "nx-parallel-0.3rc0.dev0"
-    - "graphblas_algorithms==2023.10.0"
   pythons:
     - "3.10"
-    - "3.11"
+    # - "3.11"

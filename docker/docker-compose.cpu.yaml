@@ -1,4 +1,33 @@
 services:
+  postgres:
+    image: postgres:14
+    container_name: nxbench_postgres
+    environment:
+      POSTGRES_USER: prefect_user
+      POSTGRES_PASSWORD: pass
+      POSTGRES_DB: prefect_db
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U prefect_user -d prefect_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  orion:
+    image: prefecthq/prefect:2-latest
+    container_name: nxbench_orion
+    environment:
+      PREFECT_API_DATABASE_CONNECTION_URL: "postgresql+asyncpg://prefect_user:pass@postgres:5432/prefect_db"
+      PREFECT_ORION_DATABASE_CONNECTION_POOL_SIZE: "5"
+      PREFECT_ORION_DATABASE_CONNECTION_MAX_OVERFLOW: "10"
+      PREFECT_ORION_API_ENABLE_TASK_RUN_DATA_PERSISTENCE: "false"
+    command: prefect orion start --host 0.0.0.0 --port 4200
+    depends_on:
+      - postgres
+    ports:
+      - "4200:4200"
+
   nxbench:
     build:
       context: .
@@ -6,15 +35,18 @@ services:
     image: nxbench:latest
     container_name: nxbench
     volumes:
-      - nxbench/configs:/app/configs
+      - ./nxbench/configs:/app/configs
       - nxbench_data:/root/.nxbench
       - nxbench_results:/app/results
     environment:
-      - NXBENCH_HOME=/root/.nxbench
-      - NXBENCH_CONFIG_FILE=/app/configs/example.yaml
-      - NUM_THREAD=${NUM_THREAD:-8}
-      - NUM_GPU=${ENABLE_GPU:-1}
+      NXBENCH_HOME: "/root/.nxbench"
+      NXBENCH_CONFIG_FILE: "/app/configs/example.yaml"
+      PREFECT_API_URL: "http://orion:4200/api"
+      NUM_THREAD: "${NUM_THREAD:-8}"
     command: nxbench benchmark run --backend all
+    depends_on:
+      - orion
+      - postgres
 
   dashboard:
     build:
@@ -26,8 +58,12 @@ services:
       - "8050:8050"
     volumes:
       - nxbench_results:/app/results:ro
+    environment:
+      PREFECT_API_URL: "http://orion:4200/api"
+      NXBENCH_CONFIG_FILE: "/app/configs/example.yaml"
     command: nxbench viz serve --port 8050 --host 0.0.0.0
     depends_on:
+      - orion
       - nxbench
 
 volumes:

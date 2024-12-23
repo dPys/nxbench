@@ -3,11 +3,18 @@ import importlib
 import inspect
 import logging
 import os
+import platform
+import random
 import sys
 import tracemalloc
 from contextlib import contextmanager
+from importlib.metadata import PackageNotFoundError
+from importlib.metadata import version as get_version
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
+
+import numpy as np
+import psutil
 
 from nxbench.benchmarks.config import AlgorithmConfig, BenchmarkConfig, DatasetConfig
 from nxbench.benchmarks.constants import ALGORITHM_SUBMODULES
@@ -71,19 +78,19 @@ def load_default_config() -> BenchmarkConfig:
         DatasetConfig(name="enron", source="networkrepository"),
     ]
 
-    default_matrix = {
-        "req": {
-            "networkx": ["3.4.2"],
-            "graphblas_algorithms": ["2023.10.0"],
+    env_data = {
+        "num_threads": ["1", "4"],
+        "backend": {
+            "networkx": ["networkx==3.4.2"],
+            "graphblas": ["graphblas_algorithms==2023.10.0"],
         },
-        "env_nobuild": {
-            "NUM_THREAD": ["1", "4"],
-        },
+        "pythons": ["3.10", "3.11"],
     }
+
     return BenchmarkConfig(
         algorithms=default_algorithms,
         datasets=default_datasets,
-        matrix=default_matrix,
+        env_data=env_data,
         machine_info={},
     )
 
@@ -121,20 +128,51 @@ def get_python_version() -> str:
     return f"{version_info.major}.{version_info.minor}.{version_info.micro}"
 
 
-def get_available_backends() -> list[str]:
-    backends = ["networkx"]
+def get_available_backends() -> dict[str, str]:
+    """Return a dict of available backends and their versions."""
+    available = {}
+
+    try:
+        networkx = importlib.import_module("networkx")
+        nx_version = getattr(networkx, "__version__", None)
+        if nx_version is None:
+            nx_version = get_version("networkx")
+        available["networkx"] = nx_version
+    except (ImportError, PackageNotFoundError):
+        pass
 
     if is_nx_cugraph_available():
-        backends.append("cugraph")
+        try:
+            nx_cugraph = importlib.import_module("nx_cugraph")
+            cugraph_version = getattr(nx_cugraph, "__version__", None)
+            if cugraph_version is None:
+                cugraph_version = get_version("nx_cugraph")
+            available["cugraph"] = cugraph_version
+        except (ImportError, PackageNotFoundError):
+            pass
 
     if is_graphblas_available():
-        backends.append("graphblas")
+        try:
+            graphblas_algorithms = importlib.import_module("graphblas_algorithms")
+            gb_version = getattr(graphblas_algorithms, "__version__", None)
+            if gb_version is None:
+                gb_version = get_version("graphblas_algorithms")
+            available["graphblas"] = gb_version
+        except (ImportError, PackageNotFoundError):
+            pass
 
     if is_nx_parallel_available():
-        backends.append("parallel")
+        try:
+            nx_parallel = importlib.import_module("nx_parallel")
+            parallel_version = getattr(nx_parallel, "__version__", None)
+            if parallel_version is None:
+                parallel_version = get_version("nx_parallel")
+            available["parallel"] = parallel_version
+        except (ImportError, PackageNotFoundError):
+            pass
 
-    logger.debug(f"Available backends: {backends}")
-    return backends
+    logger.debug(f"Available backends and versions: {available}")
+    return available
 
 
 class MemorySnapshot:
@@ -177,8 +215,8 @@ def memory_tracker():
     mem = {}
     try:
         yield mem
+    finally:
         gc.collect()
-
         end = MemorySnapshot()
         end.take()
         current, peak = end.compare_to(baseline)
@@ -186,7 +224,6 @@ def memory_tracker():
         mem["current"] = current
         mem["peak"] = peak
 
-    finally:
         tracemalloc.stop()
 
 
@@ -241,3 +278,95 @@ def get_available_algorithms():
                         nx_algorithm_dict[attr_name] = attr
 
     return nx_algorithm_dict
+
+
+def get_machine_info():
+    info = {
+        "arch": platform.machine(),
+        "cpu": platform.processor(),
+        "num_cpu": str(psutil.cpu_count(logical=True)),
+        "os": f"{platform.system()} {platform.release()}",
+        "ram": str(psutil.virtual_memory().total),
+    }
+    # info["docker"] = os.path.exists("/.dockerenv")
+    return info
+
+
+def process_algorithm_params(
+    params: dict[str, Any],
+) -> tuple[list[Any], dict[str, Any]]:
+    """Process and separate algorithm parameters into positional and keyword arguments.
+
+    1. Keys starting with "_" go into pos_args (list).
+    2. Other keys become kwargs (dict).
+    3. If a param is a string that looks like a float or int, parse it.
+    4. If param is a dict containing {"func": "..."} then dynamically load that
+    function.
+    """
+    pos_args = []
+    kwargs = {}
+
+    for key, value in params.items():
+        # attempt to parse string values as float or int:
+        if isinstance(value, str):
+            try:
+                if "." in value or "e" in value.lower():
+                    value = float(value)
+                else:
+                    value = int(value)
+            except ValueError:
+                pass  # not numeric, leave it as-is
+
+        if isinstance(value, dict) and "func" in value:
+            module_path, func_name = value["func"].rsplit(".", 1)
+            module = __import__(module_path, fromlist=[func_name])
+            value = getattr(module, func_name)
+
+        if key.startswith("_"):
+            pos_args.append(value)
+        else:
+            kwargs[key] = value
+
+    return pos_args, kwargs
+
+
+def add_seeding(kwargs: dict, algo_func: Any, algorithm_name: str) -> dict:
+    # 1. Retrieve optional fields from kwargs
+    #    a) user_seed: integer to set global seeds
+    #    b) use_local_random_state: boolean (if True, we might pass a local np.random.
+    # RandomState)
+    user_seed = kwargs.pop("seed", None)
+    use_local_random_state = kwargs.pop("use_local_random_state", False)
+
+    # 2. If user_seed is an int, set global seeds
+    if isinstance(user_seed, int):
+        random.seed(user_seed)
+        np.random.seed(user_seed)
+        logger.debug(f"Global random seeds set to {user_seed}.")
+
+    # 3. Introspect the function signature to see if it takes 'seed' or 'random_state'
+    func_sig = inspect.signature(algo_func)
+    can_accept_seed = "seed" in func_sig.parameters
+    can_accept_random_state = "random_state" in func_sig.parameters
+
+    # 4. If can_accept_seed and we have an int user_seed, pass it as a kwarg
+    if can_accept_seed and isinstance(user_seed, int):
+        kwargs["seed"] = user_seed
+        logger.debug(
+            f"Passing `seed={user_seed}` to algorithm function {algorithm_name}."
+        )
+
+    # 5. If can_accept_random_state and user requested a local RandomState
+    #    we create one and pass it in
+    local_random_state = None
+    if can_accept_random_state and use_local_random_state:
+        # if user_seed is int, let's seed the local RNG with it, else use default.
+        local_random_state = np.random.RandomState(
+            user_seed if isinstance(user_seed, int) else None
+        )
+        kwargs["random_state"] = local_random_state
+        logger.debug(
+            f"Created local RandomState for algorithm {algorithm_name}, seed="
+            f"{user_seed}."
+        )
+    return kwargs

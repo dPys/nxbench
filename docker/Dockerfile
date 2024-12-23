@@ -33,11 +33,7 @@ RUN pip install --no-cache-dir \
     nx-parallel \
     python-graphblas \
     ipython \
-    && mkdir -p ~/.nxbench/data && rm -rf /root/.cache/pip \
-    && ln -s /app/configs/asv.conf.json /app/asv.conf.json
-
-ENV NXBENCH_HOME=/root/.nxbench
-ENV NXBENCH_CONFIG_FILE=/app/configs/example.yaml
+    && mkdir -p ~/.nxbench/data && rm -rf /root/.cache/pip
 
 CMD ["nxbench"]
 

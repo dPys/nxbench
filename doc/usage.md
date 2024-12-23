@@ -17,22 +17,30 @@
        source: "networkrepository"
    ```
 
-2. **Run Benchmarks Based on the Configuration**:
+2. **Start an instance of an orion server in a separate terminal window:**
+
+  ```bash
+  export PREFECT_API_URL="http://127.0.0.1:4200/api"
+  export PREFECT_API_DATABASE_CONNECTION_URL="postgresql+asyncpg://prefect_user:pass@localhost:5432/prefect_db"
+  prefect server start
+  ```
+
+3. **Run Benchmarks Based on the Configuration**:
 
    ```bash
    nxbench --config 'nxbench/configs/example.yaml' benchmark run
    ```
 
-3. **Export Results**:
+4. **Export Results**:
 
    ```bash
-   nxbench --config 'nxbench/configs/example.yaml' benchmark export 'results/results.csv' --output-format csv  # convert benchmark results into CSV format.
+   nxbench --config 'nxbench/configs/example.yaml' benchmark export 'results/9e3e8baa4a3443c392dc8fee00373b11_20241220002902.json' --output-format csv --output-file 'results/results.csv'  # convert benchmarked results from a run with hash `9e3e8baa4a3443c392dc8fee00373b11_20241220002902` into csv format.
    ```
 
-4. **View Results**:
+5. **View Results**:
 
    ```bash
-   nxbench viz serve  # launch the interactive dashboard.
+   nxbench viz serve  # launch the interactive results visualization dashboard.
    ```
 
 ## Advanced Command-Line Interface
@@ -64,13 +72,7 @@ The CLI provides comprehensive management of benchmarks, datasets, and visualiza
 - **Export Results to a SQL Database**:
 
   ```bash
-  nxbench --config 'nxbench/configs/example.yaml' benchmark export 'results/benchmarks.sqlite' --output-format sql
-  ```
-
-- **Compare Benchmarks Between Commits**:
-
-  ```bash
-  nxbench benchmark compare HEAD HEAD~1
+  nxbench --config 'nxbench/configs/example.yaml' benchmark export 'results/9e3e8baa4a3443c392dc8fee00373b11_20241220002902.json' --output-format sql --output-file 'results/benchmarks.sqlite'
   ```
 
 ### Visualization
@@ -80,19 +82,6 @@ The CLI provides comprehensive management of benchmarks, datasets, and visualiza
   ```bash
   nxbench viz serve
   ```
-
-- **Generate a Static ASV Report**:
-
-  ```bash
-  nxbench viz publish
-  ```
-
-## Supported Backends
-
-- **NetworkX** (default)
-- **Nx-CuGraph** (requires separate CuGraph installation and supported GPU hardware)
-- **GraphBLAS Algorithms** (optional)
-- **nx-parallel** (optional)
 
 ## Reproducible Benchmarking Through Containerization
 
@@ -117,11 +106,11 @@ docker-compose up dashboard
 ### Running Benchmarks with a Specific Backend
 
 ```bash
-docker-compose run --rm nxbench --config 'nxbench/configs/example.yaml' benchmark run --backend networkx
+docker-compose -f docker/docker-compose.cpu.yaml run --rm nxbench --config 'nxbench/configs/example.yaml' benchmark run --backend networkx
 ```
 
-### Viewing Results
+### Exporting results from a run with hash `9e3e8baa4a3443c392dc8fee00373b11_20241220002902`
 
 ```bash
-docker-compose run --rm nxbench --config 'nxbench/configs/example.yaml' benchmark export results.csv
+docker-compose -f docker/docker-compose.cpu.yaml run --rm nxbench --config 'nxbench/configs/example.yaml' benchmark export 'nxbench_results/9e3e8baa4a3443c392dc8fee00373b11_20241220002902.json' --output-format csv --output-file 'nxbench_results/results.csv'
 ```

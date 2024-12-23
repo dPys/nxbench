@@ -12,10 +12,10 @@ nxbench.viz.app module
    :undoc-members:
    :show-inheritance:
 
-nxbench.viz.dashboard module
+nxbench.viz.utils module
 ----------------------------
 
-.. automodule:: nxbench.viz.dashboard
+.. automodule:: nxbench.viz.utils
    :members:
    :undoc-members:
    :show-inheritance:

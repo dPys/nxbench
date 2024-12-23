@@ -3,7 +3,7 @@
 
 ## **Introduction**
 
-The included `example.yaml` file serves as the boilerplate configuration for `nxbench`, defining the algorithms to benchmark, the datasets to use, validation settings, benchmarking matrices, and ASV (Airspeed Velocity) configurations. The `asv.conf.json` file, on the other hand, should NOT be modified -- nxbench handles this dynamically.
+The included `example.yaml` file serves as the boilerplate configuration for `nxbench`, defining the algorithms to benchmark, the datasets to use, validation settings, benchmarking matrices, and environment configurations.
 
 Properly configuring the configuration yaml file ensures accurate and meaningful benchmarking results tailored to your specific requirements.
 
@@ -14,8 +14,7 @@ The YAML configuration file is divided into several key sections:
 1. **Algorithms**
 2. **Datasets**
 3. **Validation**
-4. **Matrix**
-5. **ASV Configuration**
+4. **Environment**
 
 Each section plays a crucial role in setting up the benchmarking environment. Below, we delve into each section, explaining their fields and providing examples for clarity.
 
@@ -139,34 +138,7 @@ validation:
 
 ---
 
-## **4. Matrix**
-
-### **Purpose**
-
-Defines the benchmarking matrix by specifying different variables such as backends and the number of threads. This allows `nxbench` to run benchmarks across various configurations, providing a comprehensive performance analysis.
-
-### **Fields**
-
-- **`backend`** *(list of strings, required)*: Specifies the different backend implementations to benchmark.
-- **`num_threads`** *(list of strings or integers, required)*: Specifies the number of threads to utilize during benchmarking.
-
-### **Example Entry**
-
-```yaml
-matrix:
-  backend:
-    - "networkx"
-    - "parallel"
-    - "graphblas"
-  num_threads:
-    - "1"
-    - "4"
-    - "8"
-```
-
----
-
-## **5. Environment Configuration**
+## **4. Environment**
 
 ### **Purpose**
 
@@ -180,7 +152,15 @@ Configures environment settings, such as the python and dependency versions.
 ### **Example Entry**
 
 ```yaml
-env_config:
+environ:
+  backend:
+    - "networkx"
+    - "parallel"
+    - "graphblas"
+  num_threads:
+    - "1"
+    - "4"
+    - "8"
   req:
     - "networkx==3.4.2"
     - "nx_parallel==0.3"
