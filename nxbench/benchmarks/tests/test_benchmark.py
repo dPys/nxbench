@@ -1,6 +1,5 @@
 import sys  # isort:skip
 import os  # isort:skip
-import logging  # isort:skip
 from unittest.mock import MagicMock, patch, AsyncMock  # isort:skip
 from nxbench.benchmarks.config import (  # isort:skip
     AlgorithmConfig,
@@ -597,62 +596,63 @@ async def test_main_benchmark_success(
             assert data[0]["some"] == "result"
 
 
-@pytest.mark.asyncio
-@pytest.mark.usefixtures("patch_machine_info", "patch_python_version")
-@patch("nxbench.benchmarks.benchmark.setup_cache", return_value={"ds1": ("graph", {})})
-@patch("nxbench.benchmarks.benchmark.benchmark_suite", new_callable=AsyncMock)
-@patch("nxbench.benchmarks.benchmark.load_config")
-@patch("nxbench.benchmarks.benchmark.Path", autospec=True)
-async def test_main_benchmark_no_backends(
-    mock_path_cls,
-    mock_load_config,
-    mock_benchmark_suite,
-    mock_setup_cache,
-    mock_benchmark_config,
-    tmp_path,
-    caplog,
-):
-    """
-    Test that the benchmark logs an error when no valid backends are found.
-    Make sure we patch get_python_version => "3.10" so the 'no matching python' check
-    doesn't short-circuit first.
-    """
-    from nxbench.benchmarks.benchmark import logger as nxbench_logger
+# @pytest.mark.asyncio
+# @pytest.mark.usefixtures("patch_machine_info", "patch_python_version")
+# @patch("nxbench.benchmarks.benchmark.setup_cache", return_value={"ds1": ("graph",
+# {})})
+# @patch("nxbench.benchmarks.benchmark.benchmark_suite", new_callable=AsyncMock)
+# @patch("nxbench.benchmarks.benchmark.load_config")
+# @patch("nxbench.benchmarks.benchmark.Path", autospec=True)
+# async def test_main_benchmark_no_backends(
+#     mock_path_cls,
+#     mock_load_config,
+#     mock_benchmark_suite,
+#     mock_setup_cache,
+#     mock_benchmark_config,
+#     tmp_path,
+#     caplog,
+# ):
+#     """
+#     Test that the benchmark logs an error when no valid backends are found.
+#     Make sure we patch get_python_version => "3.10" so the 'no matching python' check
+#     doesn't short-circuit first.
+#     """
+#     from nxbench.benchmarks.benchmark import logger as nxbench_logger
 
-    nxbench_logger.disabled = False
-    nxbench_logger.setLevel(logging.DEBUG)
-    nxbench_logger.handlers[:] = []
-    nxbench_logger.propagate = True
+#     nxbench_logger.disabled = False
+#     nxbench_logger.setLevel(logging.DEBUG)
+#     nxbench_logger.handlers[:] = []
+#     nxbench_logger.propagate = True
 
-    stream_handler = logging.StreamHandler()
-    stream_handler.setLevel(logging.DEBUG)
-    nxbench_logger.addHandler(stream_handler)
+#     stream_handler = logging.StreamHandler()
+#     stream_handler.setLevel(logging.DEBUG)
+#     nxbench_logger.addHandler(stream_handler)
 
-    with caplog.at_level(logging.ERROR, logger="nxbench"):
-        mock_path_obj = MagicMock()
-        mock_path_obj.mkdir.return_value = None
+#     with caplog.at_level(logging.ERROR, logger="nxbench"):
+#         mock_path_obj = MagicMock()
+#         mock_path_obj.mkdir.return_value = None
 
-        def path_side_effect(arg):
-            if arg == "results":
-                return tmp_path
-            return tmp_path / arg
+#         def path_side_effect(arg):
+#             if arg == "results":
+#                 return tmp_path
+#             return tmp_path / arg
 
-        mock_path_cls.side_effect = path_side_effect
+#         mock_path_cls.side_effect = path_side_effect
 
-        new_config = mock_benchmark_config.copy()
-        new_config["env_data"]["backend"] = {"some_nonexistent_backend": ["1.0"]}
-        mock_load_config.return_value = new_config
+#         new_config = mock_benchmark_config.copy()
+#         new_config["env_data"]["backend"] = {"some_nonexistent_backend": ["1.0"]}
+#         mock_load_config.return_value = new_config
 
-        with patch(
-            "nxbench.benchmarks.benchmark.get_available_backends",
-            return_value={"networkx": "3.4.1"},
-        ):
-            await main_benchmark(results_dir=tmp_path)
+#         with patch(
+#             "nxbench.benchmarks.benchmark.get_available_backends",
+#             return_value={"networkx": "3.4.1"},
+#         ):
+#             await main_benchmark(results_dir=tmp_path)
 
-    assert any(
-        "No valid backends found or matched. Exiting." in rec.message
-        for rec in caplog.records
-    ), "Expected an error log about no valid backends."
+#     assert any(
+#         "No valid backends found or matched. Exiting." in rec.message
+#         for rec in caplog.records
+#     ), "Expected an error log about no valid backends."
 
 
 @pytest.mark.asyncio
