@@ -15,10 +15,9 @@ from urllib.parse import urljoin
 
 import aiofiles
 import aiofiles.os
-import aiohttp
 import chardet
-from aiohttp import ClientSession, ClientTimeout
-from aiohttp.client_exceptions import ClientResponseError
+from aiohttp import ClientResponse, ClientSession, ClientTimeout, TCPConnector
+from aiohttp.client_exceptions import ClientError, ClientResponseError
 from aiohttp.client_reqrep import RequestInfo
 from bs4 import BeautifulSoup
 from multidict import CIMultiDict, CIMultiDictProxy
@@ -107,7 +106,7 @@ class NetworkRepository:
         self.metadata_cache = {}
         self.scrape_delay = scrape_delay
         self.timeout = timeout
-        self.connector = aiohttp.TCPConnector(
+        self.connector = TCPConnector(
             limit=max_connections,
             limit_per_host=max_connections,
             enable_cleanup_closed=True,
@@ -156,7 +155,7 @@ class NetworkRepository:
         return data
 
     async def __aenter__(self):
-        self.session = aiohttp.ClientSession(
+        self.session = ClientSession(
             connector=self.connector,
             timeout=ClientTimeout(total=self.timeout),
             headers=HEADERS,
@@ -221,7 +220,7 @@ class NetworkRepository:
                     )
                     logger.exception(traceback.format_exc())
                     raise
-            except aiohttp.ClientResponseError:
+            except ClientResponseError:
                 logger.warning(
                     f"HTTP response error for {url}. Attempt "
                     f"{attempt + 1}/{retries}"
@@ -230,7 +229,7 @@ class NetworkRepository:
                     logger.exception(f"Failed to fetch {url} after {retries} attempts.")
                     logger.exception(traceback.format_exc())
                     raise
-            except aiohttp.ClientError:
+            except ClientError:
                 logger.warning(
                     f"HTTP client error for {url}. Attempt {attempt + 1}/{retries}"
                 )
@@ -253,7 +252,7 @@ class NetworkRepository:
 
     async def _fetch_response(
         self, url: str, method: str = "GET", retries: int = 3, **kwargs
-    ) -> aiohttp.ClientResponse | None:
+    ) -> ClientResponse | None:
         """Fetch the response object of a URL using aiohttp with retries."""
         if not self.session:
             raise RuntimeError("HTTP session is not initialized.")
@@ -266,7 +265,7 @@ class NetworkRepository:
                     f"Status: {response.status}"
                 )
                 response.raise_for_status()
-            except aiohttp.ClientResponseError:
+            except ClientResponseError:
                 logger.warning(
                     f"HTTP response error for {url}. Attempt {attempt + 1}/{retries}"
                 )
@@ -274,7 +273,7 @@ class NetworkRepository:
                     logger.exception(f"Failed to fetch {url} after {retries} attempts.")
                     logger.exception(traceback.format_exc())
                     raise
-            except aiohttp.ClientError:
+            except ClientError:
                 logger.warning(
                     f"HTTP client error for {url}. Attempt {attempt + 1}/{retries}"
                 )
@@ -530,6 +529,9 @@ class NetworkRepository:
         for category in COLLECTIONS:
             php_page = f"{category}.php"
             logger.debug(f"Processing category '{category}' with page '{php_page}'")
+
+            networks_by_category[category] = []
+
             url = urljoin(BASE_URL, php_page)
             try:
                 text = await self._fetch_text(url, method="GET")
@@ -538,14 +540,17 @@ class NetworkRepository:
                 networks = set()
                 for a_tag in soup.select("table a[href*='.php']"):
                     href = a_tag.get("href")
-                    if href and isinstance(href, str):
-                        href = href.strip()
-                        if href.startswith("/"):
-                            href = href[1:]
-                        if href.endswith(".php"):
-                            network_name = href[:-4]
-                            if network_name not in COLLECTIONS:
-                                networks.add(network_name)
+                    if not href or not isinstance(href, str):
+                        continue
+                    href = href.strip()
+                    if href.startswith("/"):
+                        href = href[1:]
+                    if href.endswith(".php"):
+                        network_name = href[:-4]  # e.g. "network1.php" => "network1"
+                        if network_name not in COLLECTIONS:
+                            networks.add(network_name)
+
+                # store sorted network names in the dictionary
                 networks_by_category[category] = sorted(networks)
 
                 logger.info(
@@ -555,7 +560,7 @@ class NetworkRepository:
 
                 await asyncio.sleep(self.scrape_delay)
 
-            except aiohttp.ClientError:
+            except ClientError:
                 logger.exception(f"Error fetching networks for category '{category}'")
             except Exception:
                 logger.exception(f"Unexpected error for category '{category}'")
@@ -677,7 +682,7 @@ class NetworkRepository:
         try:
             html_content = await self._fetch_text(url, method="GET")
             logger.debug(f"Fetched metadata content for '{name}'")
-        except aiohttp.ClientError:
+        except ClientError:
             logger.exception(f"Failed to fetch metadata for '{name}' from '{url}'")
             raise
 

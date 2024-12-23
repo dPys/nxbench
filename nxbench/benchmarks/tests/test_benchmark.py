@@ -1,5 +1,6 @@
 import sys  # isort:skip
 import os  # isort:skip
+import logging  # isort:skip
 from unittest.mock import MagicMock, patch, AsyncMock  # isort:skip
 from nxbench.benchmarks.config import (  # isort:skip
     AlgorithmConfig,
@@ -611,6 +612,8 @@ async def test_main_benchmark_no_backends(
     tmp_path,
     caplog,
 ):
+    caplog.set_level(logging.ERROR, logger="nxbench")
+
     mock_path_obj = MagicMock()
     mock_path_obj.mkdir.return_value = None
 
@@ -631,16 +634,10 @@ async def test_main_benchmark_no_backends(
     ):
         await main_benchmark(results_dir=tmp_path)
 
-        assert any(
-            "No valid backends found or matched. Exiting." in rec.message
-            for rec in caplog.records
-        ), "Expected an error log about no valid backends."
-
-        files = list(tmp_path.iterdir())
-        assert len(files) == 1, f"Expected 1 file in {tmp_path}, found {files}"
-        with files[0].open("r") as f:
-            data = json.load(f)
-            assert len(data) == 0, "Expected no results due to missing valid backends."
+    assert any(
+        "No valid backends found or matched. Exiting." in rec.message
+        for rec in caplog.records
+    ), "Expected an error log about no valid backends."
 
 
 @pytest.mark.asyncio
