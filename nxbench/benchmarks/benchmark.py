@@ -198,9 +198,7 @@ def validate_results(
 @task(name="collect_metrics", cache_key_fn=None, persist_result=False)
 def collect_metrics(
     execution_time: float,
-    ### ADDED:
     execution_time_with_preloading: float,
-    ### END ADDED
     peak_memory: int,
     graph: Any,
     algo_config: AlgorithmConfig,

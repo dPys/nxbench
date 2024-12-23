@@ -596,6 +596,8 @@ async def test_main_benchmark_success(
             assert data[0]["some"] == "result"
 
 
+## TODO: Fix caplog setup here (passes locally for python3.10), but fails for other
+## python versions)
 # @pytest.mark.asyncio
 # @pytest.mark.usefixtures("patch_machine_info", "patch_python_version")
 # @patch("nxbench.benchmarks.benchmark.setup_cache", return_value={"ds1": ("graph",

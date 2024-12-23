@@ -60,6 +60,8 @@ make install
 
 ### Setting up Prefect Orion
 
+In a terminal window:
+
 1. **Export environment variables pointing to your PostgreSQL database**:
 
    ```bash
@@ -79,6 +81,8 @@ make install
    By default it will run on `http://127.0.0.1:4200`.
 
 ## Running Benchmarks
+
+In a new terminal window:
 
 ```bash
 nxbench --config 'nxbench/configs/example.yaml' benchmark run
