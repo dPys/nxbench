@@ -33,6 +33,8 @@
 
 #### Setting up PostgreSQL
 
+In a terminal window:
+
 1. **Install PostgreSQL**:
 
    - On macOS (with Homebrew):
@@ -79,6 +81,8 @@
 - nx-parallel (optional)
 
 ### Installing `nxbench`
+
+In a new terminal window:
 
 PyPi:
 
