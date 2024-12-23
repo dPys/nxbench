@@ -214,8 +214,7 @@
 <li class="toctree-l4"><a class="reference internal" href="api/nxbench.data.scripts.html">nxbench.data.scripts package</a></li>
 </ul>
 </li>
-<li class="toctree-l3 has-children"><a class="reference internal" href="api/nxbench.validation.html">nxbench.validation package</a><input class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" role="switch" type="checkbox"/><label for="toctree-checkbox-4"><div class="visually-hidden">Toggle navigation of nxbench.validation package</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
-<li class="toctree-l4"><a class="reference internal" href="api/nxbench.validation.scripts.html">nxbench.validation.scripts package</a></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="api/nxbench.validation.html">nxbench.validation package</a><input class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" role="switch" type="checkbox"/><label for="toctree-checkbox-4"><div class="visually-hidden">Toggle navigation of nxbench.validation package</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="simple">
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="api/nxbench.viz.html">nxbench.viz package</a></li>
@@ -227,11 +226,9 @@
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="api/nxbench.data.scripts.html">nxbench.data.scripts package</a></li>
-<li class="toctree-l2 has-children"><a class="reference internal" href="api/nxbench.validation.html">nxbench.validation package</a><input class="toctree-checkbox" id="toctree-checkbox-6" name="toctree-checkbox-6" role="switch" type="checkbox"/><label for="toctree-checkbox-6"><div class="visually-hidden">Toggle navigation of nxbench.validation package</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
-<li class="toctree-l3"><a class="reference internal" href="api/nxbench.validation.scripts.html">nxbench.validation.scripts package</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="api/nxbench.validation.html">nxbench.validation package</a><input class="toctree-checkbox" id="toctree-checkbox-6" name="toctree-checkbox-6" role="switch" type="checkbox"/><label for="toctree-checkbox-6"><div class="visually-hidden">Toggle navigation of nxbench.validation package</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="simple">
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="api/nxbench.validation.scripts.html">nxbench.validation.scripts package</a></li>
 <li class="toctree-l2"><a class="reference internal" href="api/nxbench.viz.html">nxbench.viz package</a></li>
 </ul>
 </li>
@@ -298,18 +295,26 @@
 </pre></div>
 </div>
 </li>
+<li><p><strong>Start an instance of an orion server in a separate terminal window:</strong></p></li>
+</ol>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">export</span><span class="w"> </span><span class="nv">PREFECT_API_URL</span><span class="o">=</span><span class="s2">&quot;http://127.0.0.1:4200/api&quot;</span>
+<span class="nb">export</span><span class="w"> </span><span class="nv">PREFECT_API_DATABASE_CONNECTION_URL</span><span class="o">=</span><span class="s2">&quot;postgresql+asyncpg://prefect_user:pass@localhost:5432/prefect_db&quot;</span>
+prefect<span class="w"> </span>server<span class="w"> </span>start
+</pre></div>
+</div>
+<ol class="arabic" start="3">
 <li><p><strong>Run Benchmarks Based on the Configuration</strong>:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>nxbench<span class="w"> </span>--config<span class="w"> </span><span class="s1">&#39;nxbench/configs/example.yaml&#39;</span><span class="w"> </span>benchmark<span class="w"> </span>run
 </pre></div>
 </div>
 </li>
 <li><p><strong>Export Results</strong>:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>nxbench<span class="w"> </span>--config<span class="w"> </span><span class="s1">&#39;nxbench/configs/example.yaml&#39;</span><span class="w"> </span>benchmark<span class="w"> </span><span class="nb">export</span><span class="w"> </span><span class="s1">&#39;results/results.csv&#39;</span><span class="w"> </span>--output-format<span class="w"> </span>csv<span class="w">  </span><span class="c1"># convert benchmark results into CSV format.</span>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>nxbench<span class="w"> </span>--config<span class="w"> </span><span class="s1">&#39;nxbench/configs/example.yaml&#39;</span><span class="w"> </span>benchmark<span class="w"> </span><span class="nb">export</span><span class="w"> </span><span class="s1">&#39;results/9e3e8baa4a3443c392dc8fee00373b11_20241220002902.json&#39;</span><span class="w"> </span>--output-format<span class="w"> </span>csv<span class="w"> </span>--output-file<span class="w"> </span><span class="s1">&#39;results/results.csv&#39;</span><span class="w">  </span><span class="c1"># convert benchmarked results from a run with hash `9e3e8baa4a3443c392dc8fee00373b11_20241220002902` into csv format.</span>
 </pre></div>
 </div>
 </li>
 <li><p><strong>View Results</strong>:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>nxbench<span class="w"> </span>viz<span class="w"> </span>serve<span class="w">  </span><span class="c1"># launch the interactive dashboard.</span>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>nxbench<span class="w"> </span>viz<span class="w"> </span>serve<span class="w">  </span><span class="c1"># launch the interactive results visualization dashboard.</span>
 </pre></div>
 </div>
 </li>
@@ -342,12 +347,7 @@
 </div>
 </li>
 <li><p><strong>Export Results to a SQL Database</strong>:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>nxbench<span class="w"> </span>--config<span class="w"> </span><span class="s1">&#39;nxbench/configs/example.yaml&#39;</span><span class="w"> </span>benchmark<span class="w"> </span><span class="nb">export</span><span class="w"> </span><span class="s1">&#39;results/benchmarks.sqlite&#39;</span><span class="w"> </span>--output-format<span class="w"> </span>sql
-</pre></div>
-</div>
-</li>
-<li><p><strong>Compare Benchmarks Between Commits</strong>:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>nxbench<span class="w"> </span>benchmark<span class="w"> </span>compare<span class="w"> </span>HEAD<span class="w"> </span>HEAD~1
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>nxbench<span class="w"> </span>--config<span class="w"> </span><span class="s1">&#39;nxbench/configs/example.yaml&#39;</span><span class="w"> </span>benchmark<span class="w"> </span><span class="nb">export</span><span class="w"> </span><span class="s1">&#39;results/9e3e8baa4a3443c392dc8fee00373b11_20241220002902.json&#39;</span><span class="w"> </span>--output-format<span class="w"> </span>sql<span class="w"> </span>--output-file<span class="w"> </span><span class="s1">&#39;results/benchmarks.sqlite&#39;</span>
 </pre></div>
 </div>
 </li>
@@ -361,22 +361,8 @@
 </pre></div>
 </div>
 </li>
-<li><p><strong>Generate a Static ASV Report</strong>:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>nxbench<span class="w"> </span>viz<span class="w"> </span>publish
-</pre></div>
-</div>
-</li>
 </ul>
 </section>
-</section>
-<section id="supported-backends">
-<h2>Supported Backends<a class="headerlink" href="#supported-backends" title="Link to this heading">¶</a></h2>
-<ul class="simple">
-<li><p><strong>NetworkX</strong> (default)</p></li>
-<li><p><strong>Nx-CuGraph</strong> (requires separate CuGraph installation and supported GPU hardware)</p></li>
-<li><p><strong>GraphBLAS Algorithms</strong> (optional)</p></li>
-<li><p><strong>nx-parallel</strong> (optional)</p></li>
-</ul>
 </section>
 <section id="reproducible-benchmarking-through-containerization">
 <h2>Reproducible Benchmarking Through Containerization<a class="headerlink" href="#reproducible-benchmarking-through-containerization" title="Link to this heading">¶</a></h2>
@@ -400,13 +386,13 @@
 </section>
 <section id="running-benchmarks-with-a-specific-backend">
 <h3>Running Benchmarks with a Specific Backend<a class="headerlink" href="#running-benchmarks-with-a-specific-backend" title="Link to this heading">¶</a></h3>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>docker-compose<span class="w"> </span>run<span class="w"> </span>--rm<span class="w"> </span>nxbench<span class="w"> </span>--config<span class="w"> </span><span class="s1">&#39;nxbench/configs/example.yaml&#39;</span><span class="w"> </span>benchmark<span class="w"> </span>run<span class="w"> </span>--backend<span class="w"> </span>networkx
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>docker-compose<span class="w"> </span>-f<span class="w"> </span>docker/docker-compose.cpu.yaml<span class="w"> </span>run<span class="w"> </span>--rm<span class="w"> </span>nxbench<span class="w"> </span>--config<span class="w"> </span><span class="s1">&#39;nxbench/configs/example.yaml&#39;</span><span class="w"> </span>benchmark<span class="w"> </span>run<span class="w"> </span>--backend<span class="w"> </span>networkx
 </pre></div>
 </div>
 </section>
-<section id="viewing-results">
-<h3>Viewing Results<a class="headerlink" href="#viewing-results" title="Link to this heading">¶</a></h3>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>docker-compose<span class="w"> </span>run<span class="w"> </span>--rm<span class="w"> </span>nxbench<span class="w"> </span>--config<span class="w"> </span><span class="s1">&#39;nxbench/configs/example.yaml&#39;</span><span class="w"> </span>benchmark<span class="w"> </span><span class="nb">export</span><span class="w"> </span>results.csv
+<section id="exporting-results-from-a-run-with-hash-9e3e8baa4a3443c392dc8fee00373b11-20241220002902">
+<h3>Exporting results from a run with hash <code class="docutils literal notranslate"><span class="pre">9e3e8baa4a3443c392dc8fee00373b11_20241220002902</span></code><a class="headerlink" href="#exporting-results-from-a-run-with-hash-9e3e8baa4a3443c392dc8fee00373b11-20241220002902" title="Link to this heading">¶</a></h3>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>docker-compose<span class="w"> </span>-f<span class="w"> </span>docker/docker-compose.cpu.yaml<span class="w"> </span>run<span class="w"> </span>--rm<span class="w"> </span>nxbench<span class="w"> </span>--config<span class="w"> </span><span class="s1">&#39;nxbench/configs/example.yaml&#39;</span><span class="w"> </span>benchmark<span class="w"> </span><span class="nb">export</span><span class="w"> </span><span class="s1">&#39;nxbench_results/9e3e8baa4a3443c392dc8fee00373b11_20241220002902.json&#39;</span><span class="w"> </span>--output-format<span class="w"> </span>csv<span class="w"> </span>--output-file<span class="w"> </span><span class="s1">&#39;nxbench_results/results.csv&#39;</span>
 </pre></div>
 </div>
 </section>
@@ -476,13 +462,12 @@
 <li><a class="reference internal" href="#visualization">Visualization</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#supported-backends">Supported Backends</a></li>
 <li><a class="reference internal" href="#reproducible-benchmarking-through-containerization">Reproducible Benchmarking Through Containerization</a><ul>
 <li><a class="reference internal" href="#running-benchmarks-with-gpu-support">Running Benchmarks with GPU Support</a></li>
 <li><a class="reference internal" href="#running-benchmarks-on-cpu-only">Running Benchmarks on CPU Only</a></li>
 <li><a class="reference internal" href="#starting-the-visualization-dashboard">Starting the Visualization Dashboard</a></li>
 <li><a class="reference internal" href="#running-benchmarks-with-a-specific-backend">Running Benchmarks with a Specific Backend</a></li>
-<li><a class="reference internal" href="#viewing-results">Viewing Results</a></li>
+<li><a class="reference internal" href="#exporting-results-from-a-run-with-hash-9e3e8baa4a3443c392dc8fee00373b11-20241220002902">Exporting results from a run with hash <code class="docutils literal notranslate"><span class="pre">9e3e8baa4a3443c392dc8fee00373b11_20241220002902</span></code></a></li>
 </ul>
 </li>
 </ul>

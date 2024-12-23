@@ -214,8 +214,7 @@
 <li class="toctree-l4"><a class="reference internal" href="api/nxbench.data.scripts.html">nxbench.data.scripts package</a></li>
 </ul>
 </li>
-<li class="toctree-l3 has-children"><a class="reference internal" href="api/nxbench.validation.html">nxbench.validation package</a><input class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" role="switch" type="checkbox"/><label for="toctree-checkbox-4"><div class="visually-hidden">Toggle navigation of nxbench.validation package</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
-<li class="toctree-l4"><a class="reference internal" href="api/nxbench.validation.scripts.html">nxbench.validation.scripts package</a></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="api/nxbench.validation.html">nxbench.validation package</a><input class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" role="switch" type="checkbox"/><label for="toctree-checkbox-4"><div class="visually-hidden">Toggle navigation of nxbench.validation package</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="simple">
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="api/nxbench.viz.html">nxbench.viz package</a></li>
@@ -227,11 +226,9 @@
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="api/nxbench.data.scripts.html">nxbench.data.scripts package</a></li>
-<li class="toctree-l2 has-children"><a class="reference internal" href="api/nxbench.validation.html">nxbench.validation package</a><input class="toctree-checkbox" id="toctree-checkbox-6" name="toctree-checkbox-6" role="switch" type="checkbox"/><label for="toctree-checkbox-6"><div class="visually-hidden">Toggle navigation of nxbench.validation package</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
-<li class="toctree-l3"><a class="reference internal" href="api/nxbench.validation.scripts.html">nxbench.validation.scripts package</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="api/nxbench.validation.html">nxbench.validation package</a><input class="toctree-checkbox" id="toctree-checkbox-6" name="toctree-checkbox-6" role="switch" type="checkbox"/><label for="toctree-checkbox-6"><div class="visually-hidden">Toggle navigation of nxbench.validation package</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="simple">
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="api/nxbench.validation.scripts.html">nxbench.validation.scripts package</a></li>
 <li class="toctree-l2"><a class="reference internal" href="api/nxbench.viz.html">nxbench.viz package</a></li>
 </ul>
 </li>
@@ -283,7 +280,7 @@
 <h1><strong>Nxbench Configuration Guide</strong><a class="headerlink" href="#nxbench-configuration-guide" title="Link to this heading">¶</a></h1>
 <section id="introduction">
 <h2><strong>Introduction</strong><a class="headerlink" href="#introduction" title="Link to this heading">¶</a></h2>
-<p>The included <code class="docutils literal notranslate"><span class="pre">example.yaml</span></code> file serves as the boilerplate configuration for <code class="docutils literal notranslate"><span class="pre">nxbench</span></code>, defining the algorithms to benchmark, the datasets to use, validation settings, benchmarking matrices, and ASV (Airspeed Velocity) configurations. The <code class="docutils literal notranslate"><span class="pre">asv.conf.json</span></code> file, on the other hand, should NOT be modified – nxbench handles this dynamically.</p>
+<p>The included <code class="docutils literal notranslate"><span class="pre">example.yaml</span></code> file serves as the boilerplate configuration for <code class="docutils literal notranslate"><span class="pre">nxbench</span></code>, defining the algorithms to benchmark, the datasets to use, validation settings, benchmarking matrices, and environment configurations.</p>
 <p>Properly configuring the configuration yaml file ensures accurate and meaningful benchmarking results tailored to your specific requirements.</p>
 </section>
 <section id="configuration-structure">
@@ -293,8 +290,7 @@
 <li><p><strong>Algorithms</strong></p></li>
 <li><p><strong>Datasets</strong></p></li>
 <li><p><strong>Validation</strong></p></li>
-<li><p><strong>Matrix</strong></p></li>
-<li><p><strong>ASV Configuration</strong></p></li>
+<li><p><strong>Environment</strong></p></li>
 </ol>
 <p>Each section plays a crucial role in setting up the benchmarking environment. Below, we delve into each section, explaining their fields and providing examples for clarity.</p>
 </section>
@@ -428,22 +424,22 @@
 </section>
 </section>
 <hr class="docutils" />
-<section id="matrix">
-<h2><strong>4. Matrix</strong><a class="headerlink" href="#matrix" title="Link to this heading">¶</a></h2>
+<section id="environment">
+<h2><strong>4. Environment</strong><a class="headerlink" href="#environment" title="Link to this heading">¶</a></h2>
 <section id="id7">
 <h3><strong>Purpose</strong><a class="headerlink" href="#id7" title="Link to this heading">¶</a></h3>
-<p>Defines the benchmarking matrix by specifying different variables such as backends and the number of threads. This allows <code class="docutils literal notranslate"><span class="pre">nxbench</span></code> to run benchmarks across various configurations, providing a comprehensive performance analysis.</p>
+<p>Configures environment settings, such as the python and dependency versions.</p>
 </section>
 <section id="id8">
 <h3><strong>Fields</strong><a class="headerlink" href="#id8" title="Link to this heading">¶</a></h3>
 <ul class="simple">
-<li><p><strong><code class="docutils literal notranslate"><span class="pre">backend</span></code></strong> <em>(list of strings, required)</em>: Specifies the different backend implementations to benchmark.</p></li>
-<li><p><strong><code class="docutils literal notranslate"><span class="pre">num_threads</span></code></strong> <em>(list of strings or integers, required)</em>: Specifies the number of threads to utilize during benchmarking.</p></li>
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">python</span></code></strong> <em>(list of strings, required)</em>: List of valid python versions (e.g. “3.10”, “3.11”)</p></li>
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">req</span></code></strong> <em>(list of strings, required)</em>: Lists the Python dependencies required for benchmarking.</p></li>
 </ul>
 </section>
 <section id="id9">
 <h3><strong>Example Entry</strong><a class="headerlink" href="#id9" title="Link to this heading">¶</a></h3>
-<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">matrix</span><span class="p">:</span>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">environ</span><span class="p">:</span>
 <span class="w">  </span><span class="nt">backend</span><span class="p">:</span>
 <span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;networkx&quot;</span>
 <span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;parallel&quot;</span>
@@ -452,27 +448,6 @@
 <span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;1&quot;</span>
 <span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;4&quot;</span>
 <span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;8&quot;</span>
-</pre></div>
-</div>
-</section>
-</section>
-<hr class="docutils" />
-<section id="environment-configuration">
-<h2><strong>5. Environment Configuration</strong><a class="headerlink" href="#environment-configuration" title="Link to this heading">¶</a></h2>
-<section id="id10">
-<h3><strong>Purpose</strong><a class="headerlink" href="#id10" title="Link to this heading">¶</a></h3>
-<p>Configures environment settings, such as the python and dependency versions.</p>
-</section>
-<section id="id11">
-<h3><strong>Fields</strong><a class="headerlink" href="#id11" title="Link to this heading">¶</a></h3>
-<ul class="simple">
-<li><p><strong><code class="docutils literal notranslate"><span class="pre">python</span></code></strong> <em>(list of strings, required)</em>: List of valid python versions (e.g. “3.10”, “3.11”)</p></li>
-<li><p><strong><code class="docutils literal notranslate"><span class="pre">req</span></code></strong> <em>(list of strings, required)</em>: Lists the Python dependencies required for benchmarking.</p></li>
-</ul>
-</section>
-<section id="id12">
-<h3><strong>Example Entry</strong><a class="headerlink" href="#id12" title="Link to this heading">¶</a></h3>
-<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">env_config</span><span class="p">:</span>
 <span class="w">  </span><span class="nt">req</span><span class="p">:</span>
 <span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;networkx==3.4.2&quot;</span>
 <span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;nx_parallel==0.3&quot;</span>
@@ -570,16 +545,10 @@
 <li><a class="reference internal" href="#example-entry"><strong>Example Entry</strong></a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#matrix"><strong>4. Matrix</strong></a><ul>
+<li><a class="reference internal" href="#environment"><strong>4. Environment</strong></a><ul>
 <li><a class="reference internal" href="#id7"><strong>Purpose</strong></a></li>
 <li><a class="reference internal" href="#id8"><strong>Fields</strong></a></li>
 <li><a class="reference internal" href="#id9"><strong>Example Entry</strong></a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#environment-configuration"><strong>5. Environment Configuration</strong></a><ul>
-<li><a class="reference internal" href="#id10"><strong>Purpose</strong></a></li>
-<li><a class="reference internal" href="#id11"><strong>Fields</strong></a></li>
-<li><a class="reference internal" href="#id12"><strong>Example Entry</strong></a></li>
 </ul>
 </li>
 </ul>

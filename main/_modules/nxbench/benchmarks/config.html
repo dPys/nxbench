@@ -213,8 +213,7 @@
 <li class="toctree-l4"><a class="reference internal" href="../../../api/nxbench.data.scripts.html">nxbench.data.scripts package</a></li>
 </ul>
 </li>
-<li class="toctree-l3 has-children"><a class="reference internal" href="../../../api/nxbench.validation.html">nxbench.validation package</a><input class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" role="switch" type="checkbox"/><label for="toctree-checkbox-4"><div class="visually-hidden">Toggle navigation of nxbench.validation package</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
-<li class="toctree-l4"><a class="reference internal" href="../../../api/nxbench.validation.scripts.html">nxbench.validation.scripts package</a></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../../../api/nxbench.validation.html">nxbench.validation package</a><input class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" role="switch" type="checkbox"/><label for="toctree-checkbox-4"><div class="visually-hidden">Toggle navigation of nxbench.validation package</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="simple">
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="../../../api/nxbench.viz.html">nxbench.viz package</a></li>
@@ -226,11 +225,9 @@
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="../../../api/nxbench.data.scripts.html">nxbench.data.scripts package</a></li>
-<li class="toctree-l2 has-children"><a class="reference internal" href="../../../api/nxbench.validation.html">nxbench.validation package</a><input class="toctree-checkbox" id="toctree-checkbox-6" name="toctree-checkbox-6" role="switch" type="checkbox"/><label for="toctree-checkbox-6"><div class="visually-hidden">Toggle navigation of nxbench.validation package</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
-<li class="toctree-l3"><a class="reference internal" href="../../../api/nxbench.validation.scripts.html">nxbench.validation.scripts package</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../../api/nxbench.validation.html">nxbench.validation package</a><input class="toctree-checkbox" id="toctree-checkbox-6" name="toctree-checkbox-6" role="switch" type="checkbox"/><label for="toctree-checkbox-6"><div class="visually-hidden">Toggle navigation of nxbench.validation package</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="simple">
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="../../../api/nxbench.validation.scripts.html">nxbench.validation.scripts package</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../api/nxbench.viz.html">nxbench.viz package</a></li>
 </ul>
 </li>
@@ -274,10 +271,10 @@
 <span class="kn">import</span> <span class="nn">logging</span>
 <span class="kn">import</span> <span class="nn">warnings</span>
 <span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span>
+<span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">partial</span>
 <span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span>
 
-<span class="kn">import</span> <span class="nn">networkx</span> <span class="k">as</span> <span class="nn">nx</span>
 <span class="kn">import</span> <span class="nn">yaml</span>
 
 <span class="n">warnings</span><span class="o">.</span><span class="n">filterwarnings</span><span class="p">(</span><span class="s2">&quot;ignore&quot;</span><span class="p">)</span>
@@ -294,7 +291,7 @@
 
 
 <div class="viewcode-block" id="AlgorithmConfig">
-<a class="viewcode-back" href="../../../api/nxbench.benchmarks.html#nxbench.benchmarks.benchmark.AlgorithmConfig">[docs]</a>
+<a class="viewcode-back" href="../../../api/nxbench.benchmarks.html#nxbench.benchmarks.config.AlgorithmConfig">[docs]</a>
 <span class="nd">@dataclass</span>
 <span class="k">class</span> <span class="nc">AlgorithmConfig</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Configuration for a graph algorithm to benchmark.&quot;&quot;&quot;</span>
@@ -307,43 +304,58 @@
     <span class="n">requires_weighted</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
     <span class="n">validate_result</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="n">groups</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="k">lambda</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;default&quot;</span><span class="p">])</span>
-    <span class="n">min_rounds</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">3</span>
-    <span class="n">warmup</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>
-    <span class="n">warmup_iterations</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span>
 
-<div class="viewcode-block" id="AlgorithmConfig.__post_init__">
-<a class="viewcode-back" href="../../../api/nxbench.benchmarks.html#nxbench.benchmarks.benchmark.AlgorithmConfig.__post_init__">[docs]</a>
-    <span class="k">def</span> <span class="nf">__post_init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Validate and resolve the function reference.&quot;&quot;&quot;</span>
+<div class="viewcode-block" id="AlgorithmConfig.get_func_ref">
+<a class="viewcode-back" href="../../../api/nxbench.benchmarks.html#nxbench.benchmarks.config.AlgorithmConfig.get_func_ref">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_func_ref</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">module_path</span><span class="p">,</span> <span class="n">func_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">func</span><span class="o">.</span><span class="n">rsplit</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="n">module</span> <span class="o">=</span> <span class="nb">__import__</span><span class="p">(</span><span class="n">module_path</span><span class="p">,</span> <span class="n">fromlist</span><span class="o">=</span><span class="p">[</span><span class="n">func_name</span><span class="p">])</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">func_ref</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">module</span><span class="p">,</span> <span class="n">func_name</span><span class="p">)</span>
+            <span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">module</span><span class="p">,</span> <span class="n">func_name</span><span class="p">)</span>
         <span class="k">except</span> <span class="p">(</span><span class="ne">ImportError</span><span class="p">,</span> <span class="ne">AttributeError</span><span class="p">):</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span>
                 <span class="sa">f</span><span class="s2">&quot;Failed to import function &#39;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">func</span><span class="si">}</span><span class="s2">&#39; for algorithm &#39;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&#39;&quot;</span>
             <span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">func_ref</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="k">return</span> <span class="kc">None</span></div>
 
+
+<div class="viewcode-block" id="AlgorithmConfig.get_validate_ref">
+<a class="viewcode-back" href="../../../api/nxbench.benchmarks.html#nxbench.benchmarks.config.AlgorithmConfig.get_validate_ref">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_validate_ref</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">validate_result</span><span class="p">:</span>
             <span class="n">mod_path</span><span class="p">,</span> <span class="n">val_func</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">validate_result</span><span class="o">.</span><span class="n">rsplit</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
             <span class="k">try</span><span class="p">:</span>
                 <span class="n">module</span> <span class="o">=</span> <span class="nb">__import__</span><span class="p">(</span><span class="n">mod_path</span><span class="p">,</span> <span class="n">fromlist</span><span class="o">=</span><span class="p">[</span><span class="n">val_func</span><span class="p">])</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">validate_ref</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">module</span><span class="p">,</span> <span class="n">val_func</span><span class="p">)</span>
+                <span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">module</span><span class="p">,</span> <span class="n">val_func</span><span class="p">)</span>
             <span class="k">except</span> <span class="p">(</span><span class="ne">ImportError</span><span class="p">,</span> <span class="ne">AttributeError</span><span class="p">):</span>
                 <span class="n">logger</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span>
                     <span class="sa">f</span><span class="s2">&quot;Failed to import validation function &#39;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">validate_result</span><span class="si">}</span><span class="s2">&#39; &quot;</span>
                     <span class="sa">f</span><span class="s2">&quot;for algorithm &#39;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&#39;&quot;</span>
                 <span class="p">)</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">validate_ref</span> <span class="o">=</span> <span class="kc">None</span>
+                <span class="k">return</span> <span class="kc">None</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">validate_ref</span> <span class="o">=</span> <span class="kc">None</span></div>
+            <span class="k">return</span> <span class="kc">None</span></div>
+
+
+<div class="viewcode-block" id="AlgorithmConfig.get_callable">
+<a class="viewcode-back" href="../../../api/nxbench.benchmarks.html#nxbench.benchmarks.config.AlgorithmConfig.get_callable">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_callable</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">backend_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Retrieve a callable suitable for the given backend.&quot;&quot;&quot;</span>
+        <span class="n">func</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_func_ref</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">func</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ImportError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Function &#39;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">func</span><span class="si">}</span><span class="s2">&#39; could not be imported for algorithm &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;&#39;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&#39;&quot;</span>
+            <span class="p">)</span>
+        <span class="k">if</span> <span class="n">backend_name</span> <span class="o">!=</span> <span class="s2">&quot;networkx&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">partial</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">backend</span><span class="o">=</span><span class="n">backend_name</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">func</span></div>
 </div>
 
 
 
 <div class="viewcode-block" id="DatasetConfig">
-<a class="viewcode-back" href="../../../api/nxbench.benchmarks.html#nxbench.benchmarks.benchmark.DatasetConfig">[docs]</a>
+<a class="viewcode-back" href="../../../api/nxbench.benchmarks.html#nxbench.benchmarks.config.DatasetConfig">[docs]</a>
 <span class="nd">@dataclass</span>
 <span class="k">class</span> <span class="nc">DatasetConfig</span><span class="p">:</span>
     <span class="n">name</span><span class="p">:</span> <span class="nb">str</span>
@@ -353,48 +365,23 @@
 
 
 
-<span class="nd">@dataclass</span>
-<span class="k">class</span> <span class="nc">MachineInfo</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Container for machine information.&quot;&quot;&quot;</span>
-
-    <span class="n">arch</span><span class="p">:</span> <span class="nb">str</span>
-    <span class="n">cpu</span><span class="p">:</span> <span class="nb">str</span>
-    <span class="n">machine</span><span class="p">:</span> <span class="nb">str</span>
-    <span class="n">num_cpu</span><span class="p">:</span> <span class="nb">str</span>
-    <span class="n">os</span><span class="p">:</span> <span class="nb">str</span>
-    <span class="n">ram</span><span class="p">:</span> <span class="nb">str</span>
-    <span class="n">version</span><span class="p">:</span> <span class="nb">int</span>
-
-
 <div class="viewcode-block" id="BenchmarkConfig">
-<a class="viewcode-back" href="../../../api/nxbench.benchmarks.html#nxbench.benchmarks.benchmark.BenchmarkConfig">[docs]</a>
+<a class="viewcode-back" href="../../../api/nxbench.benchmarks.html#nxbench.benchmarks.config.BenchmarkConfig">[docs]</a>
 <span class="nd">@dataclass</span>
 <span class="k">class</span> <span class="nc">BenchmarkConfig</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Complete benchmark suite configuration.&quot;&quot;&quot;</span>
 
     <span class="n">algorithms</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">AlgorithmConfig</span><span class="p">]</span>
     <span class="n">datasets</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">DatasetConfig</span><span class="p">]</span>
-    <span class="n">matrix</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span>
     <span class="n">machine_info</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">dict</span><span class="p">)</span>
     <span class="n">output_dir</span><span class="p">:</span> <span class="n">Path</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="k">lambda</span><span class="p">:</span> <span class="n">Path</span><span class="p">(</span><span class="s2">&quot;~/results&quot;</span><span class="p">))</span>
     <span class="n">env_data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">dict</span><span class="p">)</span>
 
 <div class="viewcode-block" id="BenchmarkConfig.from_yaml">
-<a class="viewcode-back" href="../../../api/nxbench.benchmarks.html#nxbench.benchmarks.benchmark.BenchmarkConfig.from_yaml">[docs]</a>
+<a class="viewcode-back" href="../../../api/nxbench.benchmarks.html#nxbench.benchmarks.config.BenchmarkConfig.from_yaml">[docs]</a>
     <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">from_yaml</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;BenchmarkConfig&quot;</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Load configuration from YAML file.</span>
-
-<span class="sd">        Parameters</span>
-<span class="sd">        ----------</span>
-<span class="sd">        path : str or Path</span>
-<span class="sd">            Path to YAML configuration file</span>
-
-<span class="sd">        Returns</span>
-<span class="sd">        -------</span>
-<span class="sd">        BenchmarkConfig</span>
-<span class="sd">            Loaded and validated configuration</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Load configuration from YAML file.&quot;&quot;&quot;</span>
         <span class="n">path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="ow">not</span> <span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
@@ -405,7 +392,6 @@
 
         <span class="n">algorithms_data</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;algorithms&quot;</span><span class="p">)</span> <span class="ow">or</span> <span class="p">[]</span>
         <span class="n">datasets_data</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;datasets&quot;</span><span class="p">)</span> <span class="ow">or</span> <span class="p">[]</span>
-        <span class="n">matrix_data</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;matrix&quot;</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{}</span>
 
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">algorithms_data</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;&#39;algorithms&#39; should be a list in the config file: </span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
@@ -415,20 +401,14 @@
             <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;&#39;datasets&#39; should be a list in the config file: </span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
             <span class="n">datasets_data</span> <span class="o">=</span> <span class="p">[]</span>
 
-        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">matrix_data</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;&#39;matrix&#39; should be a dict in the config file: </span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-            <span class="n">matrix_data</span> <span class="o">=</span> <span class="p">{}</span>
-
-        <span class="n">env_data</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;env_config&quot;</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{}</span>
+        <span class="n">env_data</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;environ&quot;</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{}</span>
 
         <span class="n">algorithms</span> <span class="o">=</span> <span class="p">[</span><span class="n">AlgorithmConfig</span><span class="p">(</span><span class="o">**</span><span class="n">algo_data</span><span class="p">)</span> <span class="k">for</span> <span class="n">algo_data</span> <span class="ow">in</span> <span class="n">algorithms_data</span><span class="p">]</span>
-
         <span class="n">datasets</span> <span class="o">=</span> <span class="p">[</span><span class="n">DatasetConfig</span><span class="p">(</span><span class="o">**</span><span class="n">ds_data</span><span class="p">)</span> <span class="k">for</span> <span class="n">ds_data</span> <span class="ow">in</span> <span class="n">datasets_data</span><span class="p">]</span>
 
         <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span>
             <span class="n">algorithms</span><span class="o">=</span><span class="n">algorithms</span><span class="p">,</span>
             <span class="n">datasets</span><span class="o">=</span><span class="n">datasets</span><span class="p">,</span>
-            <span class="n">matrix</span><span class="o">=</span><span class="n">matrix_data</span><span class="p">,</span>
             <span class="n">machine_info</span><span class="o">=</span><span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;machine_info&quot;</span><span class="p">,</span> <span class="p">{}),</span>
             <span class="n">output_dir</span><span class="o">=</span><span class="n">Path</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;output_dir&quot;</span><span class="p">,</span> <span class="s2">&quot;~/results&quot;</span><span class="p">)),</span>
             <span class="n">env_data</span><span class="o">=</span><span class="n">env_data</span><span class="p">,</span>
@@ -436,15 +416,9 @@
 
 
 <div class="viewcode-block" id="BenchmarkConfig.to_yaml">
-<a class="viewcode-back" href="../../../api/nxbench.benchmarks.html#nxbench.benchmarks.benchmark.BenchmarkConfig.to_yaml">[docs]</a>
+<a class="viewcode-back" href="../../../api/nxbench.benchmarks.html#nxbench.benchmarks.config.BenchmarkConfig.to_yaml">[docs]</a>
     <span class="k">def</span> <span class="nf">to_yaml</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Save configuration to YAML file.</span>
-
-<span class="sd">        Parameters</span>
-<span class="sd">        ----------</span>
-<span class="sd">        path : str or Path</span>
-<span class="sd">            Output path for YAML file</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Save configuration to YAML file.&quot;&quot;&quot;</span>
         <span class="n">path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
         <span class="n">path</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
@@ -454,7 +428,6 @@
                 <span class="k">for</span> <span class="n">algo</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">algorithms</span>
             <span class="p">],</span>
             <span class="s2">&quot;datasets&quot;</span><span class="p">:</span> <span class="p">[</span><span class="nb">dict</span><span class="p">(</span><span class="n">ds</span><span class="o">.</span><span class="vm">__dict__</span><span class="o">.</span><span class="n">items</span><span class="p">())</span> <span class="k">for</span> <span class="n">ds</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">datasets</span><span class="p">],</span>
-            <span class="s2">&quot;matrix&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">matrix</span><span class="p">,</span>
             <span class="s2">&quot;machine_info&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">machine_info</span><span class="p">,</span>
             <span class="s2">&quot;output_dir&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">output_dir</span><span class="p">),</span>
         <span class="p">}</span>
@@ -466,7 +439,7 @@
 
 
 <div class="viewcode-block" id="BenchmarkResult">
-<a class="viewcode-back" href="../../../api/nxbench.benchmarks.html#nxbench.benchmarks.benchmark.BenchmarkResult">[docs]</a>
+<a class="viewcode-back" href="../../../api/nxbench.benchmarks.html#nxbench.benchmarks.config.BenchmarkResult">[docs]</a>
 <span class="nd">@dataclass</span>
 <span class="k">class</span> <span class="nc">BenchmarkResult</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Container for benchmark execution results.&quot;&quot;&quot;</span>
@@ -474,6 +447,7 @@
     <span class="n">algorithm</span><span class="p">:</span> <span class="nb">str</span>
     <span class="n">dataset</span><span class="p">:</span> <span class="nb">str</span>
     <span class="n">execution_time</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="n">execution_time_with_preloading</span><span class="p">:</span> <span class="nb">float</span>
     <span class="n">memory_used</span><span class="p">:</span> <span class="nb">float</span>
     <span class="n">num_nodes</span><span class="p">:</span> <span class="nb">int</span>
     <span class="n">num_edges</span><span class="p">:</span> <span class="nb">int</span>
@@ -481,63 +455,17 @@
     <span class="n">is_weighted</span><span class="p">:</span> <span class="nb">bool</span>
     <span class="n">backend</span><span class="p">:</span> <span class="nb">str</span>
     <span class="n">num_thread</span><span class="p">:</span> <span class="nb">int</span>
-    <span class="n">commit_hash</span><span class="p">:</span> <span class="nb">str</span>
     <span class="n">date</span><span class="p">:</span> <span class="nb">int</span>
     <span class="n">metadata</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span>
 
-<div class="viewcode-block" id="BenchmarkResult.from_asv_result">
-<a class="viewcode-back" href="../../../api/nxbench.benchmarks.html#nxbench.benchmarks.benchmark.BenchmarkResult.from_asv_result">[docs]</a>
-    <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">from_asv_result</span><span class="p">(</span>
-        <span class="bp">cls</span><span class="p">,</span>
-        <span class="n">asv_result</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span>
-        <span class="n">graph</span><span class="p">:</span> <span class="n">nx</span><span class="o">.</span><span class="n">Graph</span> <span class="o">|</span> <span class="n">nx</span><span class="o">.</span><span class="n">DiGraph</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-        <span class="n">num_thread</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
-        <span class="n">commit_hash</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;unknown&quot;</span><span class="p">,</span>
-        <span class="n">date</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
-    <span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Create BenchmarkResult from ASV benchmark output.&quot;&quot;&quot;</span>
-        <span class="n">execution_time</span> <span class="o">=</span> <span class="n">asv_result</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;execution_time&quot;</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span>
-        <span class="n">memory_used</span> <span class="o">=</span> <span class="n">asv_result</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;memory_used&quot;</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span>
-        <span class="n">dataset</span> <span class="o">=</span> <span class="n">asv_result</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;dataset&quot;</span><span class="p">,</span> <span class="s2">&quot;Unknown&quot;</span><span class="p">)</span>
-        <span class="n">backend</span> <span class="o">=</span> <span class="n">asv_result</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;backend&quot;</span><span class="p">,</span> <span class="s2">&quot;Unknown&quot;</span><span class="p">)</span>
-        <span class="n">algorithm</span> <span class="o">=</span> <span class="n">asv_result</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;algorithm&quot;</span><span class="p">,</span> <span class="s2">&quot;Unknown&quot;</span><span class="p">)</span>
-
-        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;execution_time: </span><span class="si">{</span><span class="n">execution_time</span><span class="si">}</span><span class="s2">, type: </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">execution_time</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;memory_used: </span><span class="si">{</span><span class="n">memory_used</span><span class="si">}</span><span class="s2">, type: </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">memory_used</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-
-        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">execution_time</span><span class="p">,</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">)):</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Non-numeric execution_time: </span><span class="si">{</span><span class="n">execution_time</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-            <span class="n">execution_time</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="s2">&quot;nan&quot;</span><span class="p">)</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">memory_used</span><span class="p">,</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">)):</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Non-numeric memory_used: </span><span class="si">{</span><span class="n">memory_used</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-            <span class="n">memory_used</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="s2">&quot;nan&quot;</span><span class="p">)</span>
-
-        <span class="k">if</span> <span class="n">graph</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">graph</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">Graph</span><span class="p">()</span>
-            <span class="n">graph</span><span class="o">.</span><span class="n">graph</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">dataset</span>
-
-        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span>
-            <span class="n">algorithm</span><span class="o">=</span><span class="n">algorithm</span><span class="p">,</span>
-            <span class="n">dataset</span><span class="o">=</span><span class="n">dataset</span><span class="p">,</span>
-            <span class="n">execution_time</span><span class="o">=</span><span class="n">execution_time</span><span class="p">,</span>
-            <span class="n">memory_used</span><span class="o">=</span><span class="n">memory_used</span><span class="p">,</span>
-            <span class="n">num_nodes</span><span class="o">=</span><span class="n">graph</span><span class="o">.</span><span class="n">number_of_nodes</span><span class="p">(),</span>
-            <span class="n">num_edges</span><span class="o">=</span><span class="n">graph</span><span class="o">.</span><span class="n">number_of_edges</span><span class="p">(),</span>
-            <span class="n">is_directed</span><span class="o">=</span><span class="n">graph</span><span class="o">.</span><span class="n">is_directed</span><span class="p">(),</span>
-            <span class="n">is_weighted</span><span class="o">=</span><span class="n">nx</span><span class="o">.</span><span class="n">is_weighted</span><span class="p">(</span><span class="n">graph</span><span class="p">),</span>
-            <span class="n">backend</span><span class="o">=</span><span class="n">backend</span><span class="p">,</span>
-            <span class="n">num_thread</span><span class="o">=</span><span class="n">num_thread</span><span class="p">,</span>
-            <span class="n">commit_hash</span><span class="o">=</span><span class="n">commit_hash</span><span class="p">,</span>
-            <span class="n">date</span><span class="o">=</span><span class="n">date</span><span class="p">,</span>
-            <span class="n">metadata</span><span class="o">=</span><span class="p">{},</span>
-        <span class="p">)</span></div>
-</div>
+    <span class="n">validation</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;unknown&quot;</span>
+    <span class="n">validation_message</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+    <span class="n">error</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span></div>
 
 
 
 <div class="viewcode-block" id="BenchmarkMetrics">
-<a class="viewcode-back" href="../../../api/nxbench.benchmarks.html#nxbench.benchmarks.benchmark.BenchmarkMetrics">[docs]</a>
+<a class="viewcode-back" href="../../../api/nxbench.benchmarks.html#nxbench.benchmarks.config.BenchmarkMetrics">[docs]</a>
 <span class="nd">@dataclass</span>
 <span class="k">class</span> <span class="nc">BenchmarkMetrics</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Container for benchmark metrics.&quot;&quot;&quot;</span>

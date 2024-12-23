@@ -213,8 +213,7 @@
 <li class="toctree-l4"><a class="reference internal" href="../../../api/nxbench.data.scripts.html">nxbench.data.scripts package</a></li>
 </ul>
 </li>
-<li class="toctree-l3 has-children"><a class="reference internal" href="../../../api/nxbench.validation.html">nxbench.validation package</a><input class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" role="switch" type="checkbox"/><label for="toctree-checkbox-4"><div class="visually-hidden">Toggle navigation of nxbench.validation package</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
-<li class="toctree-l4"><a class="reference internal" href="../../../api/nxbench.validation.scripts.html">nxbench.validation.scripts package</a></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../../../api/nxbench.validation.html">nxbench.validation package</a><input class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" role="switch" type="checkbox"/><label for="toctree-checkbox-4"><div class="visually-hidden">Toggle navigation of nxbench.validation package</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="simple">
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="../../../api/nxbench.viz.html">nxbench.viz package</a></li>
@@ -226,11 +225,9 @@
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="../../../api/nxbench.data.scripts.html">nxbench.data.scripts package</a></li>
-<li class="toctree-l2 has-children"><a class="reference internal" href="../../../api/nxbench.validation.html">nxbench.validation package</a><input class="toctree-checkbox" id="toctree-checkbox-6" name="toctree-checkbox-6" role="switch" type="checkbox"/><label for="toctree-checkbox-6"><div class="visually-hidden">Toggle navigation of nxbench.validation package</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
-<li class="toctree-l3"><a class="reference internal" href="../../../api/nxbench.validation.scripts.html">nxbench.validation.scripts package</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../../api/nxbench.validation.html">nxbench.validation package</a><input class="toctree-checkbox" id="toctree-checkbox-6" name="toctree-checkbox-6" role="switch" type="checkbox"/><label for="toctree-checkbox-6"><div class="visually-hidden">Toggle navigation of nxbench.validation package</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="simple">
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="../../../api/nxbench.validation.scripts.html">nxbench.validation.scripts package</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../api/nxbench.viz.html">nxbench.viz package</a></li>
 </ul>
 </li>
@@ -286,10 +283,9 @@
 
 <span class="kn">import</span> <span class="nn">aiofiles</span>
 <span class="kn">import</span> <span class="nn">aiofiles.os</span>
-<span class="kn">import</span> <span class="nn">aiohttp</span>
 <span class="kn">import</span> <span class="nn">chardet</span>
-<span class="kn">from</span> <span class="nn">aiohttp</span> <span class="kn">import</span> <span class="n">ClientSession</span><span class="p">,</span> <span class="n">ClientTimeout</span>
-<span class="kn">from</span> <span class="nn">aiohttp.client_exceptions</span> <span class="kn">import</span> <span class="n">ClientResponseError</span>
+<span class="kn">from</span> <span class="nn">aiohttp</span> <span class="kn">import</span> <span class="n">ClientResponse</span><span class="p">,</span> <span class="n">ClientSession</span><span class="p">,</span> <span class="n">ClientTimeout</span><span class="p">,</span> <span class="n">TCPConnector</span>
+<span class="kn">from</span> <span class="nn">aiohttp.client_exceptions</span> <span class="kn">import</span> <span class="n">ClientError</span><span class="p">,</span> <span class="n">ClientResponseError</span>
 <span class="kn">from</span> <span class="nn">aiohttp.client_reqrep</span> <span class="kn">import</span> <span class="n">RequestInfo</span>
 <span class="kn">from</span> <span class="nn">bs4</span> <span class="kn">import</span> <span class="n">BeautifulSoup</span>
 <span class="kn">from</span> <span class="nn">multidict</span> <span class="kn">import</span> <span class="n">CIMultiDict</span><span class="p">,</span> <span class="n">CIMultiDictProxy</span>
@@ -388,7 +384,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">metadata_cache</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">scrape_delay</span> <span class="o">=</span> <span class="n">scrape_delay</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">timeout</span> <span class="o">=</span> <span class="n">timeout</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">connector</span> <span class="o">=</span> <span class="n">aiohttp</span><span class="o">.</span><span class="n">TCPConnector</span><span class="p">(</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connector</span> <span class="o">=</span> <span class="n">TCPConnector</span><span class="p">(</span>
             <span class="n">limit</span><span class="o">=</span><span class="n">max_connections</span><span class="p">,</span>
             <span class="n">limit_per_host</span><span class="o">=</span><span class="n">max_connections</span><span class="p">,</span>
             <span class="n">enable_cleanup_closed</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
@@ -438,7 +434,7 @@
         <span class="k">return</span> <span class="n">data</span>
 
     <span class="k">async</span> <span class="k">def</span> <span class="fm">__aenter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">session</span> <span class="o">=</span> <span class="n">aiohttp</span><span class="o">.</span><span class="n">ClientSession</span><span class="p">(</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">session</span> <span class="o">=</span> <span class="n">ClientSession</span><span class="p">(</span>
             <span class="n">connector</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">connector</span><span class="p">,</span>
             <span class="n">timeout</span><span class="o">=</span><span class="n">ClientTimeout</span><span class="p">(</span><span class="n">total</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">timeout</span><span class="p">),</span>
             <span class="n">headers</span><span class="o">=</span><span class="n">HEADERS</span><span class="p">,</span>
@@ -503,7 +499,7 @@
                     <span class="p">)</span>
                     <span class="n">logger</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="n">traceback</span><span class="o">.</span><span class="n">format_exc</span><span class="p">())</span>
                     <span class="k">raise</span>
-            <span class="k">except</span> <span class="n">aiohttp</span><span class="o">.</span><span class="n">ClientResponseError</span><span class="p">:</span>
+            <span class="k">except</span> <span class="n">ClientResponseError</span><span class="p">:</span>
                 <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
                     <span class="sa">f</span><span class="s2">&quot;HTTP response error for </span><span class="si">{</span><span class="n">url</span><span class="si">}</span><span class="s2">. Attempt &quot;</span>
                     <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">attempt</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">retries</span><span class="si">}</span><span class="s2">&quot;</span>
@@ -512,7 +508,7 @@
                     <span class="n">logger</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Failed to fetch </span><span class="si">{</span><span class="n">url</span><span class="si">}</span><span class="s2"> after </span><span class="si">{</span><span class="n">retries</span><span class="si">}</span><span class="s2"> attempts.&quot;</span><span class="p">)</span>
                     <span class="n">logger</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="n">traceback</span><span class="o">.</span><span class="n">format_exc</span><span class="p">())</span>
                     <span class="k">raise</span>
-            <span class="k">except</span> <span class="n">aiohttp</span><span class="o">.</span><span class="n">ClientError</span><span class="p">:</span>
+            <span class="k">except</span> <span class="n">ClientError</span><span class="p">:</span>
                 <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
                     <span class="sa">f</span><span class="s2">&quot;HTTP client error for </span><span class="si">{</span><span class="n">url</span><span class="si">}</span><span class="s2">. Attempt </span><span class="si">{</span><span class="n">attempt</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">retries</span><span class="si">}</span><span class="s2">&quot;</span>
                 <span class="p">)</span>
@@ -535,7 +531,7 @@
 
     <span class="k">async</span> <span class="k">def</span> <span class="nf">_fetch_response</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">url</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">method</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;GET&quot;</span><span class="p">,</span> <span class="n">retries</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">3</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span>
-    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">aiohttp</span><span class="o">.</span><span class="n">ClientResponse</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ClientResponse</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Fetch the response object of a URL using aiohttp with retries.&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">session</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;HTTP session is not initialized.&quot;</span><span class="p">)</span>
@@ -548,7 +544,7 @@
                     <span class="sa">f</span><span class="s2">&quot;Status: </span><span class="si">{</span><span class="n">response</span><span class="o">.</span><span class="n">status</span><span class="si">}</span><span class="s2">&quot;</span>
                 <span class="p">)</span>
                 <span class="n">response</span><span class="o">.</span><span class="n">raise_for_status</span><span class="p">()</span>
-            <span class="k">except</span> <span class="n">aiohttp</span><span class="o">.</span><span class="n">ClientResponseError</span><span class="p">:</span>
+            <span class="k">except</span> <span class="n">ClientResponseError</span><span class="p">:</span>
                 <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
                     <span class="sa">f</span><span class="s2">&quot;HTTP response error for </span><span class="si">{</span><span class="n">url</span><span class="si">}</span><span class="s2">. Attempt </span><span class="si">{</span><span class="n">attempt</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">retries</span><span class="si">}</span><span class="s2">&quot;</span>
                 <span class="p">)</span>
@@ -556,7 +552,7 @@
                     <span class="n">logger</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Failed to fetch </span><span class="si">{</span><span class="n">url</span><span class="si">}</span><span class="s2"> after </span><span class="si">{</span><span class="n">retries</span><span class="si">}</span><span class="s2"> attempts.&quot;</span><span class="p">)</span>
                     <span class="n">logger</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="n">traceback</span><span class="o">.</span><span class="n">format_exc</span><span class="p">())</span>
                     <span class="k">raise</span>
-            <span class="k">except</span> <span class="n">aiohttp</span><span class="o">.</span><span class="n">ClientError</span><span class="p">:</span>
+            <span class="k">except</span> <span class="n">ClientError</span><span class="p">:</span>
                 <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
                     <span class="sa">f</span><span class="s2">&quot;HTTP client error for </span><span class="si">{</span><span class="n">url</span><span class="si">}</span><span class="s2">. Attempt </span><span class="si">{</span><span class="n">attempt</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">retries</span><span class="si">}</span><span class="s2">&quot;</span>
                 <span class="p">)</span>
@@ -820,6 +816,9 @@
         <span class="k">for</span> <span class="n">category</span> <span class="ow">in</span> <span class="n">COLLECTIONS</span><span class="p">:</span>
             <span class="n">php_page</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">category</span><span class="si">}</span><span class="s2">.php&quot;</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Processing category &#39;</span><span class="si">{</span><span class="n">category</span><span class="si">}</span><span class="s2">&#39; with page &#39;</span><span class="si">{</span><span class="n">php_page</span><span class="si">}</span><span class="s2">&#39;&quot;</span><span class="p">)</span>
+
+            <span class="n">networks_by_category</span><span class="p">[</span><span class="n">category</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+
             <span class="n">url</span> <span class="o">=</span> <span class="n">urljoin</span><span class="p">(</span><span class="n">BASE_URL</span><span class="p">,</span> <span class="n">php_page</span><span class="p">)</span>
             <span class="k">try</span><span class="p">:</span>
                 <span class="n">text</span> <span class="o">=</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fetch_text</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s2">&quot;GET&quot;</span><span class="p">)</span>
@@ -828,14 +827,17 @@
                 <span class="n">networks</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
                 <span class="k">for</span> <span class="n">a_tag</span> <span class="ow">in</span> <span class="n">soup</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="s2">&quot;table a[href*=&#39;.php&#39;]&quot;</span><span class="p">):</span>
                     <span class="n">href</span> <span class="o">=</span> <span class="n">a_tag</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;href&quot;</span><span class="p">)</span>
-                    <span class="k">if</span> <span class="n">href</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">href</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
-                        <span class="n">href</span> <span class="o">=</span> <span class="n">href</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
-                        <span class="k">if</span> <span class="n">href</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">):</span>
-                            <span class="n">href</span> <span class="o">=</span> <span class="n">href</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
-                        <span class="k">if</span> <span class="n">href</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;.php&quot;</span><span class="p">):</span>
-                            <span class="n">network_name</span> <span class="o">=</span> <span class="n">href</span><span class="p">[:</span><span class="o">-</span><span class="mi">4</span><span class="p">]</span>
-                            <span class="k">if</span> <span class="n">network_name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">COLLECTIONS</span><span class="p">:</span>
-                                <span class="n">networks</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">network_name</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="n">href</span> <span class="ow">or</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">href</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+                        <span class="k">continue</span>
+                    <span class="n">href</span> <span class="o">=</span> <span class="n">href</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+                    <span class="k">if</span> <span class="n">href</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">):</span>
+                        <span class="n">href</span> <span class="o">=</span> <span class="n">href</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
+                    <span class="k">if</span> <span class="n">href</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;.php&quot;</span><span class="p">):</span>
+                        <span class="n">network_name</span> <span class="o">=</span> <span class="n">href</span><span class="p">[:</span><span class="o">-</span><span class="mi">4</span><span class="p">]</span>  <span class="c1"># e.g. &quot;network1.php&quot; =&gt; &quot;network1&quot;</span>
+                        <span class="k">if</span> <span class="n">network_name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">COLLECTIONS</span><span class="p">:</span>
+                            <span class="n">networks</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">network_name</span><span class="p">)</span>
+
+                <span class="c1"># store sorted network names in the dictionary</span>
                 <span class="n">networks_by_category</span><span class="p">[</span><span class="n">category</span><span class="p">]</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">networks</span><span class="p">)</span>
 
                 <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
@@ -845,7 +847,7 @@
 
                 <span class="k">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">scrape_delay</span><span class="p">)</span>
 
-            <span class="k">except</span> <span class="n">aiohttp</span><span class="o">.</span><span class="n">ClientError</span><span class="p">:</span>
+            <span class="k">except</span> <span class="n">ClientError</span><span class="p">:</span>
                 <span class="n">logger</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error fetching networks for category &#39;</span><span class="si">{</span><span class="n">category</span><span class="si">}</span><span class="s2">&#39;&quot;</span><span class="p">)</span>
             <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
                 <span class="n">logger</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unexpected error for category &#39;</span><span class="si">{</span><span class="n">category</span><span class="si">}</span><span class="s2">&#39;&quot;</span><span class="p">)</span>
@@ -979,7 +981,7 @@
         <span class="k">try</span><span class="p">:</span>
             <span class="n">html_content</span> <span class="o">=</span> <span class="k">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fetch_text</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s2">&quot;GET&quot;</span><span class="p">)</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Fetched metadata content for &#39;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">&#39;&quot;</span><span class="p">)</span>
-        <span class="k">except</span> <span class="n">aiohttp</span><span class="o">.</span><span class="n">ClientError</span><span class="p">:</span>
+        <span class="k">except</span> <span class="n">ClientError</span><span class="p">:</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Failed to fetch metadata for &#39;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">&#39; from &#39;</span><span class="si">{</span><span class="n">url</span><span class="si">}</span><span class="s2">&#39;&quot;</span><span class="p">)</span>
             <span class="k">raise</span>
 

@@ -213,8 +213,7 @@
 <li class="toctree-l4"><a class="reference internal" href="../../api/nxbench.data.scripts.html">nxbench.data.scripts package</a></li>
 </ul>
 </li>
-<li class="toctree-l3 has-children"><a class="reference internal" href="../../api/nxbench.validation.html">nxbench.validation package</a><input class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" role="switch" type="checkbox"/><label for="toctree-checkbox-4"><div class="visually-hidden">Toggle navigation of nxbench.validation package</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
-<li class="toctree-l4"><a class="reference internal" href="../../api/nxbench.validation.scripts.html">nxbench.validation.scripts package</a></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../../api/nxbench.validation.html">nxbench.validation package</a><input class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" role="switch" type="checkbox"/><label for="toctree-checkbox-4"><div class="visually-hidden">Toggle navigation of nxbench.validation package</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="simple">
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="../../api/nxbench.viz.html">nxbench.viz package</a></li>
@@ -226,11 +225,9 @@
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="../../api/nxbench.data.scripts.html">nxbench.data.scripts package</a></li>
-<li class="toctree-l2 has-children"><a class="reference internal" href="../../api/nxbench.validation.html">nxbench.validation package</a><input class="toctree-checkbox" id="toctree-checkbox-6" name="toctree-checkbox-6" role="switch" type="checkbox"/><label for="toctree-checkbox-6"><div class="visually-hidden">Toggle navigation of nxbench.validation package</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
-<li class="toctree-l3"><a class="reference internal" href="../../api/nxbench.validation.scripts.html">nxbench.validation.scripts package</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../api/nxbench.validation.html">nxbench.validation package</a><input class="toctree-checkbox" id="toctree-checkbox-6" name="toctree-checkbox-6" role="switch" type="checkbox"/><label for="toctree-checkbox-6"><div class="visually-hidden">Toggle navigation of nxbench.validation package</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="simple">
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="../../api/nxbench.validation.scripts.html">nxbench.validation.scripts package</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../api/nxbench.viz.html">nxbench.viz package</a></li>
 </ul>
 </li>
@@ -269,408 +266,23 @@
         </div>
         <article role="main" id="furo-main-content">
           <h1>Source code for nxbench.cli</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span> <span class="nn">json</span>
+<span></span><span class="kn">import</span> <span class="nn">asyncio</span>
 <span class="kn">import</span> <span class="nn">logging</span>
 <span class="kn">import</span> <span class="nn">os</span>
-<span class="kn">import</span> <span class="nn">platform</span>
-<span class="kn">import</span> <span class="nn">shutil</span>
-<span class="kn">import</span> <span class="nn">subprocess</span>
-<span class="kn">import</span> <span class="nn">sys</span>
-<span class="kn">import</span> <span class="nn">tempfile</span>
-<span class="kn">from</span> <span class="nn">collections.abc</span> <span class="kn">import</span> <span class="n">Sequence</span>
-<span class="kn">from</span> <span class="nn">importlib</span> <span class="kn">import</span> <span class="n">resources</span>
 <span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
 
 <span class="kn">import</span> <span class="nn">click</span>
 <span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
-<span class="kn">import</span> <span class="nn">psutil</span>
-<span class="kn">import</span> <span class="nn">requests</span>
 
+<span class="kn">from</span> <span class="nn">nxbench.benchmarks.benchmark</span> <span class="kn">import</span> <span class="n">main_benchmark</span>
 <span class="kn">from</span> <span class="nn">nxbench.benchmarks.config</span> <span class="kn">import</span> <span class="n">DatasetConfig</span>
-<span class="kn">from</span> <span class="nn">nxbench.benchmarks.utils</span> <span class="kn">import</span> <span class="n">get_benchmark_config</span>
+<span class="kn">from</span> <span class="nn">nxbench.benchmarks.export</span> <span class="kn">import</span> <span class="n">ResultsExporter</span>
 <span class="kn">from</span> <span class="nn">nxbench.data.loader</span> <span class="kn">import</span> <span class="n">BenchmarkDataManager</span>
 <span class="kn">from</span> <span class="nn">nxbench.data.repository</span> <span class="kn">import</span> <span class="n">NetworkRepository</span>
 <span class="kn">from</span> <span class="nn">nxbench.log</span> <span class="kn">import</span> <span class="n">_config</span> <span class="k">as</span> <span class="n">package_config</span>
-<span class="kn">from</span> <span class="nn">nxbench.viz.dashboard</span> <span class="kn">import</span> <span class="n">BenchmarkDashboard</span>
+<span class="kn">from</span> <span class="nn">nxbench.validation.registry</span> <span class="kn">import</span> <span class="n">BenchmarkValidator</span>
 
 <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">&quot;nxbench&quot;</span><span class="p">)</span>
-
-
-<div class="viewcode-block" id="validate_executable">
-<a class="viewcode-back" href="../../api/nxbench.html#nxbench.cli.validate_executable">[docs]</a>
-<span class="k">def</span> <span class="nf">validate_executable</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Path</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Validate an executable path.&quot;&quot;&quot;</span>
-    <span class="n">executable</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">resolve</span><span class="p">()</span>
-    <span class="k">if</span> <span class="ow">not</span> <span class="n">executable</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Executable not found: </span><span class="si">{</span><span class="n">executable</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-    <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">access</span><span class="p">(</span><span class="n">executable</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">X_OK</span><span class="p">):</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Path is not executable: </span><span class="si">{</span><span class="n">executable</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">executable</span></div>
-
-
-
-<div class="viewcode-block" id="generate_machine_info">
-<a class="viewcode-back" href="../../api/nxbench.html#nxbench.cli.generate_machine_info">[docs]</a>
-<span class="k">def</span> <span class="nf">generate_machine_info</span><span class="p">(</span>
-    <span class="n">machine</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">machine_info_path</span><span class="p">:</span> <span class="n">Path</span><span class="p">,</span> <span class="n">home</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
-<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Generate machine info JSON file if it doesn&#39;t already exist.&quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="n">machine_info_path</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Machine info already exists: </span><span class="si">{</span><span class="n">machine_info_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-        <span class="k">return</span>
-
-    <span class="n">machine_info</span> <span class="o">=</span> <span class="p">{</span>
-        <span class="s2">&quot;arch&quot;</span><span class="p">:</span> <span class="n">platform</span><span class="o">.</span><span class="n">machine</span><span class="p">(),</span>
-        <span class="s2">&quot;cpu&quot;</span><span class="p">:</span> <span class="n">platform</span><span class="o">.</span><span class="n">processor</span><span class="p">(),</span>
-        <span class="s2">&quot;machine&quot;</span><span class="p">:</span> <span class="n">machine</span><span class="p">,</span>
-        <span class="s2">&quot;num_cpu&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">psutil</span><span class="o">.</span><span class="n">cpu_count</span><span class="p">(</span><span class="n">logical</span><span class="o">=</span><span class="kc">True</span><span class="p">)),</span>
-        <span class="s2">&quot;os&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">platform</span><span class="o">.</span><span class="n">system</span><span class="p">()</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">platform</span><span class="o">.</span><span class="n">release</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;ram&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">psutil</span><span class="o">.</span><span class="n">virtual_memory</span><span class="p">()</span><span class="o">.</span><span class="n">total</span><span class="p">),</span>
-        <span class="s2">&quot;version&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
-    <span class="p">}</span>
-
-    <span class="k">if</span> <span class="n">home</span><span class="p">:</span>
-        <span class="n">machine_info</span> <span class="o">=</span> <span class="p">{</span><span class="n">machine</span><span class="p">:</span> <span class="n">machine_info</span><span class="p">,</span> <span class="s2">&quot;version&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">}</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="k">del</span> <span class="n">machine_info</span><span class="p">[</span><span class="s2">&quot;version&quot;</span><span class="p">]</span>
-
-    <span class="k">with</span> <span class="n">machine_info_path</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
-        <span class="n">json</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">machine_info</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
-
-    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Generated machine info at: </span><span class="si">{</span><span class="n">machine_info_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span></div>
-
-
-
-<div class="viewcode-block" id="get_latest_commit_hash">
-<a class="viewcode-back" href="../../api/nxbench.html#nxbench.cli.get_latest_commit_hash">[docs]</a>
-<span class="k">def</span> <span class="nf">get_latest_commit_hash</span><span class="p">(</span><span class="n">github_url</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Fetch the latest commit hash from a GitHub repository.</span>
-
-<span class="sd">    Parameters</span>
-<span class="sd">    ----------</span>
-<span class="sd">    github_url : str</span>
-<span class="sd">        The URL of the GitHub repository.</span>
-
-<span class="sd">    Returns</span>
-<span class="sd">    -------</span>
-<span class="sd">    str</span>
-<span class="sd">        The latest commit hash.</span>
-
-<span class="sd">    Raises</span>
-<span class="sd">    ------</span>
-<span class="sd">    ValueError</span>
-<span class="sd">        If the URL is invalid or the API request fails.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="s2">&quot;github.com&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">github_url</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Provided URL is not a valid GitHub URL&quot;</span><span class="p">)</span>
-
-    <span class="n">parts</span> <span class="o">=</span> <span class="n">github_url</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">)</span>
-    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">parts</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-            <span class="s2">&quot;GitHub URL must be in the format &#39;https://github.com/owner/repo&#39;&quot;</span>
-        <span class="p">)</span>
-
-    <span class="n">owner</span><span class="p">,</span> <span class="n">repo</span> <span class="o">=</span> <span class="n">parts</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">],</span> <span class="n">parts</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
-
-    <span class="n">api_url</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;https://api.github.com/repos/</span><span class="si">{</span><span class="n">owner</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">repo</span><span class="si">}</span><span class="s2">/commits&quot;</span>
-
-    <span class="k">try</span><span class="p">:</span>
-        <span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">api_url</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
-        <span class="n">response</span><span class="o">.</span><span class="n">raise_for_status</span><span class="p">()</span>
-        <span class="n">data</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">data</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;No commit data found for the repository&quot;</span><span class="p">)</span>
-    <span class="k">except</span> <span class="n">requests</span><span class="o">.</span><span class="n">RequestException</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Error fetching commit data&quot;</span><span class="p">)</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s2">&quot;sha&quot;</span><span class="p">]</span></div>
-
-
-
-<div class="viewcode-block" id="safe_run">
-<a class="viewcode-back" href="../../api/nxbench.html#nxbench.cli.safe_run">[docs]</a>
-<span class="k">def</span> <span class="nf">safe_run</span><span class="p">(</span>
-    <span class="n">cmd</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span><span class="p">],</span>
-    <span class="n">check</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
-    <span class="n">capture_output</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
-    <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
-<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">CompletedProcess</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Safely run a subprocess command with optional output capture.</span>
-
-<span class="sd">    Parameters</span>
-<span class="sd">    ----------</span>
-<span class="sd">    cmd : Sequence[str | Path]</span>
-<span class="sd">        The command and arguments to execute.</span>
-<span class="sd">    check : bool, default=False</span>
-<span class="sd">        If True, raise an exception if the command fails.</span>
-<span class="sd">    capture_output : bool, default=False</span>
-<span class="sd">        If True, capture stdout and stderr.</span>
-<span class="sd">    **kwargs : dict</span>
-<span class="sd">        Additional keyword arguments to pass to subprocess.run.</span>
-
-<span class="sd">    Returns</span>
-<span class="sd">    -------</span>
-<span class="sd">    subprocess.CompletedProcess</span>
-<span class="sd">        The completed process.</span>
-
-<span class="sd">    Raises</span>
-<span class="sd">    ------</span>
-<span class="sd">    TypeError</span>
-<span class="sd">        If a command argument is not of type str or Path.</span>
-<span class="sd">    ValueError</span>
-<span class="sd">        If a command argument contains potentially unsafe characters.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="ow">not</span> <span class="n">cmd</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Empty command&quot;</span><span class="p">)</span>
-
-    <span class="n">executable</span> <span class="o">=</span> <span class="n">validate_executable</span><span class="p">(</span><span class="n">cmd</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
-    <span class="n">safe_cmd</span> <span class="o">=</span> <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">executable</span><span class="p">)]</span>
-
-    <span class="k">for</span> <span class="n">arg</span> <span class="ow">in</span> <span class="n">cmd</span><span class="p">[</span><span class="mi">1</span><span class="p">:]:</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">arg</span><span class="p">,</span> <span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">Path</span><span class="p">)):</span>
-            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Command argument must be str or Path, got </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">arg</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-        <span class="k">if</span> <span class="s2">&quot;;&quot;</span> <span class="ow">in</span> <span class="nb">str</span><span class="p">(</span><span class="n">arg</span><span class="p">)</span> <span class="ow">or</span> <span class="s2">&quot;&amp;&amp;&quot;</span> <span class="ow">in</span> <span class="nb">str</span><span class="p">(</span><span class="n">arg</span><span class="p">)</span> <span class="ow">or</span> <span class="s2">&quot;|&quot;</span> <span class="ow">in</span> <span class="nb">str</span><span class="p">(</span><span class="n">arg</span><span class="p">):</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Potentially unsafe argument: </span><span class="si">{</span><span class="n">arg</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-        <span class="n">safe_cmd</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">arg</span><span class="p">))</span>
-
-    <span class="k">return</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span>  <span class="c1"># noqa: S603</span>
-        <span class="n">safe_cmd</span><span class="p">,</span>
-        <span class="n">capture_output</span><span class="o">=</span><span class="n">capture_output</span><span class="p">,</span>
-        <span class="n">text</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-        <span class="n">shell</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-        <span class="n">check</span><span class="o">=</span><span class="n">check</span><span class="p">,</span>
-        <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
-    <span class="p">)</span></div>
-
-
-
-<div class="viewcode-block" id="get_git_executable">
-<a class="viewcode-back" href="../../api/nxbench.html#nxbench.cli.get_git_executable">[docs]</a>
-<span class="k">def</span> <span class="nf">get_git_executable</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">Path</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Get full path to git executable.&quot;&quot;&quot;</span>
-    <span class="n">git_path</span> <span class="o">=</span> <span class="n">shutil</span><span class="o">.</span><span class="n">which</span><span class="p">(</span><span class="s2">&quot;git&quot;</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">git_path</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="k">return</span> <span class="kc">None</span>
-    <span class="k">try</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">validate_executable</span><span class="p">(</span><span class="n">git_path</span><span class="p">)</span>
-    <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
-        <span class="k">return</span> <span class="kc">None</span></div>
-
-
-
-<div class="viewcode-block" id="get_git_hash">
-<a class="viewcode-back" href="../../api/nxbench.html#nxbench.cli.get_git_hash">[docs]</a>
-<span class="k">def</span> <span class="nf">get_git_hash</span><span class="p">(</span><span class="n">repo_path</span><span class="p">:</span> <span class="n">Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Get current git commit hash within the specified repository path.&quot;&quot;&quot;</span>
-    <span class="n">git_path</span> <span class="o">=</span> <span class="n">get_git_executable</span><span class="p">()</span>
-    <span class="k">if</span> <span class="n">git_path</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="k">return</span> <span class="s2">&quot;unknown&quot;</span>
-
-    <span class="k">try</span><span class="p">:</span>
-        <span class="n">proc</span> <span class="o">=</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span>  <span class="c1"># noqa: S603</span>
-            <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">git_path</span><span class="p">),</span> <span class="s2">&quot;rev-parse&quot;</span><span class="p">,</span> <span class="s2">&quot;HEAD&quot;</span><span class="p">],</span>
-            <span class="n">cwd</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">repo_path</span><span class="p">),</span>
-            <span class="n">capture_output</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-            <span class="n">text</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-            <span class="n">check</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-        <span class="p">)</span>
-        <span class="k">return</span> <span class="n">proc</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
-    <span class="k">except</span> <span class="p">(</span><span class="n">subprocess</span><span class="o">.</span><span class="n">SubprocessError</span><span class="p">,</span> <span class="ne">ValueError</span><span class="p">):</span>
-        <span class="k">return</span> <span class="s2">&quot;unknown&quot;</span></div>
-
-
-
-<div class="viewcode-block" id="get_asv_executable">
-<a class="viewcode-back" href="../../api/nxbench.html#nxbench.cli.get_asv_executable">[docs]</a>
-<span class="k">def</span> <span class="nf">get_asv_executable</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">Path</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Get full path to asv executable.&quot;&quot;&quot;</span>
-    <span class="n">asv_path</span> <span class="o">=</span> <span class="n">shutil</span><span class="o">.</span><span class="n">which</span><span class="p">(</span><span class="s2">&quot;asv&quot;</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">asv_path</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="k">return</span> <span class="kc">None</span>
-    <span class="k">try</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">validate_executable</span><span class="p">(</span><span class="n">asv_path</span><span class="p">)</span>
-    <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
-        <span class="k">return</span> <span class="kc">None</span></div>
-
-
-
-<div class="viewcode-block" id="get_python_executable">
-<a class="viewcode-back" href="../../api/nxbench.html#nxbench.cli.get_python_executable">[docs]</a>
-<span class="k">def</span> <span class="nf">get_python_executable</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">Path</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Get full path to Python executable.&quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="n">validate_executable</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">executable</span><span class="p">)</span></div>
-
-
-
-<div class="viewcode-block" id="find_project_root">
-<a class="viewcode-back" href="../../api/nxbench.html#nxbench.cli.find_project_root">[docs]</a>
-<span class="k">def</span> <span class="nf">find_project_root</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">Path</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Find the project root directory (one containing .git).&quot;&quot;&quot;</span>
-    <span class="n">current</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="vm">__file__</span><span class="p">)</span><span class="o">.</span><span class="n">resolve</span><span class="p">()</span>
-    <span class="k">for</span> <span class="n">parent</span> <span class="ow">in</span> <span class="n">current</span><span class="o">.</span><span class="n">parents</span><span class="p">:</span>
-        <span class="k">if</span> <span class="p">(</span><span class="n">parent</span> <span class="o">/</span> <span class="s2">&quot;.git&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
-            <span class="k">return</span> <span class="n">parent</span>
-    <span class="k">return</span> <span class="n">current</span><span class="o">.</span><span class="n">parent</span></div>
-
-
-
-<div class="viewcode-block" id="ensure_asv_config_in_root">
-<a class="viewcode-back" href="../../api/nxbench.html#nxbench.cli.ensure_asv_config_in_root">[docs]</a>
-<span class="k">def</span> <span class="nf">ensure_asv_config_in_root</span><span class="p">():</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Ensure asv.conf.json is present at the project root as a symlink.&quot;&quot;&quot;</span>
-    <span class="n">project_root</span> <span class="o">=</span> <span class="n">find_project_root</span><span class="p">()</span>
-    <span class="n">target</span> <span class="o">=</span> <span class="n">project_root</span> <span class="o">/</span> <span class="s2">&quot;asv.conf.json&quot;</span>
-    <span class="k">if</span> <span class="ow">not</span> <span class="n">target</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
-        <span class="k">with</span> <span class="n">resources</span><span class="o">.</span><span class="n">path</span><span class="p">(</span><span class="s2">&quot;nxbench.configs&quot;</span><span class="p">,</span> <span class="s2">&quot;asv.conf.json&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">config_path</span><span class="p">:</span>
-            <span class="n">target</span><span class="o">.</span><span class="n">symlink_to</span><span class="p">(</span><span class="n">config_path</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">project_root</span></div>
-
-
-
-<div class="viewcode-block" id="has_git">
-<a class="viewcode-back" href="../../api/nxbench.html#nxbench.cli.has_git">[docs]</a>
-<span class="k">def</span> <span class="nf">has_git</span><span class="p">(</span><span class="n">project_root</span><span class="p">):</span>
-    <span class="k">return</span> <span class="p">(</span><span class="n">project_root</span> <span class="o">/</span> <span class="s2">&quot;.git&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">exists</span><span class="p">()</span></div>
-
-
-
-<div class="viewcode-block" id="run_asv_command">
-<a class="viewcode-back" href="../../api/nxbench.html#nxbench.cli.run_asv_command">[docs]</a>
-<span class="k">def</span> <span class="nf">run_asv_command</span><span class="p">(</span>
-    <span class="n">args</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
-    <span class="n">results_dir</span><span class="p">:</span> <span class="n">Path</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">CompletedProcess</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Run ASV command with dynamic asv.conf.json based on DVCS presence.&quot;&quot;&quot;</span>
-    <span class="n">asv_path</span> <span class="o">=</span> <span class="n">get_asv_executable</span><span class="p">()</span>
-    <span class="k">if</span> <span class="n">asv_path</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="n">click</span><span class="o">.</span><span class="n">ClickException</span><span class="p">(</span><span class="s2">&quot;ASV executable not found&quot;</span><span class="p">)</span>
-
-    <span class="k">if</span> <span class="n">results_dir</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">results_dir</span> <span class="o">=</span> <span class="n">Path</span><span class="o">.</span><span class="n">cwd</span><span class="p">()</span> <span class="o">/</span> <span class="s2">&quot;results&quot;</span>
-    <span class="n">results_dir</span> <span class="o">=</span> <span class="n">results_dir</span><span class="o">.</span><span class="n">resolve</span><span class="p">()</span>
-    <span class="n">results_dir</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-    <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Results directory resolved to: </span><span class="si">{</span><span class="n">results_dir</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-
-    <span class="n">machine</span> <span class="o">=</span> <span class="n">platform</span><span class="o">.</span><span class="n">node</span><span class="p">()</span>
-    <span class="n">machine_info_path</span> <span class="o">=</span> <span class="n">results_dir</span> <span class="o">/</span> <span class="s2">&quot;machine.json&quot;</span>
-
-    <span class="n">generate_machine_info</span><span class="p">(</span><span class="n">machine</span><span class="p">,</span> <span class="n">machine_info_path</span><span class="p">)</span>
-
-    <span class="n">asv_machine_file</span> <span class="o">=</span> <span class="n">Path</span><span class="o">.</span><span class="n">home</span><span class="p">()</span> <span class="o">/</span> <span class="s2">&quot;.asv-machine.json&quot;</span>
-    <span class="n">generate_machine_info</span><span class="p">(</span><span class="n">machine</span><span class="p">,</span> <span class="n">asv_machine_file</span><span class="p">,</span> <span class="n">home</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-
-    <span class="n">project_root</span> <span class="o">=</span> <span class="n">find_project_root</span><span class="p">()</span>
-    <span class="n">_has_git</span> <span class="o">=</span> <span class="n">has_git</span><span class="p">(</span><span class="n">project_root</span><span class="p">)</span>
-    <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Project root: </span><span class="si">{</span><span class="n">project_root</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-    <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Has .git: </span><span class="si">{</span><span class="n">_has_git</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-
-    <span class="k">try</span><span class="p">:</span>
-        <span class="k">with</span> <span class="n">resources</span><span class="o">.</span><span class="n">open_text</span><span class="p">(</span><span class="s2">&quot;nxbench.configs&quot;</span><span class="p">,</span> <span class="s2">&quot;asv.conf.json&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
-            <span class="n">config_data</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
-    <span class="k">except</span> <span class="ne">FileNotFoundError</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="n">click</span><span class="o">.</span><span class="n">ClickException</span><span class="p">(</span><span class="s2">&quot;asv.conf.json not found in package resources.&quot;</span><span class="p">)</span>
-
-    <span class="k">if</span> <span class="ow">not</span> <span class="n">_has_git</span><span class="p">:</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
-            <span class="s2">&quot;No .git directory found. Modifying asv.conf.json for remote repo.&quot;</span>
-        <span class="p">)</span>
-        <span class="n">config_data</span><span class="p">[</span><span class="s2">&quot;repo&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">project_root</span><span class="o">.</span><span class="n">resolve</span><span class="p">())</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Found .git directory.&quot;</span><span class="p">)</span>
-
-    <span class="n">config_data</span><span class="p">[</span><span class="s2">&quot;environment_type&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;conda&quot;</span>
-
-    <span class="k">try</span><span class="p">:</span>
-        <span class="kn">import</span> <span class="nn">nxbench</span>
-
-        <span class="n">nxbench_path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">nxbench</span><span class="o">.</span><span class="vm">__file__</span><span class="p">)</span><span class="o">.</span><span class="n">resolve</span><span class="p">()</span><span class="o">.</span><span class="n">parent</span>
-        <span class="n">benchmark_dir</span> <span class="o">=</span> <span class="n">nxbench_path</span> <span class="o">/</span> <span class="s2">&quot;benchmarks&quot;</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">benchmark_dir</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Benchmark directory not found: </span><span class="si">{</span><span class="n">benchmark_dir</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-        <span class="n">config_data</span><span class="p">[</span><span class="s2">&quot;benchmark_dir&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">benchmark_dir</span><span class="p">)</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Set benchmark_dir to: </span><span class="si">{</span><span class="n">benchmark_dir</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-    <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="n">click</span><span class="o">.</span><span class="n">ClickException</span><span class="p">(</span><span class="s2">&quot;Failed to import nxbench. Ensure it is installed.&quot;</span><span class="p">)</span>
-    <span class="k">except</span> <span class="ne">FileNotFoundError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="n">click</span><span class="o">.</span><span class="n">ClickException</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">))</span>
-
-    <span class="n">env_data</span> <span class="o">=</span> <span class="n">get_benchmark_config</span><span class="p">()</span><span class="o">.</span><span class="n">env_data</span>
-    <span class="n">config_data</span><span class="p">[</span><span class="s2">&quot;pythons&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">env_data</span><span class="p">[</span><span class="s2">&quot;pythons&quot;</span><span class="p">]</span>
-    <span class="n">config_data</span><span class="p">[</span><span class="s2">&quot;req&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">env_data</span><span class="p">[</span><span class="s2">&quot;req&quot;</span><span class="p">]</span>
-    <span class="n">config_data</span><span class="p">[</span><span class="s2">&quot;machine&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">machine</span>
-
-    <span class="k">if</span> <span class="n">results_dir</span><span class="p">:</span>
-        <span class="n">config_data</span><span class="p">[</span><span class="s2">&quot;results_dir&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">results_dir</span><span class="p">)</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Set results_dir to: </span><span class="si">{</span><span class="n">results_dir</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="n">default_results_dir</span> <span class="o">=</span> <span class="n">Path</span><span class="o">.</span><span class="n">cwd</span><span class="p">()</span> <span class="o">/</span> <span class="s2">&quot;results&quot;</span>
-        <span class="n">config_data</span><span class="p">[</span><span class="s2">&quot;results_dir&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">default_results_dir</span><span class="o">.</span><span class="n">resolve</span><span class="p">())</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
-            <span class="s2">&quot;Set results_dir to default &#39;results&#39; in current working directory.&quot;</span>
-        <span class="p">)</span>
-
-    <span class="n">config_data</span><span class="p">[</span><span class="s2">&quot;html_dir&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">Path</span><span class="p">(</span><span class="n">config_data</span><span class="p">[</span><span class="s2">&quot;results_dir&quot;</span><span class="p">])</span><span class="o">.</span><span class="n">parent</span> <span class="o">/</span> <span class="s2">&quot;html&quot;</span><span class="p">)</span>
-
-    <span class="k">with</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">TemporaryDirectory</span><span class="p">()</span> <span class="k">as</span> <span class="n">tmpdir</span><span class="p">:</span>
-        <span class="n">temp_config_path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">tmpdir</span><span class="p">)</span> <span class="o">/</span> <span class="s2">&quot;asv.conf.json&quot;</span>
-        <span class="k">with</span> <span class="n">temp_config_path</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
-            <span class="n">json</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">config_data</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Temporary asv.conf.json created at: </span><span class="si">{</span><span class="n">temp_config_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-
-        <span class="n">safe_args</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="k">for</span> <span class="n">arg</span> <span class="ow">in</span> <span class="n">args</span><span class="p">:</span>
-            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">arg</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
-                <span class="k">raise</span> <span class="n">click</span><span class="o">.</span><span class="n">ClickException</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Invalid argument type: </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">arg</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-            <span class="k">if</span> <span class="s2">&quot;;&quot;</span> <span class="ow">in</span> <span class="n">arg</span> <span class="ow">or</span> <span class="s2">&quot;&amp;&amp;&quot;</span> <span class="ow">in</span> <span class="n">arg</span> <span class="ow">or</span> <span class="s2">&quot;|&quot;</span> <span class="ow">in</span> <span class="n">arg</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="n">click</span><span class="o">.</span><span class="n">ClickException</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Potentially unsafe argument: </span><span class="si">{</span><span class="n">arg</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-            <span class="n">safe_args</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">arg</span><span class="p">)</span>
-
-        <span class="k">if</span> <span class="s2">&quot;--config&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">safe_args</span><span class="p">:</span>
-            <span class="n">safe_args</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;--config&quot;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">temp_config_path</span><span class="p">),</span> <span class="o">*</span><span class="n">safe_args</span><span class="p">]</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Added --config </span><span class="si">{</span><span class="n">temp_config_path</span><span class="si">}</span><span class="s2"> to ASV arguments.&quot;</span><span class="p">)</span>
-
-        <span class="k">if</span> <span class="n">_has_git</span><span class="p">:</span>
-            <span class="n">git_hash</span> <span class="o">=</span> <span class="n">get_git_hash</span><span class="p">(</span><span class="n">project_root</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">git_hash</span> <span class="o">=</span> <span class="n">get_latest_commit_hash</span><span class="p">(</span><span class="n">config_data</span><span class="p">[</span><span class="s2">&quot;project_url&quot;</span><span class="p">])</span>
-
-        <span class="k">try</span><span class="p">:</span>
-            <span class="n">safe_args</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;--set-commit-hash=</span><span class="si">{</span><span class="n">git_hash</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Set commit hash to: </span><span class="si">{</span><span class="n">git_hash</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-        <span class="k">except</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">CalledProcessError</span><span class="p">:</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
-                <span class="s2">&quot;Could not determine git commit hash. Proceeding without it.&quot;</span>
-            <span class="p">)</span>
-
-        <span class="k">try</span><span class="p">:</span>
-            <span class="n">safe_args</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;--machine=</span><span class="si">{</span><span class="n">machine</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Set machine to: </span><span class="si">{</span><span class="n">machine</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-        <span class="k">except</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">CalledProcessError</span><span class="p">:</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Could not determine machine. Proceeding without it.&quot;</span><span class="p">)</span>
-
-        <span class="n">old_cwd</span> <span class="o">=</span> <span class="n">Path</span><span class="o">.</span><span class="n">cwd</span><span class="p">()</span>
-        <span class="k">if</span> <span class="n">_has_git</span><span class="p">:</span>
-            <span class="n">os</span><span class="o">.</span><span class="n">chdir</span><span class="p">(</span><span class="n">project_root</span><span class="p">)</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Changed working directory to project root: </span><span class="si">{</span><span class="n">project_root</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-
-        <span class="k">try</span><span class="p">:</span>
-            <span class="n">asv_command</span> <span class="o">=</span> <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">asv_path</span><span class="p">),</span> <span class="o">*</span><span class="n">safe_args</span><span class="p">]</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Executing ASV command: </span><span class="si">{</span><span class="s1">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span><span class="w"> </span><span class="n">asv_command</span><span class="p">))</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-            <span class="n">completed_process</span> <span class="o">=</span> <span class="n">safe_run</span><span class="p">(</span><span class="n">asv_command</span><span class="p">)</span>
-        <span class="k">except</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">CalledProcessError</span><span class="p">:</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="s2">&quot;ASV command failed.&quot;</span><span class="p">)</span>
-            <span class="k">raise</span> <span class="n">click</span><span class="o">.</span><span class="n">ClickException</span><span class="p">(</span><span class="s2">&quot;ASV command failed.&quot;</span><span class="p">)</span>
-        <span class="k">except</span> <span class="p">(</span><span class="n">subprocess</span><span class="o">.</span><span class="n">SubprocessError</span><span class="p">,</span> <span class="ne">ValueError</span><span class="p">):</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="s2">&quot;ASV subprocess error occurred.&quot;</span><span class="p">)</span>
-            <span class="k">raise</span> <span class="n">click</span><span class="o">.</span><span class="n">ClickException</span><span class="p">(</span><span class="s2">&quot;ASV subprocess error occurred.&quot;</span><span class="p">)</span>
-        <span class="k">finally</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">_has_git</span><span class="p">:</span>
-                <span class="n">os</span><span class="o">.</span><span class="n">chdir</span><span class="p">(</span><span class="n">old_cwd</span><span class="p">)</span>
-                <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Restored working directory to: </span><span class="si">{</span><span class="n">old_cwd</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">completed_process</span></div>
-
 
 
 <span class="nd">@click</span><span class="o">.</span><span class="n">group</span><span class="p">()</span>
@@ -689,8 +301,6 @@
 <span class="p">)</span>
 <span class="nd">@click</span><span class="o">.</span><span class="n">pass_context</span>
 <span class="k">def</span> <span class="nf">cli</span><span class="p">(</span><span class="n">ctx</span><span class="p">,</span> <span class="n">verbose</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">config</span><span class="p">:</span> <span class="n">Path</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span> <span class="n">output_dir</span><span class="p">:</span> <span class="n">Path</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;NetworkX Benchmarking Suite CLI.&quot;&quot;&quot;</span>
-    <span class="c1"># Set verbosity level</span>
     <span class="k">if</span> <span class="n">verbose</span> <span class="o">&gt;=</span> <span class="mi">2</span><span class="p">:</span>
         <span class="n">verbosity_level</span> <span class="o">=</span> <span class="mi">2</span>
     <span class="k">elif</span> <span class="n">verbose</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
@@ -791,17 +401,9 @@
 
 
 <span class="nd">@benchmark</span><span class="o">.</span><span class="n">command</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;run&quot;</span><span class="p">)</span>
-<span class="nd">@click</span><span class="o">.</span><span class="n">option</span><span class="p">(</span>
-    <span class="s2">&quot;--backend&quot;</span><span class="p">,</span>
-    <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span>
-    <span class="n">multiple</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-    <span class="n">default</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;all&quot;</span><span class="p">],</span>
-    <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Backends to benchmark. Specify multiple values to run for multiple backends.&quot;</span><span class="p">,</span>
-<span class="p">)</span>
-<span class="nd">@click</span><span class="o">.</span><span class="n">option</span><span class="p">(</span><span class="s2">&quot;--collection&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s2">&quot;all&quot;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Graph collection to use.&quot;</span><span class="p">)</span>
 <span class="nd">@click</span><span class="o">.</span><span class="n">pass_context</span>
-<span class="k">def</span> <span class="nf">run_benchmark</span><span class="p">(</span><span class="n">ctx</span><span class="p">,</span> <span class="n">backend</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">collection</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Run benchmarks.&quot;&quot;&quot;</span>
+<span class="k">def</span> <span class="nf">run_benchmark</span><span class="p">(</span><span class="n">ctx</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Run benchmarks using Pydra.&quot;&quot;&quot;</span>
     <span class="n">config</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">obj</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;CONFIG&quot;</span><span class="p">)</span>
     <span class="n">output_dir</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">obj</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;OUTPUT_DIR&quot;</span><span class="p">,</span> <span class="n">Path</span><span class="o">.</span><span class="n">cwd</span><span class="p">())</span>
     <span class="n">results_dir</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">obj</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;RESULTS_DIR&quot;</span><span class="p">,</span> <span class="n">output_dir</span> <span class="o">/</span> <span class="s2">&quot;results&quot;</span><span class="p">)</span>
@@ -809,103 +411,52 @@
     <span class="k">if</span> <span class="n">config</span><span class="p">:</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Config file used for benchmark run: </span><span class="si">{</span><span class="n">config</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
-    <span class="n">cmd_args</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;run&quot;</span><span class="p">]</span>
-
-    <span class="k">if</span> <span class="n">package_config</span><span class="o">.</span><span class="n">verbosity_level</span> <span class="o">&gt;=</span> <span class="mi">1</span><span class="p">:</span>
-        <span class="n">cmd_args</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;--verbose&quot;</span><span class="p">)</span>
-
-    <span class="k">if</span> <span class="s2">&quot;all&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">backend</span><span class="p">:</span>
-        <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">backend</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">b</span><span class="p">:</span>
-                <span class="n">benchmark_pattern</span> <span class="o">=</span> <span class="s2">&quot;GraphBenchmark.track_&quot;</span>
-                <span class="k">if</span> <span class="n">collection</span> <span class="o">!=</span> <span class="s2">&quot;all&quot;</span><span class="p">:</span>
-                    <span class="n">benchmark_pattern</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">benchmark_pattern</span><span class="si">}</span><span class="s2">.*</span><span class="si">{</span><span class="n">collection</span><span class="si">}</span><span class="s2">&quot;</span>
-                <span class="n">benchmark_pattern</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">benchmark_pattern</span><span class="si">}</span><span class="s2">.*</span><span class="si">{</span><span class="n">b</span><span class="si">}</span><span class="s2">&quot;</span>
-                <span class="n">cmd_args</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="s2">&quot;-b&quot;</span><span class="p">,</span> <span class="n">benchmark_pattern</span><span class="p">])</span>
-    <span class="k">elif</span> <span class="n">collection</span> <span class="o">!=</span> <span class="s2">&quot;all&quot;</span><span class="p">:</span>
-        <span class="n">cmd_args</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="s2">&quot;-b&quot;</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;GraphBenchmark.track_.*</span><span class="si">{</span><span class="n">collection</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">])</span>
-
-    <span class="n">cmd_args</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;--python=same&quot;</span><span class="p">)</span>
-
-    <span class="k">try</span><span class="p">:</span>
-        <span class="n">run_asv_command</span><span class="p">(</span>
-            <span class="n">cmd_args</span><span class="p">,</span>
-            <span class="n">results_dir</span><span class="o">=</span><span class="n">results_dir</span><span class="p">,</span>
-        <span class="p">)</span>
-    <span class="k">except</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">CalledProcessError</span><span class="p">:</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="s2">&quot;Benchmark run failed&quot;</span><span class="p">)</span>
-        <span class="k">raise</span> <span class="n">click</span><span class="o">.</span><span class="n">ClickException</span><span class="p">(</span><span class="s2">&quot;Benchmark run failed&quot;</span><span class="p">)</span>
+    <span class="n">asyncio</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">main_benchmark</span><span class="p">(</span><span class="n">results_dir</span><span class="p">))</span>
 
 
 <span class="nd">@benchmark</span><span class="o">.</span><span class="n">command</span><span class="p">()</span>
-<span class="nd">@click</span><span class="o">.</span><span class="n">argument</span><span class="p">(</span><span class="s2">&quot;result_file&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="n">Path</span><span class="p">)</span>
+<span class="nd">@click</span><span class="o">.</span><span class="n">argument</span><span class="p">(</span><span class="s2">&quot;result_file&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="n">Path</span><span class="p">,</span> <span class="n">metavar</span><span class="o">=</span><span class="s2">&quot;RESULT_FILE&quot;</span><span class="p">)</span>
 <span class="nd">@click</span><span class="o">.</span><span class="n">option</span><span class="p">(</span>
     <span class="s2">&quot;--output-format&quot;</span><span class="p">,</span>
     <span class="nb">type</span><span class="o">=</span><span class="n">click</span><span class="o">.</span><span class="n">Choice</span><span class="p">([</span><span class="s2">&quot;json&quot;</span><span class="p">,</span> <span class="s2">&quot;csv&quot;</span><span class="p">,</span> <span class="s2">&quot;sql&quot;</span><span class="p">]),</span>
     <span class="n">default</span><span class="o">=</span><span class="s2">&quot;csv&quot;</span><span class="p">,</span>
     <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Format to export results in&quot;</span><span class="p">,</span>
 <span class="p">)</span>
+<span class="nd">@click</span><span class="o">.</span><span class="n">option</span><span class="p">(</span>
+    <span class="s2">&quot;--output-file&quot;</span><span class="p">,</span>
+    <span class="nb">type</span><span class="o">=</span><span class="n">click</span><span class="o">.</span><span class="n">Path</span><span class="p">(</span><span class="n">dir_okay</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">writable</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">path_type</span><span class="o">=</span><span class="n">Path</span><span class="p">),</span>
+    <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Path to the output file. If not provided, the output file will be derived &quot;</span>
+    <span class="s2">&quot;from RESULT_FILE.&quot;</span><span class="p">,</span>
+<span class="p">)</span>
 <span class="nd">@click</span><span class="o">.</span><span class="n">pass_context</span>
-<span class="k">def</span> <span class="nf">export</span><span class="p">(</span><span class="n">ctx</span><span class="p">,</span> <span class="n">result_file</span><span class="p">:</span> <span class="n">Path</span><span class="p">,</span> <span class="n">output_format</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Export benchmark results.&quot;&quot;&quot;</span>
+<span class="k">def</span> <span class="nf">export</span><span class="p">(</span><span class="n">ctx</span><span class="p">,</span> <span class="n">result_file</span><span class="p">:</span> <span class="n">Path</span><span class="p">,</span> <span class="n">output_format</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">output_file</span><span class="p">:</span> <span class="n">Path</span> <span class="o">|</span> <span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Export benchmark results.</span>
+
+<span class="sd">    RESULT_FILE is the path to the input benchmark results file (JSON or CSV).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">config</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">obj</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;CONFIG&quot;</span><span class="p">)</span>
-    <span class="n">output_dir</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">obj</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;OUTPUT_DIR&quot;</span><span class="p">,</span> <span class="n">Path</span><span class="o">.</span><span class="n">cwd</span><span class="p">())</span>
-    <span class="n">results_dir</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">obj</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;RESULTS_DIR&quot;</span><span class="p">,</span> <span class="n">output_dir</span> <span class="o">/</span> <span class="s2">&quot;results&quot;</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">config</span><span class="p">:</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Using config file for export: </span><span class="si">{</span><span class="n">config</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
-    <span class="n">dashboard</span> <span class="o">=</span> <span class="n">BenchmarkDashboard</span><span class="p">(</span><span class="n">results_dir</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">results_dir</span><span class="p">))</span>
-
     <span class="k">try</span><span class="p">:</span>
-        <span class="k">if</span> <span class="n">output_format</span> <span class="o">==</span> <span class="s2">&quot;sql&quot;</span><span class="p">:</span>
-            <span class="n">dashboard</span><span class="o">.</span><span class="n">export_results</span><span class="p">(</span><span class="nb">format</span><span class="o">=</span><span class="s2">&quot;sql&quot;</span><span class="p">,</span> <span class="n">output_path</span><span class="o">=</span><span class="n">result_file</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">df</span> <span class="o">=</span> <span class="n">dashboard</span><span class="o">.</span><span class="n">get_results_df</span><span class="p">()</span>
+        <span class="n">exporter</span> <span class="o">=</span> <span class="n">ResultsExporter</span><span class="p">(</span><span class="n">results_file</span><span class="o">=</span><span class="n">result_file</span><span class="p">)</span>
 
-            <span class="k">if</span> <span class="n">df</span><span class="o">.</span><span class="n">empty</span><span class="p">:</span>
-                <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;No benchmark results found.&quot;</span><span class="p">)</span>
-                <span class="n">click</span><span class="o">.</span><span class="n">echo</span><span class="p">(</span><span class="s2">&quot;No benchmark results found.&quot;</span><span class="p">)</span>
-                <span class="k">return</span>
+        <span class="k">if</span> <span class="n">output_file</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">output_file</span> <span class="o">=</span> <span class="n">result_file</span><span class="o">.</span><span class="n">with_suffix</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;.</span><span class="si">{</span><span class="n">output_format</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;No output file specified. Using inferred path: </span><span class="si">{</span><span class="n">output_file</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="p">)</span>
 
-            <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">sort_values</span><span class="p">([</span><span class="s2">&quot;algorithm&quot;</span><span class="p">,</span> <span class="s2">&quot;dataset&quot;</span><span class="p">,</span> <span class="s2">&quot;backend&quot;</span><span class="p">])</span>
+        <span class="n">exporter</span><span class="o">.</span><span class="n">export_results</span><span class="p">(</span><span class="n">output_path</span><span class="o">=</span><span class="n">output_file</span><span class="p">,</span> <span class="n">form</span><span class="o">=</span><span class="n">output_format</span><span class="p">)</span>
 
-            <span class="n">df</span><span class="p">[</span><span class="s2">&quot;execution_time&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="s2">&quot;execution_time&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{:.6f}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">)</span>
-            <span class="n">df</span><span class="p">[</span><span class="s2">&quot;memory_used&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="s2">&quot;memory_used&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{:.2f}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">)</span>
-
-            <span class="k">if</span> <span class="n">output_format</span> <span class="o">==</span> <span class="s2">&quot;csv&quot;</span><span class="p">:</span>
-                <span class="n">df</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">result_file</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">df</span><span class="o">.</span><span class="n">to_json</span><span class="p">(</span><span class="n">result_file</span><span class="p">,</span> <span class="n">orient</span><span class="o">=</span><span class="s2">&quot;records&quot;</span><span class="p">)</span>
-
-        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Exported results to </span><span class="si">{</span><span class="n">result_file</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-        <span class="n">click</span><span class="o">.</span><span class="n">echo</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Exported results to </span><span class="si">{</span><span class="n">result_file</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Exported results to </span><span class="si">{</span><span class="n">output_file</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">click</span><span class="o">.</span><span class="n">echo</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Exported results to </span><span class="si">{</span><span class="n">output_file</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
     <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="s2">&quot;Failed to export results&quot;</span><span class="p">)</span>
         <span class="n">click</span><span class="o">.</span><span class="n">echo</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error exporting results: </span><span class="si">{</span><span class="n">e</span><span class="si">!s}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">err</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="k">raise</span> <span class="n">click</span><span class="o">.</span><span class="n">Abort</span>
-
-
-<span class="nd">@benchmark</span><span class="o">.</span><span class="n">command</span><span class="p">()</span>
-<span class="nd">@click</span><span class="o">.</span><span class="n">argument</span><span class="p">(</span><span class="s2">&quot;baseline&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">)</span>
-<span class="nd">@click</span><span class="o">.</span><span class="n">argument</span><span class="p">(</span><span class="s2">&quot;comparison&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">)</span>
-<span class="nd">@click</span><span class="o">.</span><span class="n">option</span><span class="p">(</span><span class="s2">&quot;--threshold&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">float</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mf">0.05</span><span class="p">)</span>
-<span class="nd">@click</span><span class="o">.</span><span class="n">pass_context</span>
-<span class="k">def</span> <span class="nf">compare</span><span class="p">(</span><span class="n">ctx</span><span class="p">,</span> <span class="n">baseline</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">comparison</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">threshold</span><span class="p">:</span> <span class="nb">float</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Compare benchmark results.&quot;&quot;&quot;</span>
-    <span class="n">config</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">obj</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;CONFIG&quot;</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">config</span><span class="p">:</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Config file used for compare: </span><span class="si">{</span><span class="n">config</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-
-    <span class="n">cmd_args</span> <span class="o">=</span> <span class="p">[</span>
-        <span class="s2">&quot;compare&quot;</span><span class="p">,</span>
-        <span class="n">baseline</span><span class="p">,</span>
-        <span class="n">comparison</span><span class="p">,</span>
-        <span class="s2">&quot;-f&quot;</span><span class="p">,</span>
-        <span class="nb">str</span><span class="p">(</span><span class="n">threshold</span><span class="p">),</span>
-    <span class="p">]</span>
-    <span class="n">run_asv_command</span><span class="p">(</span><span class="n">cmd_args</span><span class="p">)</span>
 
 
 <span class="nd">@cli</span><span class="o">.</span><span class="n">group</span><span class="p">()</span>
@@ -929,43 +480,6 @@
     <span class="n">run_server</span><span class="p">(</span><span class="n">port</span><span class="o">=</span><span class="n">port</span><span class="p">,</span> <span class="n">debug</span><span class="o">=</span><span class="n">debug</span><span class="p">)</span>
 
 
-<span class="nd">@viz</span><span class="o">.</span><span class="n">command</span><span class="p">()</span>
-<span class="nd">@click</span><span class="o">.</span><span class="n">pass_context</span>
-<span class="k">def</span> <span class="nf">publish</span><span class="p">(</span><span class="n">ctx</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Generate static benchmark report.&quot;&quot;&quot;</span>
-    <span class="n">config</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">obj</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;CONFIG&quot;</span><span class="p">)</span>
-    <span class="n">output_dir</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">obj</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;OUTPUT_DIR&quot;</span><span class="p">,</span> <span class="n">Path</span><span class="o">.</span><span class="n">cwd</span><span class="p">())</span>
-    <span class="n">results_dir</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">obj</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;RESULTS_DIR&quot;</span><span class="p">,</span> <span class="n">output_dir</span> <span class="o">/</span> <span class="s2">&quot;results&quot;</span><span class="p">)</span>
-
-    <span class="k">if</span> <span class="n">config</span><span class="p">:</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Config file used for viz publish: </span><span class="si">{</span><span class="n">config</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-
-    <span class="k">try</span><span class="p">:</span>
-        <span class="n">python_path</span> <span class="o">=</span> <span class="n">get_python_executable</span><span class="p">()</span>
-    <span class="k">except</span> <span class="ne">ValueError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="n">click</span><span class="o">.</span><span class="n">ClickException</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">))</span>
-
-    <span class="n">process_script</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="s2">&quot;nxbench/validation/scripts/process_results.py&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">resolve</span><span class="p">()</span>
-    <span class="k">if</span> <span class="ow">not</span> <span class="n">process_script</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
-        <span class="k">raise</span> <span class="n">click</span><span class="o">.</span><span class="n">ClickException</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Processing script not found: </span><span class="si">{</span><span class="n">process_script</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-
-    <span class="k">try</span><span class="p">:</span>
-        <span class="n">process_script</span><span class="o">.</span><span class="n">relative_to</span><span class="p">(</span><span class="n">Path</span><span class="o">.</span><span class="n">cwd</span><span class="p">())</span>
-    <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="n">click</span><span class="o">.</span><span class="n">ClickException</span><span class="p">(</span><span class="s2">&quot;Script path must be within project directory&quot;</span><span class="p">)</span>
-
-    <span class="k">try</span><span class="p">:</span>
-        <span class="n">safe_run</span><span class="p">([</span><span class="n">python_path</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">process_script</span><span class="p">),</span> <span class="s2">&quot;--results_dir&quot;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">results_dir</span><span class="p">)])</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Successfully processed results.&quot;</span><span class="p">)</span>
-    <span class="k">except</span> <span class="p">(</span><span class="n">subprocess</span><span class="o">.</span><span class="n">SubprocessError</span><span class="p">,</span> <span class="ne">ValueError</span><span class="p">)</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="s2">&quot;Failed to process results&quot;</span><span class="p">)</span>
-        <span class="k">raise</span> <span class="n">click</span><span class="o">.</span><span class="n">ClickException</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">))</span>
-
-    <span class="n">run_asv_command</span><span class="p">([</span><span class="s2">&quot;publish&quot;</span><span class="p">,</span> <span class="s2">&quot;--verbose&quot;</span><span class="p">],</span> <span class="n">results_dir</span><span class="o">=</span><span class="n">results_dir</span><span class="p">)</span>
-    <span class="n">dashboard</span> <span class="o">=</span> <span class="n">BenchmarkDashboard</span><span class="p">(</span><span class="n">results_dir</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">results_dir</span><span class="p">))</span>
-    <span class="n">dashboard</span><span class="o">.</span><span class="n">generate_static_report</span><span class="p">()</span>
-
-
 <span class="nd">@cli</span><span class="o">.</span><span class="n">group</span><span class="p">()</span>
 <span class="nd">@click</span><span class="o">.</span><span class="n">pass_context</span>
 <span class="k">def</span> <span class="nf">validate</span><span class="p">(</span><span class="n">ctx</span><span class="p">):</span>
@@ -980,8 +494,6 @@
     <span class="n">config</span> <span class="o">=</span> <span class="n">ctx</span><span class="o">.</span><span class="n">obj</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;CONFIG&quot;</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">config</span><span class="p">:</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Config file used for validate check: </span><span class="si">{</span><span class="n">config</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-
-    <span class="kn">from</span> <span class="nn">nxbench.validation.registry</span> <span class="kn">import</span> <span class="n">BenchmarkValidator</span>
 
     <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_json</span><span class="p">(</span><span class="n">result_file</span><span class="p">)</span>
     <span class="n">validator</span> <span class="o">=</span> <span class="n">BenchmarkValidator</span><span class="p">()</span>

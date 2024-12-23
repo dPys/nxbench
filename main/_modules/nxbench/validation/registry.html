@@ -213,8 +213,7 @@
 <li class="toctree-l4"><a class="reference internal" href="../../../api/nxbench.data.scripts.html">nxbench.data.scripts package</a></li>
 </ul>
 </li>
-<li class="toctree-l3 has-children"><a class="reference internal" href="../../../api/nxbench.validation.html">nxbench.validation package</a><input class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" role="switch" type="checkbox"/><label for="toctree-checkbox-4"><div class="visually-hidden">Toggle navigation of nxbench.validation package</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
-<li class="toctree-l4"><a class="reference internal" href="../../../api/nxbench.validation.scripts.html">nxbench.validation.scripts package</a></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../../../api/nxbench.validation.html">nxbench.validation package</a><input class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" role="switch" type="checkbox"/><label for="toctree-checkbox-4"><div class="visually-hidden">Toggle navigation of nxbench.validation package</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="simple">
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="../../../api/nxbench.viz.html">nxbench.viz package</a></li>
@@ -226,11 +225,9 @@
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="../../../api/nxbench.data.scripts.html">nxbench.data.scripts package</a></li>
-<li class="toctree-l2 has-children"><a class="reference internal" href="../../../api/nxbench.validation.html">nxbench.validation package</a><input class="toctree-checkbox" id="toctree-checkbox-6" name="toctree-checkbox-6" role="switch" type="checkbox"/><label for="toctree-checkbox-6"><div class="visually-hidden">Toggle navigation of nxbench.validation package</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
-<li class="toctree-l3"><a class="reference internal" href="../../../api/nxbench.validation.scripts.html">nxbench.validation.scripts package</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../../api/nxbench.validation.html">nxbench.validation package</a><input class="toctree-checkbox" id="toctree-checkbox-6" name="toctree-checkbox-6" role="switch" type="checkbox"/><label for="toctree-checkbox-6"><div class="visually-hidden">Toggle navigation of nxbench.validation package</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="simple">
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="../../../api/nxbench.validation.scripts.html">nxbench.validation.scripts package</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../api/nxbench.viz.html">nxbench.viz package</a></li>
 </ul>
 </li>
@@ -330,17 +327,21 @@
     <span class="n">DEFAULT_VALIDATORS</span><span class="p">:</span> <span class="n">ClassVar</span><span class="p">[</span><span class="nb">dict</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
         <span class="s2">&quot;pagerank&quot;</span><span class="p">:</span> <span class="n">ValidationConfig</span><span class="p">(</span>
             <span class="n">validator</span><span class="o">=</span><span class="n">validate_node_scores</span><span class="p">,</span>
-            <span class="n">params</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;score_range&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">),</span> <span class="s2">&quot;require_normalized&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">},</span>
+            <span class="n">params</span><span class="o">=</span><span class="p">{</span>
+                <span class="s2">&quot;score_range&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">),</span>
+                <span class="s2">&quot;require_normalized&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+                <span class="s2">&quot;tolerance&quot;</span><span class="p">:</span> <span class="mf">1e-06</span><span class="p">,</span>
+            <span class="p">},</span>
             <span class="n">expected_type</span><span class="o">=</span><span class="nb">dict</span><span class="p">,</span>
         <span class="p">),</span>
         <span class="s2">&quot;betweenness_centrality&quot;</span><span class="p">:</span> <span class="n">ValidationConfig</span><span class="p">(</span>
             <span class="n">validator</span><span class="o">=</span><span class="n">validate_node_scores</span><span class="p">,</span>
-            <span class="n">params</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;score_range&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">),</span> <span class="s2">&quot;require_normalized&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">},</span>
+            <span class="n">params</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;score_range&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">),</span> <span class="s2">&quot;require_normalized&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">},</span>
             <span class="n">expected_type</span><span class="o">=</span><span class="nb">dict</span><span class="p">,</span>
         <span class="p">),</span>
         <span class="s2">&quot;eigenvector_centrality&quot;</span><span class="p">:</span> <span class="n">ValidationConfig</span><span class="p">(</span>
             <span class="n">validator</span><span class="o">=</span><span class="n">validate_node_scores</span><span class="p">,</span>
-            <span class="n">params</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;score_range&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">),</span> <span class="s2">&quot;require_normalized&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">},</span>
+            <span class="n">params</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;score_range&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">),</span> <span class="s2">&quot;require_normalized&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">},</span>
             <span class="n">expected_type</span><span class="o">=</span><span class="nb">dict</span><span class="p">,</span>
         <span class="p">),</span>
         <span class="s2">&quot;louvain_communities&quot;</span><span class="p">:</span> <span class="n">ValidationConfig</span><span class="p">(</span>
@@ -355,12 +356,12 @@
         <span class="p">),</span>
         <span class="s2">&quot;shortest_path&quot;</span><span class="p">:</span> <span class="n">ValidationConfig</span><span class="p">(</span>
             <span class="n">validator</span><span class="o">=</span><span class="n">validate_path_lengths</span><span class="p">,</span>
-            <span class="n">params</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;check_symmetry&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span> <span class="s2">&quot;allow_infinity&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">},</span>
+            <span class="n">params</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;check_symmetry&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span> <span class="s2">&quot;allow_infinity&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">},</span>
             <span class="n">expected_type</span><span class="o">=</span><span class="nb">dict</span><span class="p">,</span>
         <span class="p">),</span>
         <span class="s2">&quot;all_pairs_shortest_path_length&quot;</span><span class="p">:</span> <span class="n">ValidationConfig</span><span class="p">(</span>
             <span class="n">validator</span><span class="o">=</span><span class="n">validate_path_lengths</span><span class="p">,</span>
-            <span class="n">params</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;check_symmetry&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span> <span class="s2">&quot;allow_infinity&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">},</span>
+            <span class="n">params</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;check_symmetry&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span> <span class="s2">&quot;allow_infinity&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">},</span>
             <span class="n">expected_type</span><span class="o">=</span><span class="nb">dict</span><span class="p">,</span>
         <span class="p">),</span>
         <span class="s2">&quot;maximum_flow&quot;</span><span class="p">:</span> <span class="n">ValidationConfig</span><span class="p">(</span>
@@ -378,70 +379,55 @@
             <span class="n">params</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;score_range&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)},</span>
             <span class="n">expected_type</span><span class="o">=</span><span class="nb">dict</span><span class="p">,</span>
         <span class="p">),</span>
-        <span class="s2">&quot;approximate_all_pairs_node_connectivity&quot;</span><span class="p">:</span> <span class="n">ValidationConfig</span><span class="p">(</span>
-            <span class="n">validator</span><span class="o">=</span><span class="n">validate_path_lengths</span><span class="p">,</span>
-            <span class="n">params</span><span class="o">=</span><span class="p">{},</span>
-            <span class="n">expected_type</span><span class="o">=</span><span class="nb">dict</span><span class="p">,</span>
-        <span class="p">),</span>
-        <span class="s2">&quot;all_pairs_node_connectivity&quot;</span><span class="p">:</span> <span class="n">ValidationConfig</span><span class="p">(</span>
-            <span class="n">validator</span><span class="o">=</span><span class="n">validate_path_lengths</span><span class="p">,</span>
-            <span class="n">params</span><span class="o">=</span><span class="p">{},</span>
-            <span class="n">expected_type</span><span class="o">=</span><span class="nb">dict</span><span class="p">,</span>
-        <span class="p">),</span>
         <span class="s2">&quot;average_clustering&quot;</span><span class="p">:</span> <span class="n">ValidationConfig</span><span class="p">(</span>
-            <span class="n">validator</span><span class="o">=</span><span class="n">validate_node_scores</span><span class="p">,</span>
-            <span class="n">params</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;require_normalized&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">},</span>
-            <span class="n">expected_type</span><span class="o">=</span><span class="nb">dict</span><span class="p">,</span>
-        <span class="p">),</span>
-        <span class="s2">&quot;square_clustering&quot;</span><span class="p">:</span> <span class="n">ValidationConfig</span><span class="p">(</span>
-            <span class="n">validator</span><span class="o">=</span><span class="n">validate_node_scores</span><span class="p">,</span>
-            <span class="n">params</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;require_normalized&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">},</span>
-            <span class="n">expected_type</span><span class="o">=</span><span class="nb">dict</span><span class="p">,</span>
+            <span class="n">validator</span><span class="o">=</span><span class="n">validate_scalar_result</span><span class="p">,</span>
+            <span class="n">params</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;min_value&quot;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span> <span class="s2">&quot;max_value&quot;</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">},</span>
+            <span class="n">expected_type</span><span class="o">=</span><span class="nb">float</span><span class="p">,</span>
         <span class="p">),</span>
         <span class="s2">&quot;local_efficiency&quot;</span><span class="p">:</span> <span class="n">ValidationConfig</span><span class="p">(</span>
             <span class="n">validator</span><span class="o">=</span><span class="n">validate_scalar_result</span><span class="p">,</span>
-            <span class="n">params</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;expected_type&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="s2">&quot;min_value&quot;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span> <span class="s2">&quot;max_value&quot;</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">},</span>
+            <span class="n">params</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;min_value&quot;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span> <span class="s2">&quot;max_value&quot;</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">},</span>
             <span class="n">expected_type</span><span class="o">=</span><span class="nb">float</span><span class="p">,</span>
         <span class="p">),</span>
         <span class="s2">&quot;number_of_isolates&quot;</span><span class="p">:</span> <span class="n">ValidationConfig</span><span class="p">(</span>
             <span class="n">validator</span><span class="o">=</span><span class="n">validate_scalar_result</span><span class="p">,</span>
-            <span class="n">params</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;expected_type&quot;</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="s2">&quot;min_value&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">},</span>
+            <span class="n">params</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;min_value&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">},</span>
             <span class="n">expected_type</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span>
             <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
         <span class="p">),</span>
         <span class="s2">&quot;all_pairs_all_shortest_paths&quot;</span><span class="p">:</span> <span class="n">ValidationConfig</span><span class="p">(</span>
             <span class="n">validator</span><span class="o">=</span><span class="n">validate_path_lengths</span><span class="p">,</span>
-            <span class="n">params</span><span class="o">=</span><span class="p">{},</span>
+            <span class="n">params</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;check_symmetry&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span> <span class="s2">&quot;allow_infinity&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">},</span>
             <span class="n">expected_type</span><span class="o">=</span><span class="nb">dict</span><span class="p">,</span>
         <span class="p">),</span>
         <span class="s2">&quot;all_pairs_dijkstra&quot;</span><span class="p">:</span> <span class="n">ValidationConfig</span><span class="p">(</span>
             <span class="n">validator</span><span class="o">=</span><span class="n">validate_path_lengths</span><span class="p">,</span>
-            <span class="n">params</span><span class="o">=</span><span class="p">{},</span>
+            <span class="n">params</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;check_symmetry&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span> <span class="s2">&quot;allow_infinity&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">},</span>
             <span class="n">expected_type</span><span class="o">=</span><span class="nb">dict</span><span class="p">,</span>
         <span class="p">),</span>
         <span class="s2">&quot;all_pairs_dijkstra_path_length&quot;</span><span class="p">:</span> <span class="n">ValidationConfig</span><span class="p">(</span>
             <span class="n">validator</span><span class="o">=</span><span class="n">validate_path_lengths</span><span class="p">,</span>
-            <span class="n">params</span><span class="o">=</span><span class="p">{},</span>
+            <span class="n">params</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;check_symmetry&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span> <span class="s2">&quot;allow_infinity&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">},</span>
             <span class="n">expected_type</span><span class="o">=</span><span class="nb">dict</span><span class="p">,</span>
         <span class="p">),</span>
         <span class="s2">&quot;all_pairs_bellman_ford_path_length&quot;</span><span class="p">:</span> <span class="n">ValidationConfig</span><span class="p">(</span>
             <span class="n">validator</span><span class="o">=</span><span class="n">validate_path_lengths</span><span class="p">,</span>
-            <span class="n">params</span><span class="o">=</span><span class="p">{},</span>
+            <span class="n">params</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;check_symmetry&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span> <span class="s2">&quot;allow_infinity&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">},</span>
             <span class="n">expected_type</span><span class="o">=</span><span class="nb">dict</span><span class="p">,</span>
         <span class="p">),</span>
         <span class="s2">&quot;all_pairs_bellman_ford_path&quot;</span><span class="p">:</span> <span class="n">ValidationConfig</span><span class="p">(</span>
             <span class="n">validator</span><span class="o">=</span><span class="n">validate_path_lengths</span><span class="p">,</span>
-            <span class="n">params</span><span class="o">=</span><span class="p">{},</span>
+            <span class="n">params</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;check_symmetry&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span> <span class="s2">&quot;allow_infinity&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">},</span>
             <span class="n">expected_type</span><span class="o">=</span><span class="nb">dict</span><span class="p">,</span>
         <span class="p">),</span>
         <span class="s2">&quot;johnson&quot;</span><span class="p">:</span> <span class="n">ValidationConfig</span><span class="p">(</span>
             <span class="n">validator</span><span class="o">=</span><span class="n">validate_path_lengths</span><span class="p">,</span>
-            <span class="n">params</span><span class="o">=</span><span class="p">{},</span>
+            <span class="n">params</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;check_symmetry&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span> <span class="s2">&quot;allow_infinity&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">},</span>
             <span class="n">expected_type</span><span class="o">=</span><span class="nb">dict</span><span class="p">,</span>
         <span class="p">),</span>
         <span class="s2">&quot;closeness_vitality&quot;</span><span class="p">:</span> <span class="n">ValidationConfig</span><span class="p">(</span>
             <span class="n">validator</span><span class="o">=</span><span class="n">validate_node_scores</span><span class="p">,</span>
-            <span class="n">params</span><span class="o">=</span><span class="p">{},</span>
+            <span class="n">params</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;score_range&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">),</span> <span class="s2">&quot;require_normalized&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">},</span>
             <span class="n">expected_type</span><span class="o">=</span><span class="nb">dict</span><span class="p">,</span>
         <span class="p">),</span>
     <span class="p">}</span>
@@ -589,7 +575,17 @@
     <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">_validate_type</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">expected_type</span><span class="p">):</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">expected_type</span><span class="p">):</span>
-            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Expected result type </span><span class="si">{</span><span class="n">expected_type</span><span class="si">}</span><span class="s2">, got </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">result</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">result</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;Expected result type </span><span class="si">{</span><span class="n">expected_type</span><span class="si">}</span><span class="s2">, got </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">result</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
+                <span class="p">)</span>
+            <span class="k">finally</span><span class="p">:</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">expected_type</span><span class="p">):</span>
+                    <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
+                        <span class="sa">f</span><span class="s2">&quot;Expected result type </span><span class="si">{</span><span class="n">expected_type</span><span class="si">}</span><span class="s2">, got </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">result</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
+                    <span class="p">)</span>
 
 <div class="viewcode-block" id="BenchmarkValidator.validate_result">
 <a class="viewcode-back" href="../../../api/nxbench.validation.html#nxbench.validation.registry.BenchmarkValidator.validate_result">[docs]</a>

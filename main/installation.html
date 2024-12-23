@@ -214,8 +214,7 @@
 <li class="toctree-l4"><a class="reference internal" href="api/nxbench.data.scripts.html">nxbench.data.scripts package</a></li>
 </ul>
 </li>
-<li class="toctree-l3 has-children"><a class="reference internal" href="api/nxbench.validation.html">nxbench.validation package</a><input class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" role="switch" type="checkbox"/><label for="toctree-checkbox-4"><div class="visually-hidden">Toggle navigation of nxbench.validation package</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
-<li class="toctree-l4"><a class="reference internal" href="api/nxbench.validation.scripts.html">nxbench.validation.scripts package</a></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="api/nxbench.validation.html">nxbench.validation package</a><input class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" role="switch" type="checkbox"/><label for="toctree-checkbox-4"><div class="visually-hidden">Toggle navigation of nxbench.validation package</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="simple">
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="api/nxbench.viz.html">nxbench.viz package</a></li>
@@ -227,11 +226,9 @@
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="api/nxbench.data.scripts.html">nxbench.data.scripts package</a></li>
-<li class="toctree-l2 has-children"><a class="reference internal" href="api/nxbench.validation.html">nxbench.validation package</a><input class="toctree-checkbox" id="toctree-checkbox-6" name="toctree-checkbox-6" role="switch" type="checkbox"/><label for="toctree-checkbox-6"><div class="visually-hidden">Toggle navigation of nxbench.validation package</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
-<li class="toctree-l3"><a class="reference internal" href="api/nxbench.validation.scripts.html">nxbench.validation.scripts package</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="api/nxbench.validation.html">nxbench.validation package</a><input class="toctree-checkbox" id="toctree-checkbox-6" name="toctree-checkbox-6" role="switch" type="checkbox"/><label for="toctree-checkbox-6"><div class="visually-hidden">Toggle navigation of nxbench.validation package</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="simple">
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="api/nxbench.validation.scripts.html">nxbench.validation.scripts package</a></li>
 <li class="toctree-l2"><a class="reference internal" href="api/nxbench.viz.html">nxbench.viz package</a></li>
 </ul>
 </li>
@@ -281,15 +278,100 @@
         <article role="main" id="furo-main-content">
           <section id="installation">
 <h1>Installation<a class="headerlink" href="#installation" title="Link to this heading">¶</a></h1>
-<p>PyPi:</p>
+<section id="prerequisites">
+<h2>Prerequisites<a class="headerlink" href="#prerequisites" title="Link to this heading">¶</a></h2>
+<ul class="simple">
+<li><p>Python 3.10+</p></li>
+<li><p>PostgreSQL (for Prefect Orion database)</p></li>
+</ul>
+<section id="setting-up-postgresql">
+<h3>Setting up PostgreSQL<a class="headerlink" href="#setting-up-postgresql" title="Link to this heading">¶</a></h3>
+<ol class="arabic">
+<li><p><strong>Install PostgreSQL</strong>:</p>
+<ul class="simple">
+<li><p><strong>macOS (Homebrew)</strong>:</p></li>
+</ul>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>brew<span class="w"> </span>install<span class="w"> </span>postgresql
+brew<span class="w"> </span>services<span class="w"> </span>start<span class="w"> </span>postgresql
+</pre></div>
+</div>
+<ul class="simple">
+<li><p><strong>Linux (Debian/Ubuntu)</strong>:</p></li>
+</ul>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>sudo<span class="w"> </span>apt-get<span class="w"> </span>update<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>sudo<span class="w"> </span>apt-get<span class="w"> </span>install<span class="w"> </span>-y<span class="w"> </span>postgresql<span class="w"> </span>postgresql-contrib
+sudo<span class="w"> </span>service<span class="w"> </span>postgresql<span class="w"> </span>start
+</pre></div>
+</div>
+<ul class="simple">
+<li><p><strong>Windows</strong>:
+Download and run the <a class="reference external" href="https://www.postgresql.org/download/windows/">PostgreSQL installer</a> and follow the prompts.</p></li>
+</ul>
+</li>
+<li><p><strong>Create a PostgreSQL User and Database</strong>:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>psql<span class="w"> </span>postgres
+</pre></div>
+</div>
+<p>Inside the <code class="docutils literal notranslate"><span class="pre">psql</span></code> prompt:</p>
+<div class="highlight-sql notranslate"><div class="highlight"><pre><span></span><span class="k">CREATE</span><span class="w"> </span><span class="k">USER</span><span class="w"> </span><span class="n">prefect_user</span><span class="w"> </span><span class="k">WITH</span><span class="w"> </span><span class="n">PASSWORD</span><span class="w"> </span><span class="s1">&#39;pass&#39;</span><span class="p">;</span>
+<span class="k">CREATE</span><span class="w"> </span><span class="k">DATABASE</span><span class="w"> </span><span class="n">prefect_db</span><span class="w"> </span><span class="k">OWNER</span><span class="w"> </span><span class="n">prefect_user</span><span class="p">;</span>
+<span class="k">GRANT</span><span class="w"> </span><span class="k">ALL</span><span class="w"> </span><span class="k">PRIVILEGES</span><span class="w"> </span><span class="k">ON</span><span class="w"> </span><span class="k">DATABASE</span><span class="w"> </span><span class="n">prefect_db</span><span class="w"> </span><span class="k">TO</span><span class="w"> </span><span class="n">prefect_user</span><span class="p">;</span>
+</pre></div>
+</div>
+<p>Exit with <code class="docutils literal notranslate"><span class="pre">\q</span></code>.</p>
+</li>
+</ol>
+</section>
+<section id="installing-nxbench">
+<h3>Installing nxbench<a class="headerlink" href="#installing-nxbench" title="Link to this heading">¶</a></h3>
+<p>From PyPi:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>nxbench
 </pre></div>
 </div>
 <p>From a local clone:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>make<span class="w"> </span>install
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/dpys/nxbench.git
+<span class="nb">cd</span><span class="w"> </span>nxbench
+make<span class="w"> </span>install
 </pre></div>
 </div>
-<p>Docker:</p>
+</section>
+<section id="setting-up-prefect-orion">
+<h3>Setting up Prefect Orion<a class="headerlink" href="#setting-up-prefect-orion" title="Link to this heading">¶</a></h3>
+<ol class="arabic">
+<li><p><strong>Export environment variables pointing to your PostgreSQL database</strong>:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">export</span><span class="w"> </span><span class="nv">PREFECT_API_DATABASE_CONNECTION_URL</span><span class="o">=</span><span class="s2">&quot;postgresql+asyncpg://prefect_user:pass@localhost:5432/prefect_db&quot;</span>
+<span class="nb">export</span><span class="w"> </span><span class="nv">PREFECT_ORION_DATABASE_CONNECTION_POOL_SIZE</span><span class="o">=</span><span class="s2">&quot;5&quot;</span>
+<span class="nb">export</span><span class="w"> </span><span class="nv">PREFECT_ORION_DATABASE_CONNECTION_MAX_OVERFLOW</span><span class="o">=</span><span class="s2">&quot;10&quot;</span>
+<span class="nb">export</span><span class="w"> </span><span class="nv">PREFECT_ORION_API_ENABLE_TASK_RUN_DATA_PERSISTENCE</span><span class="o">=</span><span class="s2">&quot;false&quot;</span>
+<span class="nb">export</span><span class="w"> </span><span class="nv">PREFECT_API_URL</span><span class="o">=</span><span class="s2">&quot;http://127.0.0.1:4200/api&quot;</span>
+</pre></div>
+</div>
+</li>
+<li><p><strong>Start the Orion server</strong>:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>prefect<span class="w"> </span>orion<span class="w"> </span>start
+</pre></div>
+</div>
+<p>By default it will run on <code class="docutils literal notranslate"><span class="pre">http://127.0.0.1:4200</span></code>.</p>
+</li>
+</ol>
+</section>
+</section>
+<section id="running-benchmarks">
+<h2>Running Benchmarks<a class="headerlink" href="#running-benchmarks" title="Link to this heading">¶</a></h2>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>nxbench<span class="w"> </span>--config<span class="w"> </span><span class="s1">&#39;nxbench/configs/example.yaml&#39;</span><span class="w"> </span>benchmark<span class="w"> </span>run
+</pre></div>
+</div>
+<p>After the run completes, you can export results:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>nxbench<span class="w"> </span>--config<span class="w"> </span><span class="s1">&#39;nxbench/configs/example.yaml&#39;</span><span class="w"> </span>benchmark<span class="w"> </span><span class="nb">export</span><span class="w"> </span><span class="s1">&#39;results/&lt;run_file&gt;.json&#39;</span><span class="w"> </span>--output-format<span class="w"> </span>csv<span class="w"> </span>--output-file<span class="w"> </span><span class="s1">&#39;results/results.csv&#39;</span>
+</pre></div>
+</div>
+<p>To visualize:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>nxbench<span class="w"> </span>viz<span class="w"> </span>serve
+</pre></div>
+</div>
+</section>
+<hr class="docutils" />
+<section id="installation-docker-setup">
+<h2>Installation (Docker Setup)<a class="headerlink" href="#installation-docker-setup" title="Link to this heading">¶</a></h2>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># CPU-only</span>
 docker-compose<span class="w"> </span>-f<span class="w"> </span>docker/docker-compose.cpu.yaml<span class="w"> </span>build
 
@@ -297,13 +379,14 @@ docker-compose<span class="w"> </span>-f<span class="w"> </span>docker/docker-co
 docker-compose<span class="w"> </span>-f<span class="w"> </span>docker/docker-compose.gpu.yaml<span class="w"> </span>build
 </pre></div>
 </div>
+</section>
 <section id="development-setup">
 <h2>Development Setup<a class="headerlink" href="#development-setup" title="Link to this heading">¶</a></h2>
 <p>Install development dependencies (testing and documentation):</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span>.<span class="o">[</span>test,doc<span class="o">]</span>
 </pre></div>
 </div>
-<p>Run tests to ensure everything is set up correctly:</p>
+<p>Run tests:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>make<span class="w"> </span><span class="nb">test</span>
 </pre></div>
 </div>
@@ -366,6 +449,14 @@ docker-compose<span class="w"> </span>-f<span class="w"> </span>docker/docker-co
           <div class="toc-tree">
             <ul>
 <li><a class="reference internal" href="#">Installation</a><ul>
+<li><a class="reference internal" href="#prerequisites">Prerequisites</a><ul>
+<li><a class="reference internal" href="#setting-up-postgresql">Setting up PostgreSQL</a></li>
+<li><a class="reference internal" href="#installing-nxbench">Installing nxbench</a></li>
+<li><a class="reference internal" href="#setting-up-prefect-orion">Setting up Prefect Orion</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#running-benchmarks">Running Benchmarks</a></li>
+<li><a class="reference internal" href="#installation-docker-setup">Installation (Docker Setup)</a></li>
 <li><a class="reference internal" href="#development-setup">Development Setup</a></li>
 </ul>
 </li>

@@ -214,8 +214,7 @@
 <li class="toctree-l4"><a class="reference internal" href="nxbench.data.scripts.html">nxbench.data.scripts package</a></li>
 </ul>
 </li>
-<li class="toctree-l3 has-children"><a class="reference internal" href="nxbench.validation.html">nxbench.validation package</a><input class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" role="switch" type="checkbox"/><label for="toctree-checkbox-4"><div class="visually-hidden">Toggle navigation of nxbench.validation package</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
-<li class="toctree-l4"><a class="reference internal" href="nxbench.validation.scripts.html">nxbench.validation.scripts package</a></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="nxbench.validation.html">nxbench.validation package</a><input class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" role="switch" type="checkbox"/><label for="toctree-checkbox-4"><div class="visually-hidden">Toggle navigation of nxbench.validation package</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="simple">
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="nxbench.viz.html">nxbench.viz package</a></li>
@@ -227,11 +226,9 @@
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="nxbench.data.scripts.html">nxbench.data.scripts package</a></li>
-<li class="toctree-l2 has-children"><a class="reference internal" href="nxbench.validation.html">nxbench.validation package</a><input class="toctree-checkbox" id="toctree-checkbox-6" name="toctree-checkbox-6" role="switch" type="checkbox"/><label for="toctree-checkbox-6"><div class="visually-hidden">Toggle navigation of nxbench.validation package</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
-<li class="toctree-l3"><a class="reference internal" href="nxbench.validation.scripts.html">nxbench.validation.scripts package</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="nxbench.validation.html">nxbench.validation package</a><input class="toctree-checkbox" id="toctree-checkbox-6" name="toctree-checkbox-6" role="switch" type="checkbox"/><label for="toctree-checkbox-6"><div class="visually-hidden">Toggle navigation of nxbench.validation package</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="simple">
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="nxbench.validation.scripts.html">nxbench.validation.scripts package</a></li>
 <li class="toctree-l2"><a class="reference internal" href="nxbench.viz.html">nxbench.viz package</a></li>
 </ul>
 </li>
@@ -286,51 +283,62 @@
 </section>
 <section id="module-nxbench.benchmarks.benchmark">
 <span id="nxbench-benchmarks-benchmark-module"></span><h2>nxbench.benchmarks.benchmark module<a class="headerlink" href="#module-nxbench.benchmarks.benchmark" title="Link to this heading">¶</a></h2>
-<p>Core benchmark functionality and result handling.</p>
-<dl class="py class">
-<dt class="sig sig-object py" id="nxbench.benchmarks.benchmark.GraphBenchmark">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">nxbench.benchmarks.benchmark.</span></span><span class="sig-name descname"><span class="pre">GraphBenchmark</span></span><a class="reference internal" href="../_modules/nxbench/benchmarks/benchmark.html#GraphBenchmark"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nxbench.benchmarks.benchmark.GraphBenchmark" title="Link to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
-<p>Base class for all graph algorithm benchmarks.</p>
-<dl class="py method">
-<dt class="sig sig-object py" id="nxbench.benchmarks.benchmark.GraphBenchmark.__init__">
-<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/nxbench/benchmarks/benchmark.html#GraphBenchmark.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nxbench.benchmarks.benchmark.GraphBenchmark.__init__" title="Link to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="nxbench.benchmarks.benchmark.GraphBenchmark.config">
-<span class="sig-name descname"><span class="pre">config</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">BenchmarkConfig(algorithms=[AlgorithmConfig(name='pagerank',</span> <span class="pre">func='networkx.algorithms.link_analysis.pagerank_alg.pagerank',</span> <span class="pre">params={'alpha':</span> <span class="pre">0.85},</span> <span class="pre">requires_directed=False,</span> <span class="pre">requires_undirected=False,</span> <span class="pre">requires_weighted=False,</span> <span class="pre">validate_result=None,</span> <span class="pre">groups=['default'],</span> <span class="pre">min_rounds=3,</span> <span class="pre">warmup=True,</span> <span class="pre">warmup_iterations=1)],</span> <span class="pre">datasets=[DatasetConfig(name='08blocks',</span> <span class="pre">source='networkrepository',</span> <span class="pre">params={},</span> <span class="pre">metadata=None),</span> <span class="pre">DatasetConfig(name='jazz',</span> <span class="pre">source='networkrepository',</span> <span class="pre">params={},</span> <span class="pre">metadata=None),</span> <span class="pre">DatasetConfig(name='karate',</span> <span class="pre">source='networkrepository',</span> <span class="pre">params={},</span> <span class="pre">metadata=None),</span> <span class="pre">DatasetConfig(name='enron',</span> <span class="pre">source='networkrepository',</span> <span class="pre">params={},</span> <span class="pre">metadata=None)],</span> <span class="pre">matrix={'req':</span> <span class="pre">{'networkx':</span> <span class="pre">['3.4.2'],</span> <span class="pre">'graphblas_algorithms':</span> <span class="pre">['2023.10.0']},</span> <span class="pre">'env_nobuild':</span> <span class="pre">{'NUM_THREAD':</span> <span class="pre">['1',</span> <span class="pre">'4']}},</span> <span class="pre">machine_info={},</span> <span class="pre">output_dir=PosixPath('~/results'),</span> <span class="pre">env_data={})</span></em><a class="headerlink" href="#nxbench.benchmarks.benchmark.GraphBenchmark.config" title="Link to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="nxbench.benchmarks.benchmark.GraphBenchmark.do_benchmark">
-<span class="sig-name descname"><span class="pre">do_benchmark</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">algo_config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dataset_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">backend</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_thread</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/nxbench/benchmarks/benchmark.html#GraphBenchmark.do_benchmark"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nxbench.benchmarks.benchmark.GraphBenchmark.do_benchmark" title="Link to this definition">¶</a></dt>
-<dd><dl class="field-list simple">
+<dl class="py function">
+<dt class="sig sig-object py" id="nxbench.benchmarks.benchmark.benchmark_suite">
+<span class="sig-prename descclassname"><span class="pre">nxbench.benchmarks.benchmark.</span></span><span class="sig-name descname"><span class="pre">benchmark_suite</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">algorithms</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">datasets</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">backends</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">threads</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">graphs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/nxbench/benchmarks/benchmark.html#benchmark_suite"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nxbench.benchmarks.benchmark.benchmark_suite" title="Link to this definition">¶</a></dt>
+<dd><p>Run the full suite of benchmarks in parallel using asyncio.</p>
+<dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a></span></p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.13)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a>]]</span></p>
 </dd>
 <dt class="field-even">Parameters<span class="colon">:</span></dt>
 <dd class="field-even"><ul class="simple">
-<li><p><strong>algo_config</strong> (<a class="reference internal" href="#nxbench.benchmarks.config.AlgorithmConfig" title="nxbench.benchmarks.config.AlgorithmConfig"><em>AlgorithmConfig</em></a>)</p></li>
-<li><p><strong>dataset_name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>)</p></li>
-<li><p><strong>backend</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>)</p></li>
-<li><p><strong>num_thread</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a>)</p></li>
+<li><p><strong>algorithms</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.13)"><em>list</em></a><em>[</em><a class="reference internal" href="#nxbench.benchmarks.config.AlgorithmConfig" title="nxbench.benchmarks.config.AlgorithmConfig"><em>AlgorithmConfig</em></a><em>]</em>)</p></li>
+<li><p><strong>datasets</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.13)"><em>list</em></a><em>[</em><a class="reference internal" href="#nxbench.benchmarks.config.DatasetConfig" title="nxbench.benchmarks.config.DatasetConfig"><em>DatasetConfig</em></a><em>]</em>)</p></li>
+<li><p><strong>backends</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.13)"><em>list</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em>]</em>)</p></li>
+<li><p><strong>threads</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.13)"><em>list</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a><em>]</em>)</p></li>
+<li><p><strong>graphs</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)"><em>dict</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.13)"><em>tuple</em></a><em>[</em><a class="reference external" href="https://networkx.org/documentation/stable/reference/classes/graph.html#networkx.Graph" title="(in NetworkX v3.4.2)"><em>Graph</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)"><em>dict</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.13)"><em>Any</em></a><em>]</em><em>]</em><em>]</em>)</p></li>
 </ul>
 </dd>
 </dl>
 </dd></dl>
 
-<dl class="py method">
-<dt class="sig sig-object py" id="nxbench.benchmarks.benchmark.GraphBenchmark.prepare_benchmark">
-<span class="sig-name descname"><span class="pre">prepare_benchmark</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dataset_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">backend</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_thread</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/nxbench/benchmarks/benchmark.html#GraphBenchmark.prepare_benchmark"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nxbench.benchmarks.benchmark.GraphBenchmark.prepare_benchmark" title="Link to this definition">¶</a></dt>
-<dd><p>Initialize the dataset and backend, returning the converted graph.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="nxbench.benchmarks.benchmark.collect_metrics">
+<span class="sig-prename descclassname"><span class="pre">nxbench.benchmarks.benchmark.</span></span><span class="sig-name descname"><span class="pre">collect_metrics</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">execution_time</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">execution_time_with_preloading</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">peak_memory</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">graph</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">algo_config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">backend</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dataset_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_thread</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">validation_status</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">validation_message</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">error</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/nxbench/benchmarks/benchmark.html#collect_metrics"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nxbench.benchmarks.benchmark.collect_metrics" title="Link to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.13)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a>]</span></p>
+</dd>
+<dt class="field-even">Parameters<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>execution_time</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><em>float</em></a>)</p></li>
+<li><p><strong>execution_time_with_preloading</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><em>float</em></a>)</p></li>
+<li><p><strong>peak_memory</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a>)</p></li>
+<li><p><strong>graph</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.13)"><em>Any</em></a>)</p></li>
+<li><p><strong>algo_config</strong> (<a class="reference internal" href="#nxbench.benchmarks.config.AlgorithmConfig" title="nxbench.benchmarks.config.AlgorithmConfig"><em>AlgorithmConfig</em></a>)</p></li>
+<li><p><strong>backend</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>)</p></li>
+<li><p><strong>dataset_name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>)</p></li>
+<li><p><strong>num_thread</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a>)</p></li>
+<li><p><strong>validation_status</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>)</p></li>
+<li><p><strong>validation_message</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>)</p></li>
+<li><p><strong>error</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em> | </em><em>None</em>)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="nxbench.benchmarks.benchmark.configure_backend">
+<span class="sig-prename descclassname"><span class="pre">nxbench.benchmarks.benchmark.</span></span><span class="sig-name descname"><span class="pre">configure_backend</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">original_graph</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">backend</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_thread</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/nxbench/benchmarks/benchmark.html#configure_backend"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nxbench.benchmarks.benchmark.configure_backend" title="Link to this definition">¶</a></dt>
+<dd><p>Prepare the backend for execution.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.13)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a></span></p>
 </dd>
 <dt class="field-even">Parameters<span class="colon">:</span></dt>
 <dd class="field-even"><ul class="simple">
-<li><p><strong>dataset_name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>)</p></li>
+<li><p><strong>original_graph</strong> (<a class="reference external" href="https://networkx.org/documentation/stable/reference/classes/graph.html#networkx.Graph" title="(in NetworkX v3.4.2)"><em>Graph</em></a>)</p></li>
 <li><p><strong>backend</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>)</p></li>
 <li><p><strong>num_thread</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a>)</p></li>
 </ul>
@@ -338,117 +346,105 @@
 </dl>
 </dd></dl>
 
-<dl class="py method">
-<dt class="sig sig-object py" id="nxbench.benchmarks.benchmark.GraphBenchmark.setup">
-<span class="sig-name descname"><span class="pre">setup</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/nxbench/benchmarks/benchmark.html#GraphBenchmark.setup"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nxbench.benchmarks.benchmark.GraphBenchmark.setup" title="Link to this definition">¶</a></dt>
-<dd><p>ASV setup method. Called before any benchmarks are run.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="nxbench.benchmarks.benchmark.load_config">
+<span class="sig-prename descclassname"><span class="pre">nxbench.benchmarks.benchmark.</span></span><span class="sig-name descname"><span class="pre">load_config</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/nxbench/benchmarks/benchmark.html#load_config"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nxbench.benchmarks.benchmark.load_config" title="Link to this definition">¶</a></dt>
+<dd><p>Load benchmark configuration dynamically.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.13)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a>]</span></p>
+</dd>
+</dl>
 </dd></dl>
 
-<dl class="py method">
-<dt class="sig sig-object py" id="nxbench.benchmarks.benchmark.GraphBenchmark.setup_cache">
-<span class="sig-name descname"><span class="pre">setup_cache</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/nxbench/benchmarks/benchmark.html#GraphBenchmark.setup_cache"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nxbench.benchmarks.benchmark.GraphBenchmark.setup_cache" title="Link to this definition">¶</a></dt>
-<dd><p>Cache graph data for benchmarks.</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="nxbench.benchmarks.benchmark.GraphBenchmark.teardown">
-<span class="sig-name descname"><span class="pre">teardown</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/nxbench/benchmarks/benchmark.html#GraphBenchmark.teardown"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nxbench.benchmarks.benchmark.GraphBenchmark.teardown" title="Link to this definition">¶</a></dt>
-<dd><p>ASV teardown method. Called after all benchmarks are run.</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="nxbench.benchmarks.benchmark.GraphBenchmark.teardown_specific">
-<span class="sig-name descname"><span class="pre">teardown_specific</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">backend</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_thread</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/nxbench/benchmarks/benchmark.html#GraphBenchmark.teardown_specific"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nxbench.benchmarks.benchmark.GraphBenchmark.teardown_specific" title="Link to this definition">¶</a></dt>
-<dd><p>Reset any backend-specific configurations to avoid state leakage.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="nxbench.benchmarks.benchmark.main_benchmark">
+<em class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">nxbench.benchmarks.benchmark.</span></span><span class="sig-name descname"><span class="pre">main_benchmark</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">results_dir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">PosixPath('results')</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/nxbench/benchmarks/benchmark.html#main_benchmark"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nxbench.benchmarks.benchmark.main_benchmark" title="Link to this definition">¶</a></dt>
+<dd><p>Execute benchmarks using Prefect.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
+<dd class="field-odd"><p><strong>results_dir</strong> (<a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.13)"><em>Path</em></a>)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="nxbench.benchmarks.benchmark.run_algorithm">
+<span class="sig-prename descclassname"><span class="pre">nxbench.benchmarks.benchmark.</span></span><span class="sig-name descname"><span class="pre">run_algorithm</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">graph</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">algo_config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_thread</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">backend</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/nxbench/benchmarks/benchmark.html#run_algorithm"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nxbench.benchmarks.benchmark.run_algorithm" title="Link to this definition">¶</a></dt>
+<dd><p>Run the algorithm on the configured backend</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.13)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a> | <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a>]</span></p>
+</dd>
+<dt class="field-even">Parameters<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>graph</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.13)"><em>Any</em></a>)</p></li>
+<li><p><strong>algo_config</strong> (<a class="reference internal" href="#nxbench.benchmarks.config.AlgorithmConfig" title="nxbench.benchmarks.config.AlgorithmConfig"><em>AlgorithmConfig</em></a>)</p></li>
+<li><p><strong>num_thread</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a>)</p></li>
+<li><p><strong>backend</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="nxbench.benchmarks.benchmark.run_single_benchmark">
+<em class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">nxbench.benchmarks.benchmark.</span></span><span class="sig-name descname"><span class="pre">run_single_benchmark</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">backend</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_thread</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">algo_config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dataset_config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">original_graph</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/nxbench/benchmarks/benchmark.html#run_single_benchmark"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nxbench.benchmarks.benchmark.run_single_benchmark" title="Link to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.13)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a>] | <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a></span></p>
+</dd>
+<dt class="field-even">Parameters<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
 <li><p><strong>backend</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>)</p></li>
 <li><p><strong>num_thread</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a>)</p></li>
+<li><p><strong>algo_config</strong> (<a class="reference internal" href="#nxbench.benchmarks.config.AlgorithmConfig" title="nxbench.benchmarks.config.AlgorithmConfig"><em>AlgorithmConfig</em></a>)</p></li>
+<li><p><strong>dataset_config</strong> (<a class="reference internal" href="#nxbench.benchmarks.config.DatasetConfig" title="nxbench.benchmarks.config.DatasetConfig"><em>DatasetConfig</em></a>)</p></li>
+<li><p><strong>original_graph</strong> (<a class="reference external" href="https://networkx.org/documentation/stable/reference/classes/graph.html#networkx.Graph" title="(in NetworkX v3.4.2)"><em>Graph</em></a>)</p></li>
 </ul>
 </dd>
 </dl>
 </dd></dl>
 
-<dl class="py method">
-<dt class="sig sig-object py" id="nxbench.benchmarks.benchmark.GraphBenchmark.track_pagerank_08blocks_networkx_1">
-<span class="sig-name descname"><span class="pre">track_pagerank_08blocks_networkx_1</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nxbench.benchmarks.benchmark.GraphBenchmark.track_pagerank_08blocks_networkx_1" title="Link to this definition">¶</a></dt>
-<dd><p>Run benchmark and return metrics for the unique combination.</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="nxbench.benchmarks.benchmark.GraphBenchmark.track_pagerank_enron_networkx_1">
-<span class="sig-name descname"><span class="pre">track_pagerank_enron_networkx_1</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nxbench.benchmarks.benchmark.GraphBenchmark.track_pagerank_enron_networkx_1" title="Link to this definition">¶</a></dt>
-<dd><p>Run benchmark and return metrics for the unique combination.</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="nxbench.benchmarks.benchmark.GraphBenchmark.track_pagerank_jazz_networkx_1">
-<span class="sig-name descname"><span class="pre">track_pagerank_jazz_networkx_1</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nxbench.benchmarks.benchmark.GraphBenchmark.track_pagerank_jazz_networkx_1" title="Link to this definition">¶</a></dt>
-<dd><p>Run benchmark and return metrics for the unique combination.</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="nxbench.benchmarks.benchmark.GraphBenchmark.track_pagerank_karate_networkx_1">
-<span class="sig-name descname"><span class="pre">track_pagerank_karate_networkx_1</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nxbench.benchmarks.benchmark.GraphBenchmark.track_pagerank_karate_networkx_1" title="Link to this definition">¶</a></dt>
-<dd><p>Run benchmark and return metrics for the unique combination.</p>
-</dd></dl>
-
-</dd></dl>
-
 <dl class="py function">
-<dt class="sig sig-object py" id="nxbench.benchmarks.benchmark.generate_benchmark_methods">
-<span class="sig-prename descclassname"><span class="pre">nxbench.benchmarks.benchmark.</span></span><span class="sig-name descname"><span class="pre">generate_benchmark_methods</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cls</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/nxbench/benchmarks/benchmark.html#generate_benchmark_methods"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nxbench.benchmarks.benchmark.generate_benchmark_methods" title="Link to this definition">¶</a></dt>
-<dd><p>Generate benchmark methods dynamically for each combination of algorithm,
-backend, and number of threads without redundant executions.</p>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="nxbench.benchmarks.benchmark.get_algorithm_function">
-<span class="sig-prename descclassname"><span class="pre">nxbench.benchmarks.benchmark.</span></span><span class="sig-name descname"><span class="pre">get_algorithm_function</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">algo_config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">backend_name</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/nxbench/benchmarks/benchmark.html#get_algorithm_function"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nxbench.benchmarks.benchmark.get_algorithm_function" title="Link to this definition">¶</a></dt>
-<dd><p>Retrieve the algorithm function for the specified backend.</p>
+<dt class="sig sig-object py" id="nxbench.benchmarks.benchmark.setup_cache">
+<span class="sig-prename descclassname"><span class="pre">nxbench.benchmarks.benchmark.</span></span><span class="sig-name descname"><span class="pre">setup_cache</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">datasets</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/nxbench/benchmarks/benchmark.html#setup_cache"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nxbench.benchmarks.benchmark.setup_cache" title="Link to this definition">¶</a></dt>
+<dd><p>Load and cache datasets to avoid redundant loading.</p>
 <dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a>[<a class="reference external" href="https://networkx.org/documentation/stable/reference/classes/graph.html#networkx.Graph" title="(in NetworkX v3.4.2)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Graph</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.13)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a>]]]</span></p>
+</dd>
+<dt class="field-even">Parameters<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>datasets</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.13)"><em>list</em></a><em>[</em><a class="reference internal" href="#nxbench.benchmarks.config.DatasetConfig" title="nxbench.benchmarks.config.DatasetConfig"><em>DatasetConfig</em></a><em>]</em>)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="nxbench.benchmarks.benchmark.teardown_specific">
+<span class="sig-prename descclassname"><span class="pre">nxbench.benchmarks.benchmark.</span></span><span class="sig-name descname"><span class="pre">teardown_specific</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">backend</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/nxbench/benchmarks/benchmark.html#teardown_specific"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nxbench.benchmarks.benchmark.teardown_specific" title="Link to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>algo_config</strong> (<a class="reference internal" href="#nxbench.benchmarks.config.AlgorithmConfig" title="nxbench.benchmarks.config.AlgorithmConfig"><em>AlgorithmConfig</em></a>) – Configuration object containing details about the algorithm, including its
-function reference.</p></li>
-<li><p><strong>backend_name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>) – The name of the backend for which the algorithm function is being retrieved.</p></li>
+<dd class="field-odd"><p><strong>backend</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="nxbench.benchmarks.benchmark.validate_results">
+<span class="sig-prename descclassname"><span class="pre">nxbench.benchmarks.benchmark.</span></span><span class="sig-name descname"><span class="pre">validate_results</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">result</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">algo_config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">graph</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/nxbench/benchmarks/benchmark.html#validate_results"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nxbench.benchmarks.benchmark.validate_results" title="Link to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>]</span></p>
+</dd>
+<dt class="field-even">Parameters<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>result</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.13)"><em>Any</em></a>)</p></li>
+<li><p><strong>algo_config</strong> (<a class="reference internal" href="#nxbench.benchmarks.config.AlgorithmConfig" title="nxbench.benchmarks.config.AlgorithmConfig"><em>AlgorithmConfig</em></a>)</p></li>
+<li><p><strong>graph</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.13)"><em>Any</em></a>)</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>The algorithm function or a partially applied function for the specified
-backend.</p>
-</dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Any</p>
-</dd>
-<dt class="field-even">Raises<span class="colon">:</span></dt>
-<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#ImportError" title="(in Python v3.13)"><strong>ImportError</strong></a> – If the function reference for the algorithm is not found.</p>
-</dd>
 </dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="nxbench.benchmarks.benchmark.process_algorithm_params">
-<span class="sig-prename descclassname"><span class="pre">nxbench.benchmarks.benchmark.</span></span><span class="sig-name descname"><span class="pre">process_algorithm_params</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/nxbench/benchmarks/benchmark.html#process_algorithm_params"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nxbench.benchmarks.benchmark.process_algorithm_params" title="Link to this definition">¶</a></dt>
-<dd><p>Process and separate algorithm parameters into positional and keyword arguments.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>params</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)"><em>dict</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em>, </em><em>Any</em><em>]</em>) – A dictionary of algorithm parameters, where keys can indicate either positional
-or keyword arguments.</p>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>A tuple containing a list of positional arguments and a dictionary of keyword
-arguments.</p>
-</dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.13)">tuple</a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.13)">list</a>[Any], <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)">dict</a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)">str</a>, Any]]</p>
-</dd>
-</dl>
-<p class="rubric">Notes</p>
-<p>Parameters prefixed with an underscore (“_”) are treated as positional arguments.
-If a parameter value is a
-dictionary containing a “func” key, the function is imported dynamically.</p>
 </dd></dl>
 
 </section>
@@ -457,7 +453,7 @@ dictionary containing a “func” key, the function is imported dynamically.</p
 <p>Benchmark configuration handling.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="nxbench.benchmarks.config.AlgorithmConfig">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">nxbench.benchmarks.config.</span></span><span class="sig-name descname"><span class="pre">AlgorithmConfig</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">func</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params=&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">requires_directed=False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">requires_undirected=False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">requires_weighted=False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">validate_result=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">groups=&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_rounds=3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">warmup=True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">warmup_iterations=1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/nxbench/benchmarks/config.html#AlgorithmConfig"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nxbench.benchmarks.config.AlgorithmConfig" title="Link to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">nxbench.benchmarks.config.</span></span><span class="sig-name descname"><span class="pre">AlgorithmConfig</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">func</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params=&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">requires_directed=False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">requires_undirected=False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">requires_weighted=False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">validate_result=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">groups=&lt;factory&gt;</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/nxbench/benchmarks/config.html#AlgorithmConfig"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nxbench.benchmarks.config.AlgorithmConfig" title="Link to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>Configuration for a graph algorithm to benchmark.</p>
 <dl class="field-list simple">
@@ -471,15 +467,12 @@ dictionary containing a “func” key, the function is imported dynamically.</p
 <li><p><strong>requires_weighted</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><em>bool</em></a>)</p></li>
 <li><p><strong>validate_result</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em> | </em><em>None</em>)</p></li>
 <li><p><strong>groups</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.13)"><em>list</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em>]</em>)</p></li>
-<li><p><strong>min_rounds</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a>)</p></li>
-<li><p><strong>warmup</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><em>bool</em></a>)</p></li>
-<li><p><strong>warmup_iterations</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a>)</p></li>
 </ul>
 </dd>
 </dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="nxbench.benchmarks.config.AlgorithmConfig.__init__">
-<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">func</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params=&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">requires_directed=False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">requires_undirected=False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">requires_weighted=False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">validate_result=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">groups=&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_rounds=3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">warmup=True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">warmup_iterations=1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nxbench.benchmarks.config.AlgorithmConfig.__init__" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">func</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params=&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">requires_directed=False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">requires_undirected=False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">requires_weighted=False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">validate_result=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">groups=&lt;factory&gt;</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nxbench.benchmarks.config.AlgorithmConfig.__init__" title="Link to this definition">¶</a></dt>
 <dd><dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -491,9 +484,6 @@ dictionary containing a “func” key, the function is imported dynamically.</p
 <li><p><strong>requires_weighted</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><em>bool</em></a>)</p></li>
 <li><p><strong>validate_result</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em> | </em><em>None</em>)</p></li>
 <li><p><strong>groups</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.13)"><em>list</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em>]</em>)</p></li>
-<li><p><strong>min_rounds</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a>)</p></li>
-<li><p><strong>warmup</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><em>bool</em></a>)</p></li>
-<li><p><strong>warmup_iterations</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a>)</p></li>
 </ul>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
@@ -502,25 +492,38 @@ dictionary containing a “func” key, the function is imported dynamically.</p
 </dl>
 </dd></dl>
 
-<dl class="py method">
-<dt class="sig sig-object py" id="nxbench.benchmarks.config.AlgorithmConfig.__post_init__">
-<span class="sig-name descname"><span class="pre">__post_init__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/nxbench/benchmarks/config.html#AlgorithmConfig.__post_init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nxbench.benchmarks.config.AlgorithmConfig.__post_init__" title="Link to this definition">¶</a></dt>
-<dd><p>Validate and resolve the function reference.</p>
-</dd></dl>
-
 <dl class="py attribute">
 <dt class="sig sig-object py" id="nxbench.benchmarks.config.AlgorithmConfig.func">
 <span class="sig-name descname"><span class="pre">func</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></em><a class="headerlink" href="#nxbench.benchmarks.config.AlgorithmConfig.func" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="py attribute">
-<dt class="sig sig-object py" id="nxbench.benchmarks.config.AlgorithmConfig.groups">
-<span class="sig-name descname"><span class="pre">groups</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a><span class="pre">[</span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a><span class="pre">]</span></em><a class="headerlink" href="#nxbench.benchmarks.config.AlgorithmConfig.groups" title="Link to this definition">¶</a></dt>
+<dl class="py method">
+<dt class="sig sig-object py" id="nxbench.benchmarks.config.AlgorithmConfig.get_callable">
+<span class="sig-name descname"><span class="pre">get_callable</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">backend_name</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/nxbench/benchmarks/config.html#AlgorithmConfig.get_callable"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nxbench.benchmarks.config.AlgorithmConfig.get_callable" title="Link to this definition">¶</a></dt>
+<dd><p>Retrieve a callable suitable for the given backend.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.13)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a></span></p>
+</dd>
+<dt class="field-even">Parameters<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>backend_name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nxbench.benchmarks.config.AlgorithmConfig.get_func_ref">
+<span class="sig-name descname"><span class="pre">get_func_ref</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/nxbench/benchmarks/config.html#AlgorithmConfig.get_func_ref"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nxbench.benchmarks.config.AlgorithmConfig.get_func_ref" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="nxbench.benchmarks.config.AlgorithmConfig.get_validate_ref">
+<span class="sig-name descname"><span class="pre">get_validate_ref</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/nxbench/benchmarks/config.html#AlgorithmConfig.get_validate_ref"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nxbench.benchmarks.config.AlgorithmConfig.get_validate_ref" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
-<dt class="sig sig-object py" id="nxbench.benchmarks.config.AlgorithmConfig.min_rounds">
-<span class="sig-name descname"><span class="pre">min_rounds</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">3</span></em><a class="headerlink" href="#nxbench.benchmarks.config.AlgorithmConfig.min_rounds" title="Link to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="nxbench.benchmarks.config.AlgorithmConfig.groups">
+<span class="sig-name descname"><span class="pre">groups</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a><span class="pre">[</span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a><span class="pre">]</span></em><a class="headerlink" href="#nxbench.benchmarks.config.AlgorithmConfig.groups" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
@@ -553,21 +556,11 @@ dictionary containing a “func” key, the function is imported dynamically.</p
 <span class="sig-name descname"><span class="pre">validate_result</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a> <span class="pre">|</span> <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#nxbench.benchmarks.config.AlgorithmConfig.validate_result" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="py attribute">
-<dt class="sig sig-object py" id="nxbench.benchmarks.config.AlgorithmConfig.warmup">
-<span class="sig-name descname"><span class="pre">warmup</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">True</span></em><a class="headerlink" href="#nxbench.benchmarks.config.AlgorithmConfig.warmup" title="Link to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="nxbench.benchmarks.config.AlgorithmConfig.warmup_iterations">
-<span class="sig-name descname"><span class="pre">warmup_iterations</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1</span></em><a class="headerlink" href="#nxbench.benchmarks.config.AlgorithmConfig.warmup_iterations" title="Link to this definition">¶</a></dt>
-<dd></dd></dl>
-
 </dd></dl>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="nxbench.benchmarks.config.BenchmarkConfig">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">nxbench.benchmarks.config.</span></span><span class="sig-name descname"><span class="pre">BenchmarkConfig</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">algorithms</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">datasets</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">matrix</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">machine_info=&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_dir=&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">env_data=&lt;factory&gt;</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/nxbench/benchmarks/config.html#BenchmarkConfig"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nxbench.benchmarks.config.BenchmarkConfig" title="Link to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">nxbench.benchmarks.config.</span></span><span class="sig-name descname"><span class="pre">BenchmarkConfig</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">algorithms</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">datasets</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">machine_info=&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_dir=&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">env_data=&lt;factory&gt;</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/nxbench/benchmarks/config.html#BenchmarkConfig"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nxbench.benchmarks.config.BenchmarkConfig" title="Link to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>Complete benchmark suite configuration.</p>
 <dl class="field-list simple">
@@ -575,7 +568,6 @@ dictionary containing a “func” key, the function is imported dynamically.</p
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>algorithms</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.13)"><em>list</em></a><em>[</em><a class="reference internal" href="#nxbench.benchmarks.config.AlgorithmConfig" title="nxbench.benchmarks.config.AlgorithmConfig"><em>AlgorithmConfig</em></a><em>]</em>)</p></li>
 <li><p><strong>datasets</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.13)"><em>list</em></a><em>[</em><a class="reference internal" href="#nxbench.benchmarks.config.DatasetConfig" title="nxbench.benchmarks.config.DatasetConfig"><em>DatasetConfig</em></a><em>]</em>)</p></li>
-<li><p><strong>matrix</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)"><em>dict</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.13)"><em>Any</em></a><em>]</em>)</p></li>
 <li><p><strong>machine_info</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)"><em>dict</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.13)"><em>Any</em></a><em>]</em>)</p></li>
 <li><p><strong>output_dir</strong> (<a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.13)"><em>Path</em></a>)</p></li>
 <li><p><strong>env_data</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)"><em>dict</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.13)"><em>Any</em></a><em>]</em>)</p></li>
@@ -584,13 +576,12 @@ dictionary containing a “func” key, the function is imported dynamically.</p
 </dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="nxbench.benchmarks.config.BenchmarkConfig.__init__">
-<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">algorithms</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">datasets</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">matrix</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">machine_info=&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_dir=&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">env_data=&lt;factory&gt;</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nxbench.benchmarks.config.BenchmarkConfig.__init__" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">algorithms</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">datasets</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">machine_info=&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_dir=&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">env_data=&lt;factory&gt;</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nxbench.benchmarks.config.BenchmarkConfig.__init__" title="Link to this definition">¶</a></dt>
 <dd><dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>algorithms</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.13)"><em>list</em></a><em>[</em><a class="reference internal" href="#nxbench.benchmarks.config.AlgorithmConfig" title="nxbench.benchmarks.config.AlgorithmConfig"><em>AlgorithmConfig</em></a><em>]</em>)</p></li>
 <li><p><strong>datasets</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.13)"><em>list</em></a><em>[</em><a class="reference internal" href="#nxbench.benchmarks.config.DatasetConfig" title="nxbench.benchmarks.config.DatasetConfig"><em>DatasetConfig</em></a><em>]</em>)</p></li>
-<li><p><strong>matrix</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)"><em>dict</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.13)"><em>Any</em></a><em>]</em>)</p></li>
 <li><p><strong>machine_info</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)"><em>dict</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.13)"><em>Any</em></a><em>]</em>)</p></li>
 <li><p><strong>output_dir</strong> (<a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.13)"><em>Path</em></a>)</p></li>
 <li><p><strong>env_data</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)"><em>dict</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.13)"><em>Any</em></a><em>]</em>)</p></li>
@@ -622,14 +613,11 @@ dictionary containing a “func” key, the function is imported dynamically.</p
 <em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_yaml</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/nxbench/benchmarks/config.html#BenchmarkConfig.from_yaml"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nxbench.benchmarks.config.BenchmarkConfig.from_yaml" title="Link to this definition">¶</a></dt>
 <dd><p>Load configuration from YAML file.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>path</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em> or </em><em>Path</em>) – Path to YAML configuration file</p>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>Loaded and validated configuration</p>
-</dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><a class="reference internal" href="#nxbench.benchmarks.config.BenchmarkConfig" title="nxbench.benchmarks.config.BenchmarkConfig">BenchmarkConfig</a></p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="#nxbench.benchmarks.config.BenchmarkConfig" title="nxbench.benchmarks.config.BenchmarkConfig"><code class="xref py py-class docutils literal notranslate"><span class="pre">BenchmarkConfig</span></code></a></span></p>
+</dd>
+<dt class="field-even">Parameters<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>path</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em> | </em><a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.13)"><em>Path</em></a>)</p>
 </dd>
 </dl>
 </dd></dl>
@@ -637,11 +625,6 @@ dictionary containing a “func” key, the function is imported dynamically.</p
 <dl class="py attribute">
 <dt class="sig sig-object py" id="nxbench.benchmarks.config.BenchmarkConfig.machine_info">
 <span class="sig-name descname"><span class="pre">machine_info</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a><span class="pre">[</span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a><span class="pre">,</span> <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.13)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a><span class="pre">]</span></em><a class="headerlink" href="#nxbench.benchmarks.config.BenchmarkConfig.machine_info" title="Link to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="nxbench.benchmarks.config.BenchmarkConfig.matrix">
-<span class="sig-name descname"><span class="pre">matrix</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a><span class="pre">[</span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a><span class="pre">,</span> <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.13)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a><span class="pre">]</span></em><a class="headerlink" href="#nxbench.benchmarks.config.BenchmarkConfig.matrix" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
@@ -654,11 +637,11 @@ dictionary containing a “func” key, the function is imported dynamically.</p
 <span class="sig-name descname"><span class="pre">to_yaml</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/nxbench/benchmarks/config.html#BenchmarkConfig.to_yaml"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nxbench.benchmarks.config.BenchmarkConfig.to_yaml" title="Link to this definition">¶</a></dt>
 <dd><p>Save configuration to YAML file.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>path</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em> or </em><em>Path</em>) – Output path for YAML file</p>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a></span></p>
 </dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a></span></p>
+<dt class="field-even">Parameters<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>path</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em> | </em><a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.13)"><em>Path</em></a>)</p>
 </dd>
 </dl>
 </dd></dl>
@@ -708,7 +691,7 @@ dictionary containing a “func” key, the function is imported dynamically.</p
 
 <dl class="py class">
 <dt class="sig sig-object py" id="nxbench.benchmarks.config.BenchmarkResult">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">nxbench.benchmarks.config.</span></span><span class="sig-name descname"><span class="pre">BenchmarkResult</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">algorithm</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dataset</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">execution_time</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">memory_used</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_nodes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_edges</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">is_directed</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">is_weighted</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">backend</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_thread</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">commit_hash</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">date</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metadata</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/nxbench/benchmarks/config.html#BenchmarkResult"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nxbench.benchmarks.config.BenchmarkResult" title="Link to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">nxbench.benchmarks.config.</span></span><span class="sig-name descname"><span class="pre">BenchmarkResult</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">algorithm</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dataset</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">execution_time</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">execution_time_with_preloading</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">memory_used</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_nodes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_edges</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">is_directed</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">is_weighted</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">backend</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_thread</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">date</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metadata</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">validation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'unknown'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">validation_message</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">error</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/nxbench/benchmarks/config.html#BenchmarkResult"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nxbench.benchmarks.config.BenchmarkResult" title="Link to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>Container for benchmark execution results.</p>
 <dl class="field-list simple">
@@ -717,6 +700,7 @@ dictionary containing a “func” key, the function is imported dynamically.</p
 <li><p><strong>algorithm</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>)</p></li>
 <li><p><strong>dataset</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>)</p></li>
 <li><p><strong>execution_time</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><em>float</em></a>)</p></li>
+<li><p><strong>execution_time_with_preloading</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><em>float</em></a>)</p></li>
 <li><p><strong>memory_used</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><em>float</em></a>)</p></li>
 <li><p><strong>num_nodes</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a>)</p></li>
 <li><p><strong>num_edges</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a>)</p></li>
@@ -724,21 +708,24 @@ dictionary containing a “func” key, the function is imported dynamically.</p
 <li><p><strong>is_weighted</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><em>bool</em></a>)</p></li>
 <li><p><strong>backend</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>)</p></li>
 <li><p><strong>num_thread</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a>)</p></li>
-<li><p><strong>commit_hash</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>)</p></li>
 <li><p><strong>date</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a>)</p></li>
 <li><p><strong>metadata</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)"><em>dict</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.13)"><em>Any</em></a><em>]</em>)</p></li>
+<li><p><strong>validation</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>)</p></li>
+<li><p><strong>validation_message</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>)</p></li>
+<li><p><strong>error</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em> | </em><em>None</em>)</p></li>
 </ul>
 </dd>
 </dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="nxbench.benchmarks.config.BenchmarkResult.__init__">
-<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">algorithm</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dataset</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">execution_time</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">memory_used</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_nodes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_edges</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">is_directed</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">is_weighted</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">backend</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_thread</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">commit_hash</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">date</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metadata</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nxbench.benchmarks.config.BenchmarkResult.__init__" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">algorithm</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dataset</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">execution_time</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">execution_time_with_preloading</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">memory_used</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_nodes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_edges</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">is_directed</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">is_weighted</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">backend</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_thread</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">date</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metadata</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">validation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'unknown'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">validation_message</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">error</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nxbench.benchmarks.config.BenchmarkResult.__init__" title="Link to this definition">¶</a></dt>
 <dd><dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>algorithm</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>)</p></li>
 <li><p><strong>dataset</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>)</p></li>
 <li><p><strong>execution_time</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><em>float</em></a>)</p></li>
+<li><p><strong>execution_time_with_preloading</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><em>float</em></a>)</p></li>
 <li><p><strong>memory_used</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><em>float</em></a>)</p></li>
 <li><p><strong>num_nodes</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a>)</p></li>
 <li><p><strong>num_edges</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a>)</p></li>
@@ -746,9 +733,11 @@ dictionary containing a “func” key, the function is imported dynamically.</p
 <li><p><strong>is_weighted</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><em>bool</em></a>)</p></li>
 <li><p><strong>backend</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>)</p></li>
 <li><p><strong>num_thread</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a>)</p></li>
-<li><p><strong>commit_hash</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>)</p></li>
 <li><p><strong>date</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a>)</p></li>
 <li><p><strong>metadata</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)"><em>dict</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.13)"><em>Any</em></a><em>]</em>)</p></li>
+<li><p><strong>validation</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>)</p></li>
+<li><p><strong>validation_message</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>)</p></li>
+<li><p><strong>error</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em> | </em><em>None</em>)</p></li>
 </ul>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
@@ -768,11 +757,6 @@ dictionary containing a “func” key, the function is imported dynamically.</p
 <dd></dd></dl>
 
 <dl class="py attribute">
-<dt class="sig sig-object py" id="nxbench.benchmarks.config.BenchmarkResult.commit_hash">
-<span class="sig-name descname"><span class="pre">commit_hash</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></em><a class="headerlink" href="#nxbench.benchmarks.config.BenchmarkResult.commit_hash" title="Link to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
 <dt class="sig sig-object py" id="nxbench.benchmarks.config.BenchmarkResult.dataset">
 <span class="sig-name descname"><span class="pre">dataset</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></em><a class="headerlink" href="#nxbench.benchmarks.config.BenchmarkResult.dataset" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
@@ -783,26 +767,19 @@ dictionary containing a “func” key, the function is imported dynamically.</p
 <dd></dd></dl>
 
 <dl class="py attribute">
+<dt class="sig sig-object py" id="nxbench.benchmarks.config.BenchmarkResult.error">
+<span class="sig-name descname"><span class="pre">error</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a> <span class="pre">|</span> <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#nxbench.benchmarks.config.BenchmarkResult.error" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
 <dt class="sig sig-object py" id="nxbench.benchmarks.config.BenchmarkResult.execution_time">
 <span class="sig-name descname"><span class="pre">execution_time</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a></em><a class="headerlink" href="#nxbench.benchmarks.config.BenchmarkResult.execution_time" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="py method">
-<dt class="sig sig-object py" id="nxbench.benchmarks.config.BenchmarkResult.from_asv_result">
-<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_asv_result</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">asv_result</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">graph</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_thread</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">commit_hash</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'unknown'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">date</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/nxbench/benchmarks/config.html#BenchmarkResult.from_asv_result"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nxbench.benchmarks.config.BenchmarkResult.from_asv_result" title="Link to this definition">¶</a></dt>
-<dd><p>Create BenchmarkResult from ASV benchmark output.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>asv_result</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)"><em>dict</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.13)"><em>Any</em></a><em>]</em>)</p></li>
-<li><p><strong>graph</strong> (<a class="reference external" href="https://networkx.org/documentation/stable/reference/classes/graph.html#networkx.Graph" title="(in NetworkX v3.4.2)"><em>Graph</em></a><em> | </em><a class="reference external" href="https://networkx.org/documentation/stable/reference/classes/digraph.html#networkx.DiGraph" title="(in NetworkX v3.4.2)"><em>DiGraph</em></a><em> | </em><em>None</em>)</p></li>
-<li><p><strong>num_thread</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a>)</p></li>
-<li><p><strong>commit_hash</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>)</p></li>
-<li><p><strong>date</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a>)</p></li>
-</ul>
-</dd>
-</dl>
-</dd></dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="nxbench.benchmarks.config.BenchmarkResult.execution_time_with_preloading">
+<span class="sig-name descname"><span class="pre">execution_time_with_preloading</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a></em><a class="headerlink" href="#nxbench.benchmarks.config.BenchmarkResult.execution_time_with_preloading" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="nxbench.benchmarks.config.BenchmarkResult.is_directed">
@@ -837,6 +814,16 @@ dictionary containing a “func” key, the function is imported dynamically.</p
 <dl class="py attribute">
 <dt class="sig sig-object py" id="nxbench.benchmarks.config.BenchmarkResult.num_thread">
 <span class="sig-name descname"><span class="pre">num_thread</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a></em><a class="headerlink" href="#nxbench.benchmarks.config.BenchmarkResult.num_thread" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="nxbench.benchmarks.config.BenchmarkResult.validation">
+<span class="sig-name descname"><span class="pre">validation</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'unknown'</span></em><a class="headerlink" href="#nxbench.benchmarks.config.BenchmarkResult.validation" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="nxbench.benchmarks.config.BenchmarkResult.validation_message">
+<span class="sig-name descname"><span class="pre">validation_message</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">''</span></em><a class="headerlink" href="#nxbench.benchmarks.config.BenchmarkResult.validation_message" title="Link to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
@@ -900,35 +887,39 @@ dictionary containing a “func” key, the function is imported dynamically.</p
 <span id="nxbench-benchmarks-export-module"></span><h2>nxbench.benchmarks.export module<a class="headerlink" href="#module-nxbench.benchmarks.export" title="Link to this heading">¶</a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="nxbench.benchmarks.export.ResultsExporter">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">nxbench.benchmarks.export.</span></span><span class="sig-name descname"><span class="pre">ResultsExporter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">results_dir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'results'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/nxbench/benchmarks/export.html#ResultsExporter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nxbench.benchmarks.export.ResultsExporter" title="Link to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">nxbench.benchmarks.export.</span></span><span class="sig-name descname"><span class="pre">ResultsExporter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">results_file</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/nxbench/benchmarks/export.html#ResultsExporter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nxbench.benchmarks.export.ResultsExporter" title="Link to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
-<p>Class for loading and exporting benchmark results.</p>
+<p>Handle loading, processing, and exporting of benchmark results.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>results_dir</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em> | </em><a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.13)"><em>Path</em></a>)</p>
+<dd class="field-odd"><p><strong>results_file</strong> (<a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.13)"><em>Path</em></a>)</p>
 </dd>
 </dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="nxbench.benchmarks.export.ResultsExporter.__init__">
-<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">results_dir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'results'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/nxbench/benchmarks/export.html#ResultsExporter.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nxbench.benchmarks.export.ResultsExporter.__init__" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">results_file</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/nxbench/benchmarks/export.html#ResultsExporter.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nxbench.benchmarks.export.ResultsExporter.__init__" title="Link to this definition">¶</a></dt>
 <dd><p>Initialize the results exporter.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>results_dir</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em> or </em><em>Path</em>) – Directory containing benchmark results</p>
+<dd class="field-odd"><p><strong>results_file</strong> (<em>Path</em>) – Path to the benchmark results file (JSON or CSV)</p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="nxbench.benchmarks.export.ResultsExporter.get_machine_info">
-<span class="sig-name descname"><span class="pre">get_machine_info</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/nxbench/benchmarks/export.html#ResultsExporter.get_machine_info"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nxbench.benchmarks.export.ResultsExporter.get_machine_info" title="Link to this definition">¶</a></dt>
-<dd><p>Get machine information as dictionary.</p>
+<dt class="sig sig-object py" id="nxbench.benchmarks.export.ResultsExporter.export_results">
+<span class="sig-name descname"><span class="pre">export_results</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">output_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">form</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'csv'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">if_exists</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'replace'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/nxbench/benchmarks/export.html#ResultsExporter.export_results"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nxbench.benchmarks.export.ResultsExporter.export_results" title="Link to this definition">¶</a></dt>
+<dd><p>Export benchmark results in specified format (csv, sql, json).</p>
 <dl class="field-list simple">
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Machine information</p>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a></span></p>
 </dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)">dict</a></p>
+<dt class="field-even">Parameters<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>output_path</strong> (<a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.13)"><em>Path</em></a>)</p></li>
+<li><p><strong>form</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>)</p></li>
+<li><p><strong>if_exists</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>)</p></li>
+</ul>
 </dd>
 </dl>
 </dd></dl>
@@ -936,7 +927,9 @@ dictionary containing a “func” key, the function is imported dynamically.</p
 <dl class="py method">
 <dt class="sig sig-object py" id="nxbench.benchmarks.export.ResultsExporter.load_results">
 <span class="sig-name descname"><span class="pre">load_results</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/nxbench/benchmarks/export.html#ResultsExporter.load_results"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nxbench.benchmarks.export.ResultsExporter.load_results" title="Link to this definition">¶</a></dt>
-<dd><p>Load benchmark results and machine information.</p>
+<dd><p>Load benchmark results from the workflow outputs (JSON or CSV),
+integrating all known fields into BenchmarkResult and treating unknown
+fields as metadata.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference internal" href="#nxbench.benchmarks.config.BenchmarkResult" title="nxbench.benchmarks.config.BenchmarkResult"><code class="xref py py-class docutils literal notranslate"><span class="pre">BenchmarkResult</span></code></a>]</span></p>
@@ -945,39 +938,20 @@ dictionary containing a “func” key, the function is imported dynamically.</p
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="nxbench.benchmarks.export.ResultsExporter.query_sql">
-<span class="sig-name descname"><span class="pre">query_sql</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">algorithm</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">backend</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dataset</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start_date</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">end_date</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">as_pandas</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/nxbench/benchmarks/export.html#ResultsExporter.query_sql"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nxbench.benchmarks.export.ResultsExporter.query_sql" title="Link to this definition">¶</a></dt>
-<dd><p>Query results from SQL database using BenchmarkDB.</p>
+<dt class="sig sig-object py" id="nxbench.benchmarks.export.ResultsExporter.query_results">
+<span class="sig-name descname"><span class="pre">query_results</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">algorithm</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">backend</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dataset</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">date_range</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/nxbench/benchmarks/export.html#ResultsExporter.query_results"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nxbench.benchmarks.export.ResultsExporter.query_results" title="Link to this definition">¶</a></dt>
+<dd><p>Query benchmark results with optional filtering.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>algorithm</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em>, </em><em>optional</em>) – Filter by algorithm name</p></li>
-<li><p><strong>backend</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em>, </em><em>optional</em>) – Filter by backend</p></li>
-<li><p><strong>dataset</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em>, </em><em>optional</em>) – Filter by dataset</p></li>
-<li><p><strong>start_date</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em>, </em><em>optional</em>) – Filter results after this date (ISO format)</p></li>
-<li><p><strong>end_date</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em>, </em><em>optional</em>) – Filter results before this date (ISO format)</p></li>
-<li><p><strong>as_pandas</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><em>bool</em></a><em>, </em><em>default=True</em>) – Return results as pandas DataFrame</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>Filtered benchmark results</p>
-</dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>DataFrame or <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.13)">list</a> of <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)">dict</a></p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v2.2.3)"><code class="xref py py-class docutils literal notranslate"><span class="pre">DataFrame</span></code></a></span></p>
 </dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="nxbench.benchmarks.export.ResultsExporter.to_csv">
-<span class="sig-name descname"><span class="pre">to_csv</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">output_path</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/nxbench/benchmarks/export.html#ResultsExporter.to_csv"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nxbench.benchmarks.export.ResultsExporter.to_csv" title="Link to this definition">¶</a></dt>
-<dd><p>Export results to CSV file.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>output_path</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em> or </em><em>Path</em>) – Path to output CSV file</p>
-</dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a></span></p>
+<dt class="field-even">Parameters<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>algorithm</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em> | </em><em>None</em>)</p></li>
+<li><p><strong>backend</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em> | </em><em>None</em>)</p></li>
+<li><p><strong>dataset</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em> | </em><em>None</em>)</p></li>
+<li><p><strong>date_range</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.13)"><em>tuple</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em>] </em><em>| </em><em>None</em>)</p></li>
+</ul>
 </dd>
 </dl>
 </dd></dl>
@@ -985,30 +959,9 @@ dictionary containing a “func” key, the function is imported dynamically.</p
 <dl class="py method">
 <dt class="sig sig-object py" id="nxbench.benchmarks.export.ResultsExporter.to_dataframe">
 <span class="sig-name descname"><span class="pre">to_dataframe</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/nxbench/benchmarks/export.html#ResultsExporter.to_dataframe"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nxbench.benchmarks.export.ResultsExporter.to_dataframe" title="Link to this definition">¶</a></dt>
-<dd><p>Convert results to pandas DataFrame.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p>DataFrame containing benchmark results</p>
-</dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p>pd.DataFrame</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="nxbench.benchmarks.export.ResultsExporter.to_sql">
-<span class="sig-name descname"><span class="pre">to_sql</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">db_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">if_exists</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'replace'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/nxbench/benchmarks/export.html#ResultsExporter.to_sql"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nxbench.benchmarks.export.ResultsExporter.to_sql" title="Link to this definition">¶</a></dt>
-<dd><p>Export results to SQLite database using BenchmarkDB.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>db_path</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em> or </em><em>Path</em><em>, </em><em>optional</em>) – Path to SQLite database file. If None, uses default location</p></li>
-<li><p><strong>if_exists</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em>, </em><em>default='replace'</em>) – How to behave if table exists (‘fail’, ‘replace’, or ‘append’)</p></li>
-</ul>
-</dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a></span></p>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v2.2.3)"><code class="xref py py-class docutils literal notranslate"><span class="pre">DataFrame</span></code></a></span></p>
 </dd>
 </dl>
 </dd></dl>
@@ -1053,6 +1006,23 @@ bytes.</p>
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="nxbench.benchmarks.utils.add_seeding">
+<span class="sig-prename descclassname"><span class="pre">nxbench.benchmarks.utils.</span></span><span class="sig-name descname"><span class="pre">add_seeding</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">kwargs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">algo_func</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">algorithm_name</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/nxbench/benchmarks/utils.html#add_seeding"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nxbench.benchmarks.utils.add_seeding" title="Link to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a></span></p>
+</dd>
+<dt class="field-even">Parameters<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>kwargs</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)"><em>dict</em></a>)</p></li>
+<li><p><strong>algo_func</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.13)"><em>Any</em></a>)</p></li>
+<li><p><strong>algorithm_name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="nxbench.benchmarks.utils.configure_benchmarks">
 <span class="sig-prename descclassname"><span class="pre">nxbench.benchmarks.utils.</span></span><span class="sig-name descname"><span class="pre">configure_benchmarks</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/nxbench/benchmarks/utils.html#configure_benchmarks"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nxbench.benchmarks.utils.configure_benchmarks" title="Link to this definition">¶</a></dt>
 <dd><dl class="field-list simple">
@@ -1080,9 +1050,10 @@ algorithms.</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="nxbench.benchmarks.utils.get_available_backends">
 <span class="sig-prename descclassname"><span class="pre">nxbench.benchmarks.utils.</span></span><span class="sig-name descname"><span class="pre">get_available_backends</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/nxbench/benchmarks/utils.html#get_available_backends"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nxbench.benchmarks.utils.get_available_backends" title="Link to this definition">¶</a></dt>
-<dd><dl class="field-list simple">
+<dd><p>Return a dict of available backends and their versions.</p>
+<dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>]</span></p>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>]</span></p>
 </dd>
 </dl>
 </dd></dl>
@@ -1096,6 +1067,11 @@ algorithms.</p>
 </dd>
 </dl>
 </dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="nxbench.benchmarks.utils.get_machine_info">
+<span class="sig-prename descclassname"><span class="pre">nxbench.benchmarks.utils.</span></span><span class="sig-name descname"><span class="pre">get_machine_info</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/nxbench/benchmarks/utils.html#get_machine_info"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nxbench.benchmarks.utils.get_machine_info" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="nxbench.benchmarks.utils.get_python_version">
@@ -1139,6 +1115,28 @@ algorithms.</p>
 <dd><p>Track memory usage of code block.</p>
 <p>Returns dict with ‘current’ and ‘peak’ memory usage in bytes.
 Memory usage is measured as the difference between before and after execution.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="nxbench.benchmarks.utils.process_algorithm_params">
+<span class="sig-prename descclassname"><span class="pre">nxbench.benchmarks.utils.</span></span><span class="sig-name descname"><span class="pre">process_algorithm_params</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/nxbench/benchmarks/utils.html#process_algorithm_params"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#nxbench.benchmarks.utils.process_algorithm_params" title="Link to this definition">¶</a></dt>
+<dd><p>Process and separate algorithm parameters into positional and keyword arguments.
+:rtype: <span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.13)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a>], <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.13)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a>]]</span></p>
+<ol class="arabic simple">
+<li><p>Keys starting with “_” go into pos_args (list).</p></li>
+<li><p>Other keys become kwargs (dict).</p></li>
+<li><p>If a param is a string that looks like a float or int, parse it.</p></li>
+</ol>
+<p>4. If param is a dict containing {“func”: “…”} then dynamically load that
+function.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>params</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)"><em>dict</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.13)"><em>Any</em></a><em>]</em>)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.13)">tuple</a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.13)">list</a>[<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.13)"><em>Any</em></a>], <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)">dict</a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)">str</a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.13)"><em>Any</em></a>]]</p>
+</dd>
+</dl>
 </dd></dl>
 
 </section>
@@ -1205,41 +1203,32 @@ Memory usage is measured as the difference between before and after execution.</
 <li><a class="reference internal" href="#">nxbench.benchmarks package</a><ul>
 <li><a class="reference internal" href="#submodules">Submodules</a></li>
 <li><a class="reference internal" href="#module-nxbench.benchmarks.benchmark">nxbench.benchmarks.benchmark module</a><ul>
-<li><a class="reference internal" href="#nxbench.benchmarks.benchmark.GraphBenchmark"><code class="docutils literal notranslate"><span class="pre">GraphBenchmark</span></code></a><ul>
-<li><a class="reference internal" href="#nxbench.benchmarks.benchmark.GraphBenchmark.__init__"><code class="docutils literal notranslate"><span class="pre">GraphBenchmark.__init__()</span></code></a></li>
-<li><a class="reference internal" href="#nxbench.benchmarks.benchmark.GraphBenchmark.config"><code class="docutils literal notranslate"><span class="pre">GraphBenchmark.config</span></code></a></li>
-<li><a class="reference internal" href="#nxbench.benchmarks.benchmark.GraphBenchmark.do_benchmark"><code class="docutils literal notranslate"><span class="pre">GraphBenchmark.do_benchmark()</span></code></a></li>
-<li><a class="reference internal" href="#nxbench.benchmarks.benchmark.GraphBenchmark.prepare_benchmark"><code class="docutils literal notranslate"><span class="pre">GraphBenchmark.prepare_benchmark()</span></code></a></li>
-<li><a class="reference internal" href="#nxbench.benchmarks.benchmark.GraphBenchmark.setup"><code class="docutils literal notranslate"><span class="pre">GraphBenchmark.setup()</span></code></a></li>
-<li><a class="reference internal" href="#nxbench.benchmarks.benchmark.GraphBenchmark.setup_cache"><code class="docutils literal notranslate"><span class="pre">GraphBenchmark.setup_cache()</span></code></a></li>
-<li><a class="reference internal" href="#nxbench.benchmarks.benchmark.GraphBenchmark.teardown"><code class="docutils literal notranslate"><span class="pre">GraphBenchmark.teardown()</span></code></a></li>
-<li><a class="reference internal" href="#nxbench.benchmarks.benchmark.GraphBenchmark.teardown_specific"><code class="docutils literal notranslate"><span class="pre">GraphBenchmark.teardown_specific()</span></code></a></li>
-<li><a class="reference internal" href="#nxbench.benchmarks.benchmark.GraphBenchmark.track_pagerank_08blocks_networkx_1"><code class="docutils literal notranslate"><span class="pre">GraphBenchmark.track_pagerank_08blocks_networkx_1()</span></code></a></li>
-<li><a class="reference internal" href="#nxbench.benchmarks.benchmark.GraphBenchmark.track_pagerank_enron_networkx_1"><code class="docutils literal notranslate"><span class="pre">GraphBenchmark.track_pagerank_enron_networkx_1()</span></code></a></li>
-<li><a class="reference internal" href="#nxbench.benchmarks.benchmark.GraphBenchmark.track_pagerank_jazz_networkx_1"><code class="docutils literal notranslate"><span class="pre">GraphBenchmark.track_pagerank_jazz_networkx_1()</span></code></a></li>
-<li><a class="reference internal" href="#nxbench.benchmarks.benchmark.GraphBenchmark.track_pagerank_karate_networkx_1"><code class="docutils literal notranslate"><span class="pre">GraphBenchmark.track_pagerank_karate_networkx_1()</span></code></a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#nxbench.benchmarks.benchmark.generate_benchmark_methods"><code class="docutils literal notranslate"><span class="pre">generate_benchmark_methods()</span></code></a></li>
-<li><a class="reference internal" href="#nxbench.benchmarks.benchmark.get_algorithm_function"><code class="docutils literal notranslate"><span class="pre">get_algorithm_function()</span></code></a></li>
-<li><a class="reference internal" href="#nxbench.benchmarks.benchmark.process_algorithm_params"><code class="docutils literal notranslate"><span class="pre">process_algorithm_params()</span></code></a></li>
+<li><a class="reference internal" href="#nxbench.benchmarks.benchmark.benchmark_suite"><code class="docutils literal notranslate"><span class="pre">benchmark_suite()</span></code></a></li>
+<li><a class="reference internal" href="#nxbench.benchmarks.benchmark.collect_metrics"><code class="docutils literal notranslate"><span class="pre">collect_metrics()</span></code></a></li>
+<li><a class="reference internal" href="#nxbench.benchmarks.benchmark.configure_backend"><code class="docutils literal notranslate"><span class="pre">configure_backend()</span></code></a></li>
+<li><a class="reference internal" href="#nxbench.benchmarks.benchmark.load_config"><code class="docutils literal notranslate"><span class="pre">load_config()</span></code></a></li>
+<li><a class="reference internal" href="#nxbench.benchmarks.benchmark.main_benchmark"><code class="docutils literal notranslate"><span class="pre">main_benchmark()</span></code></a></li>
+<li><a class="reference internal" href="#nxbench.benchmarks.benchmark.run_algorithm"><code class="docutils literal notranslate"><span class="pre">run_algorithm()</span></code></a></li>
+<li><a class="reference internal" href="#nxbench.benchmarks.benchmark.run_single_benchmark"><code class="docutils literal notranslate"><span class="pre">run_single_benchmark()</span></code></a></li>
+<li><a class="reference internal" href="#nxbench.benchmarks.benchmark.setup_cache"><code class="docutils literal notranslate"><span class="pre">setup_cache()</span></code></a></li>
+<li><a class="reference internal" href="#nxbench.benchmarks.benchmark.teardown_specific"><code class="docutils literal notranslate"><span class="pre">teardown_specific()</span></code></a></li>
+<li><a class="reference internal" href="#nxbench.benchmarks.benchmark.validate_results"><code class="docutils literal notranslate"><span class="pre">validate_results()</span></code></a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#module-nxbench.benchmarks.config">nxbench.benchmarks.config module</a><ul>
 <li><a class="reference internal" href="#nxbench.benchmarks.config.AlgorithmConfig"><code class="docutils literal notranslate"><span class="pre">AlgorithmConfig</span></code></a><ul>
 <li><a class="reference internal" href="#nxbench.benchmarks.config.AlgorithmConfig.__init__"><code class="docutils literal notranslate"><span class="pre">AlgorithmConfig.__init__()</span></code></a></li>
-<li><a class="reference internal" href="#nxbench.benchmarks.config.AlgorithmConfig.__post_init__"><code class="docutils literal notranslate"><span class="pre">AlgorithmConfig.__post_init__()</span></code></a></li>
 <li><a class="reference internal" href="#nxbench.benchmarks.config.AlgorithmConfig.func"><code class="docutils literal notranslate"><span class="pre">AlgorithmConfig.func</span></code></a></li>
+<li><a class="reference internal" href="#nxbench.benchmarks.config.AlgorithmConfig.get_callable"><code class="docutils literal notranslate"><span class="pre">AlgorithmConfig.get_callable()</span></code></a></li>
+<li><a class="reference internal" href="#nxbench.benchmarks.config.AlgorithmConfig.get_func_ref"><code class="docutils literal notranslate"><span class="pre">AlgorithmConfig.get_func_ref()</span></code></a></li>
+<li><a class="reference internal" href="#nxbench.benchmarks.config.AlgorithmConfig.get_validate_ref"><code class="docutils literal notranslate"><span class="pre">AlgorithmConfig.get_validate_ref()</span></code></a></li>
 <li><a class="reference internal" href="#nxbench.benchmarks.config.AlgorithmConfig.groups"><code class="docutils literal notranslate"><span class="pre">AlgorithmConfig.groups</span></code></a></li>
-<li><a class="reference internal" href="#nxbench.benchmarks.config.AlgorithmConfig.min_rounds"><code class="docutils literal notranslate"><span class="pre">AlgorithmConfig.min_rounds</span></code></a></li>
 <li><a class="reference internal" href="#nxbench.benchmarks.config.AlgorithmConfig.name"><code class="docutils literal notranslate"><span class="pre">AlgorithmConfig.name</span></code></a></li>
 <li><a class="reference internal" href="#nxbench.benchmarks.config.AlgorithmConfig.params"><code class="docutils literal notranslate"><span class="pre">AlgorithmConfig.params</span></code></a></li>
 <li><a class="reference internal" href="#nxbench.benchmarks.config.AlgorithmConfig.requires_directed"><code class="docutils literal notranslate"><span class="pre">AlgorithmConfig.requires_directed</span></code></a></li>
 <li><a class="reference internal" href="#nxbench.benchmarks.config.AlgorithmConfig.requires_undirected"><code class="docutils literal notranslate"><span class="pre">AlgorithmConfig.requires_undirected</span></code></a></li>
 <li><a class="reference internal" href="#nxbench.benchmarks.config.AlgorithmConfig.requires_weighted"><code class="docutils literal notranslate"><span class="pre">AlgorithmConfig.requires_weighted</span></code></a></li>
 <li><a class="reference internal" href="#nxbench.benchmarks.config.AlgorithmConfig.validate_result"><code class="docutils literal notranslate"><span class="pre">AlgorithmConfig.validate_result</span></code></a></li>
-<li><a class="reference internal" href="#nxbench.benchmarks.config.AlgorithmConfig.warmup"><code class="docutils literal notranslate"><span class="pre">AlgorithmConfig.warmup</span></code></a></li>
-<li><a class="reference internal" href="#nxbench.benchmarks.config.AlgorithmConfig.warmup_iterations"><code class="docutils literal notranslate"><span class="pre">AlgorithmConfig.warmup_iterations</span></code></a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#nxbench.benchmarks.config.BenchmarkConfig"><code class="docutils literal notranslate"><span class="pre">BenchmarkConfig</span></code></a><ul>
@@ -1249,7 +1238,6 @@ Memory usage is measured as the difference between before and after execution.</
 <li><a class="reference internal" href="#nxbench.benchmarks.config.BenchmarkConfig.env_data"><code class="docutils literal notranslate"><span class="pre">BenchmarkConfig.env_data</span></code></a></li>
 <li><a class="reference internal" href="#nxbench.benchmarks.config.BenchmarkConfig.from_yaml"><code class="docutils literal notranslate"><span class="pre">BenchmarkConfig.from_yaml()</span></code></a></li>
 <li><a class="reference internal" href="#nxbench.benchmarks.config.BenchmarkConfig.machine_info"><code class="docutils literal notranslate"><span class="pre">BenchmarkConfig.machine_info</span></code></a></li>
-<li><a class="reference internal" href="#nxbench.benchmarks.config.BenchmarkConfig.matrix"><code class="docutils literal notranslate"><span class="pre">BenchmarkConfig.matrix</span></code></a></li>
 <li><a class="reference internal" href="#nxbench.benchmarks.config.BenchmarkConfig.output_dir"><code class="docutils literal notranslate"><span class="pre">BenchmarkConfig.output_dir</span></code></a></li>
 <li><a class="reference internal" href="#nxbench.benchmarks.config.BenchmarkConfig.to_yaml"><code class="docutils literal notranslate"><span class="pre">BenchmarkConfig.to_yaml()</span></code></a></li>
 </ul>
@@ -1264,11 +1252,11 @@ Memory usage is measured as the difference between before and after execution.</
 <li><a class="reference internal" href="#nxbench.benchmarks.config.BenchmarkResult.__init__"><code class="docutils literal notranslate"><span class="pre">BenchmarkResult.__init__()</span></code></a></li>
 <li><a class="reference internal" href="#nxbench.benchmarks.config.BenchmarkResult.algorithm"><code class="docutils literal notranslate"><span class="pre">BenchmarkResult.algorithm</span></code></a></li>
 <li><a class="reference internal" href="#nxbench.benchmarks.config.BenchmarkResult.backend"><code class="docutils literal notranslate"><span class="pre">BenchmarkResult.backend</span></code></a></li>
-<li><a class="reference internal" href="#nxbench.benchmarks.config.BenchmarkResult.commit_hash"><code class="docutils literal notranslate"><span class="pre">BenchmarkResult.commit_hash</span></code></a></li>
 <li><a class="reference internal" href="#nxbench.benchmarks.config.BenchmarkResult.dataset"><code class="docutils literal notranslate"><span class="pre">BenchmarkResult.dataset</span></code></a></li>
 <li><a class="reference internal" href="#nxbench.benchmarks.config.BenchmarkResult.date"><code class="docutils literal notranslate"><span class="pre">BenchmarkResult.date</span></code></a></li>
+<li><a class="reference internal" href="#nxbench.benchmarks.config.BenchmarkResult.error"><code class="docutils literal notranslate"><span class="pre">BenchmarkResult.error</span></code></a></li>
 <li><a class="reference internal" href="#nxbench.benchmarks.config.BenchmarkResult.execution_time"><code class="docutils literal notranslate"><span class="pre">BenchmarkResult.execution_time</span></code></a></li>
-<li><a class="reference internal" href="#nxbench.benchmarks.config.BenchmarkResult.from_asv_result"><code class="docutils literal notranslate"><span class="pre">BenchmarkResult.from_asv_result()</span></code></a></li>
+<li><a class="reference internal" href="#nxbench.benchmarks.config.BenchmarkResult.execution_time_with_preloading"><code class="docutils literal notranslate"><span class="pre">BenchmarkResult.execution_time_with_preloading</span></code></a></li>
 <li><a class="reference internal" href="#nxbench.benchmarks.config.BenchmarkResult.is_directed"><code class="docutils literal notranslate"><span class="pre">BenchmarkResult.is_directed</span></code></a></li>
 <li><a class="reference internal" href="#nxbench.benchmarks.config.BenchmarkResult.is_weighted"><code class="docutils literal notranslate"><span class="pre">BenchmarkResult.is_weighted</span></code></a></li>
 <li><a class="reference internal" href="#nxbench.benchmarks.config.BenchmarkResult.memory_used"><code class="docutils literal notranslate"><span class="pre">BenchmarkResult.memory_used</span></code></a></li>
@@ -1276,6 +1264,8 @@ Memory usage is measured as the difference between before and after execution.</
 <li><a class="reference internal" href="#nxbench.benchmarks.config.BenchmarkResult.num_edges"><code class="docutils literal notranslate"><span class="pre">BenchmarkResult.num_edges</span></code></a></li>
 <li><a class="reference internal" href="#nxbench.benchmarks.config.BenchmarkResult.num_nodes"><code class="docutils literal notranslate"><span class="pre">BenchmarkResult.num_nodes</span></code></a></li>
 <li><a class="reference internal" href="#nxbench.benchmarks.config.BenchmarkResult.num_thread"><code class="docutils literal notranslate"><span class="pre">BenchmarkResult.num_thread</span></code></a></li>
+<li><a class="reference internal" href="#nxbench.benchmarks.config.BenchmarkResult.validation"><code class="docutils literal notranslate"><span class="pre">BenchmarkResult.validation</span></code></a></li>
+<li><a class="reference internal" href="#nxbench.benchmarks.config.BenchmarkResult.validation_message"><code class="docutils literal notranslate"><span class="pre">BenchmarkResult.validation_message</span></code></a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#nxbench.benchmarks.config.DatasetConfig"><code class="docutils literal notranslate"><span class="pre">DatasetConfig</span></code></a><ul>
@@ -1291,12 +1281,10 @@ Memory usage is measured as the difference between before and after execution.</
 <li><a class="reference internal" href="#module-nxbench.benchmarks.export">nxbench.benchmarks.export module</a><ul>
 <li><a class="reference internal" href="#nxbench.benchmarks.export.ResultsExporter"><code class="docutils literal notranslate"><span class="pre">ResultsExporter</span></code></a><ul>
 <li><a class="reference internal" href="#nxbench.benchmarks.export.ResultsExporter.__init__"><code class="docutils literal notranslate"><span class="pre">ResultsExporter.__init__()</span></code></a></li>
-<li><a class="reference internal" href="#nxbench.benchmarks.export.ResultsExporter.get_machine_info"><code class="docutils literal notranslate"><span class="pre">ResultsExporter.get_machine_info()</span></code></a></li>
+<li><a class="reference internal" href="#nxbench.benchmarks.export.ResultsExporter.export_results"><code class="docutils literal notranslate"><span class="pre">ResultsExporter.export_results()</span></code></a></li>
 <li><a class="reference internal" href="#nxbench.benchmarks.export.ResultsExporter.load_results"><code class="docutils literal notranslate"><span class="pre">ResultsExporter.load_results()</span></code></a></li>
-<li><a class="reference internal" href="#nxbench.benchmarks.export.ResultsExporter.query_sql"><code class="docutils literal notranslate"><span class="pre">ResultsExporter.query_sql()</span></code></a></li>
-<li><a class="reference internal" href="#nxbench.benchmarks.export.ResultsExporter.to_csv"><code class="docutils literal notranslate"><span class="pre">ResultsExporter.to_csv()</span></code></a></li>
+<li><a class="reference internal" href="#nxbench.benchmarks.export.ResultsExporter.query_results"><code class="docutils literal notranslate"><span class="pre">ResultsExporter.query_results()</span></code></a></li>
 <li><a class="reference internal" href="#nxbench.benchmarks.export.ResultsExporter.to_dataframe"><code class="docutils literal notranslate"><span class="pre">ResultsExporter.to_dataframe()</span></code></a></li>
-<li><a class="reference internal" href="#nxbench.benchmarks.export.ResultsExporter.to_sql"><code class="docutils literal notranslate"><span class="pre">ResultsExporter.to_sql()</span></code></a></li>
 </ul>
 </li>
 </ul>
@@ -1308,16 +1296,19 @@ Memory usage is measured as the difference between before and after execution.</
 <li><a class="reference internal" href="#nxbench.benchmarks.utils.MemorySnapshot.take"><code class="docutils literal notranslate"><span class="pre">MemorySnapshot.take()</span></code></a></li>
 </ul>
 </li>
+<li><a class="reference internal" href="#nxbench.benchmarks.utils.add_seeding"><code class="docutils literal notranslate"><span class="pre">add_seeding()</span></code></a></li>
 <li><a class="reference internal" href="#nxbench.benchmarks.utils.configure_benchmarks"><code class="docutils literal notranslate"><span class="pre">configure_benchmarks()</span></code></a></li>
 <li><a class="reference internal" href="#nxbench.benchmarks.utils.get_available_algorithms"><code class="docutils literal notranslate"><span class="pre">get_available_algorithms()</span></code></a></li>
 <li><a class="reference internal" href="#nxbench.benchmarks.utils.get_available_backends"><code class="docutils literal notranslate"><span class="pre">get_available_backends()</span></code></a></li>
 <li><a class="reference internal" href="#nxbench.benchmarks.utils.get_benchmark_config"><code class="docutils literal notranslate"><span class="pre">get_benchmark_config()</span></code></a></li>
+<li><a class="reference internal" href="#nxbench.benchmarks.utils.get_machine_info"><code class="docutils literal notranslate"><span class="pre">get_machine_info()</span></code></a></li>
 <li><a class="reference internal" href="#nxbench.benchmarks.utils.get_python_version"><code class="docutils literal notranslate"><span class="pre">get_python_version()</span></code></a></li>
 <li><a class="reference internal" href="#nxbench.benchmarks.utils.is_graphblas_available"><code class="docutils literal notranslate"><span class="pre">is_graphblas_available()</span></code></a></li>
 <li><a class="reference internal" href="#nxbench.benchmarks.utils.is_nx_cugraph_available"><code class="docutils literal notranslate"><span class="pre">is_nx_cugraph_available()</span></code></a></li>
 <li><a class="reference internal" href="#nxbench.benchmarks.utils.is_nx_parallel_available"><code class="docutils literal notranslate"><span class="pre">is_nx_parallel_available()</span></code></a></li>
 <li><a class="reference internal" href="#nxbench.benchmarks.utils.load_default_config"><code class="docutils literal notranslate"><span class="pre">load_default_config()</span></code></a></li>
 <li><a class="reference internal" href="#nxbench.benchmarks.utils.memory_tracker"><code class="docutils literal notranslate"><span class="pre">memory_tracker()</span></code></a></li>
+<li><a class="reference internal" href="#nxbench.benchmarks.utils.process_algorithm_params"><code class="docutils literal notranslate"><span class="pre">process_algorithm_params()</span></code></a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#module-nxbench.benchmarks">Module contents</a></li>

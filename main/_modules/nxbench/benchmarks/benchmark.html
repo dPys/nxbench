@@ -213,8 +213,7 @@
 <li class="toctree-l4"><a class="reference internal" href="../../../api/nxbench.data.scripts.html">nxbench.data.scripts package</a></li>
 </ul>
 </li>
-<li class="toctree-l3 has-children"><a class="reference internal" href="../../../api/nxbench.validation.html">nxbench.validation package</a><input class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" role="switch" type="checkbox"/><label for="toctree-checkbox-4"><div class="visually-hidden">Toggle navigation of nxbench.validation package</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
-<li class="toctree-l4"><a class="reference internal" href="../../../api/nxbench.validation.scripts.html">nxbench.validation.scripts package</a></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../../../api/nxbench.validation.html">nxbench.validation package</a><input class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" role="switch" type="checkbox"/><label for="toctree-checkbox-4"><div class="visually-hidden">Toggle navigation of nxbench.validation package</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="simple">
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="../../../api/nxbench.viz.html">nxbench.viz package</a></li>
@@ -226,11 +225,9 @@
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="../../../api/nxbench.data.scripts.html">nxbench.data.scripts package</a></li>
-<li class="toctree-l2 has-children"><a class="reference internal" href="../../../api/nxbench.validation.html">nxbench.validation package</a><input class="toctree-checkbox" id="toctree-checkbox-6" name="toctree-checkbox-6" role="switch" type="checkbox"/><label for="toctree-checkbox-6"><div class="visually-hidden">Toggle navigation of nxbench.validation package</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
-<li class="toctree-l3"><a class="reference internal" href="../../../api/nxbench.validation.scripts.html">nxbench.validation.scripts package</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../../api/nxbench.validation.html">nxbench.validation package</a><input class="toctree-checkbox" id="toctree-checkbox-6" name="toctree-checkbox-6" role="switch" type="checkbox"/><label for="toctree-checkbox-6"><div class="visually-hidden">Toggle navigation of nxbench.validation package</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="simple">
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="../../../api/nxbench.validation.scripts.html">nxbench.validation.scripts package</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../api/nxbench.viz.html">nxbench.viz package</a></li>
 </ul>
 </li>
@@ -269,424 +266,534 @@
         </div>
         <article role="main" id="furo-main-content">
           <h1>Source code for nxbench.benchmarks.benchmark</h1><div class="highlight"><pre>
-<span></span><span class="sd">&quot;&quot;&quot;Core benchmark functionality and result handling.&quot;&quot;&quot;</span>
-
+<span></span><span class="kn">import</span> <span class="nn">asyncio</span>
+<span class="kn">import</span> <span class="nn">json</span>
 <span class="kn">import</span> <span class="nn">logging</span>
 <span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">time</span>
-<span class="kn">import</span> <span class="nn">traceback</span>
-<span class="kn">import</span> <span class="nn">warnings</span>
-<span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">partial</span>
+<span class="kn">import</span> <span class="nn">uuid</span>
 <span class="kn">from</span> <span class="nn">importlib</span> <span class="kn">import</span> <span class="n">import_module</span>
+<span class="kn">from</span> <span class="nn">itertools</span> <span class="kn">import</span> <span class="n">product</span>
+<span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span>
 
+<span class="kn">import</span> <span class="nn">nest_asyncio</span>
 <span class="kn">import</span> <span class="nn">networkx</span> <span class="k">as</span> <span class="nn">nx</span>
+<span class="kn">from</span> <span class="nn">prefect</span> <span class="kn">import</span> <span class="n">flow</span><span class="p">,</span> <span class="n">get_run_logger</span><span class="p">,</span> <span class="n">task</span>
+<span class="kn">from</span> <span class="nn">prefect.task_runners</span> <span class="kn">import</span> <span class="n">ThreadPoolTaskRunner</span>
+<span class="kn">from</span> <span class="nn">prefect_dask.task_runners</span> <span class="kn">import</span> <span class="n">DaskTaskRunner</span>
 
-<span class="kn">from</span> <span class="nn">nxbench.benchmarks.config</span> <span class="kn">import</span> <span class="n">AlgorithmConfig</span>
+<span class="kn">from</span> <span class="nn">nxbench.benchmarks.config</span> <span class="kn">import</span> <span class="n">AlgorithmConfig</span><span class="p">,</span> <span class="n">DatasetConfig</span>
 <span class="kn">from</span> <span class="nn">nxbench.benchmarks.utils</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">add_seeding</span><span class="p">,</span>
     <span class="n">get_available_backends</span><span class="p">,</span>
     <span class="n">get_benchmark_config</span><span class="p">,</span>
-    <span class="n">is_graphblas_available</span><span class="p">,</span>
-    <span class="n">is_nx_cugraph_available</span><span class="p">,</span>
-    <span class="n">is_nx_parallel_available</span><span class="p">,</span>
+    <span class="n">get_machine_info</span><span class="p">,</span>
+    <span class="n">get_python_version</span><span class="p">,</span>
     <span class="n">memory_tracker</span><span class="p">,</span>
+    <span class="n">process_algorithm_params</span><span class="p">,</span>
 <span class="p">)</span>
 <span class="kn">from</span> <span class="nn">nxbench.data.loader</span> <span class="kn">import</span> <span class="n">BenchmarkDataManager</span>
 <span class="kn">from</span> <span class="nn">nxbench.validation.registry</span> <span class="kn">import</span> <span class="n">BenchmarkValidator</span>
 
-<span class="n">nx</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">warnings_to_ignore</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s2">&quot;cache&quot;</span><span class="p">)</span>
-<span class="n">warnings</span><span class="o">.</span><span class="n">filterwarnings</span><span class="p">(</span><span class="s2">&quot;ignore&quot;</span><span class="p">)</span>
-
 <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">&quot;nxbench&quot;</span><span class="p">)</span>
 
+<span class="n">nest_asyncio</span><span class="o">.</span><span class="n">apply</span><span class="p">()</span>
 
-<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
-    <span class="s2">&quot;generate_benchmark_methods&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;GraphBenchmark&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;get_algorithm_function&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;process_algorithm_params&quot;</span><span class="p">,</span>
-<span class="p">]</span>
+<span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span>
+    <span class="s2">&quot;PREFECT_API_DATABASE_CONNECTION_URL&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;postgresql+asyncpg://prefect_user:pass@localhost:5432/prefect_db&quot;</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s2">&quot;PREFECT_ORION_DATABASE_CONNECTION_POOL_SIZE&quot;</span><span class="p">,</span> <span class="s2">&quot;5&quot;</span><span class="p">)</span>
+<span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s2">&quot;PREFECT_ORION_DATABASE_CONNECTION_MAX_OVERFLOW&quot;</span><span class="p">,</span> <span class="s2">&quot;10&quot;</span><span class="p">)</span>
+<span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s2">&quot;PREFECT_API_URL&quot;</span><span class="p">,</span> <span class="s2">&quot;http://127.0.0.1:4200/api&quot;</span><span class="p">)</span>
+<span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s2">&quot;PREFECT_ORION_API_ENABLE_TASK_RUN_DATA_PERSISTENCE&quot;</span><span class="p">,</span> <span class="s2">&quot;false&quot;</span><span class="p">)</span>
+<span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s2">&quot;MAX_WORKERS&quot;</span><span class="p">,</span> <span class="s2">&quot;4&quot;</span><span class="p">)</span>
 
-
-<div class="viewcode-block" id="generate_benchmark_methods">
-<a class="viewcode-back" href="../../../api/nxbench.benchmarks.html#nxbench.benchmarks.benchmark.generate_benchmark_methods">[docs]</a>
-<span class="k">def</span> <span class="nf">generate_benchmark_methods</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Generate benchmark methods dynamically for each combination of algorithm,</span>
-<span class="sd">    backend, and number of threads without redundant executions.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">config</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">config</span>
-    <span class="n">algorithms</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">algorithms</span>
-    <span class="n">datasets</span> <span class="o">=</span> <span class="p">[</span><span class="n">ds</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">ds</span> <span class="ow">in</span> <span class="n">config</span><span class="o">.</span><span class="n">datasets</span><span class="p">]</span>
-    <span class="n">available_backends</span> <span class="o">=</span> <span class="n">get_available_backends</span><span class="p">()</span>
-    <span class="n">matrix_config</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">matrix</span>
-    <span class="k">if</span> <span class="n">matrix_config</span><span class="p">:</span>
-        <span class="n">backends</span> <span class="o">=</span> <span class="p">[</span>
-            <span class="n">backend</span>
-            <span class="k">for</span> <span class="n">backend</span> <span class="ow">in</span> <span class="n">matrix_config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;backend&quot;</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;networkx&quot;</span><span class="p">])</span>
-            <span class="k">if</span> <span class="n">backend</span> <span class="ow">in</span> <span class="n">available_backends</span>
-        <span class="p">]</span>
-        <span class="n">num_thread_values</span> <span class="o">=</span> <span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">matrix_config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;num_threads&quot;</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;1&quot;</span><span class="p">])]</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="n">backends</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;networkx&quot;</span><span class="p">]</span>
-        <span class="n">num_thread_values</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;1&quot;</span><span class="p">]</span>
-
-    <span class="k">def</span> <span class="nf">make_benchmark_method</span><span class="p">(</span><span class="n">algo_config</span><span class="p">,</span> <span class="n">dataset_name</span><span class="p">,</span> <span class="n">backend</span><span class="p">,</span> <span class="n">num_thread</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Create a unique benchmark method for the given algorithm, dataset, backend,</span>
-<span class="sd">        and number of threads combination.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">algo_name</span> <span class="o">=</span> <span class="n">algo_config</span><span class="o">.</span><span class="n">name</span>
-        <span class="n">safe_dataset_name</span> <span class="o">=</span> <span class="n">dataset_name</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;-&quot;</span><span class="p">,</span> <span class="s2">&quot;_&quot;</span><span class="p">)</span>
-        <span class="n">method_name</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;track_</span><span class="si">{</span><span class="n">algo_name</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">safe_dataset_name</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">backend</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">num_thread</span><span class="si">}</span><span class="s2">&quot;</span>
-
-        <span class="k">def</span> <span class="nf">track_method</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">            </span><span class="sd">&quot;&quot;&quot;Run benchmark and return metrics for the unique combination.&quot;&quot;&quot;</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
-                <span class="sa">f</span><span class="s2">&quot;Starting track_method for </span><span class="si">{</span><span class="n">method_name</span><span class="si">}</span><span class="s2"> with backend=</span><span class="si">{</span><span class="n">backend</span><span class="si">}</span><span class="s2">, &quot;</span>
-                <span class="sa">f</span><span class="s2">&quot;threads=</span><span class="si">{</span><span class="n">num_thread</span><span class="si">}</span><span class="s2">, dataset=</span><span class="si">{</span><span class="n">dataset_name</span><span class="si">}</span><span class="s2">&quot;</span>
-            <span class="p">)</span>
-            <span class="n">metrics</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">do_benchmark</span><span class="p">(</span><span class="n">algo_config</span><span class="p">,</span> <span class="n">dataset_name</span><span class="p">,</span> <span class="n">backend</span><span class="p">,</span> <span class="n">num_thread</span><span class="p">)</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Track </span><span class="si">{</span><span class="n">method_name</span><span class="si">}</span><span class="s2"> results: </span><span class="si">{</span><span class="n">metrics</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-            <span class="k">return</span> <span class="n">metrics</span>
-
-        <span class="n">track_method</span><span class="o">.</span><span class="vm">__name__</span> <span class="o">=</span> <span class="n">method_name</span>
-        <span class="n">track_method</span><span class="o">.</span><span class="n">unit</span> <span class="o">=</span> <span class="s2">&quot;seconds+MB&quot;</span>
-
-        <span class="k">return</span> <span class="n">track_method</span>
-
-    <span class="n">generated_methods</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
-    <span class="k">for</span> <span class="n">algo_config</span> <span class="ow">in</span> <span class="n">algorithms</span><span class="p">:</span>
-        <span class="k">for</span> <span class="n">dataset_name</span> <span class="ow">in</span> <span class="n">datasets</span><span class="p">:</span>
-            <span class="k">for</span> <span class="n">backend</span> <span class="ow">in</span> <span class="n">backends</span><span class="p">:</span>
-                <span class="k">for</span> <span class="n">num_thread</span> <span class="ow">in</span> <span class="n">num_thread_values</span><span class="p">:</span>
-                    <span class="n">method_signature</span> <span class="o">=</span> <span class="p">(</span>
-                        <span class="n">algo_config</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
-                        <span class="n">dataset_name</span><span class="p">,</span>
-                        <span class="n">backend</span><span class="p">,</span>
-                        <span class="n">num_thread</span><span class="p">,</span>
-                    <span class="p">)</span>
-                    <span class="k">if</span> <span class="n">method_signature</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">generated_methods</span><span class="p">:</span>
-                        <span class="n">track_method</span> <span class="o">=</span> <span class="n">make_benchmark_method</span><span class="p">(</span>
-                            <span class="n">algo_config</span><span class="p">,</span> <span class="n">dataset_name</span><span class="p">,</span> <span class="n">backend</span><span class="p">,</span> <span class="n">num_thread</span>
-                        <span class="p">)</span>
-                        <span class="nb">setattr</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">track_method</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span> <span class="n">track_method</span><span class="p">)</span>
-                        <span class="n">generated_methods</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">method_signature</span><span class="p">)</span>
-
-    <span class="k">return</span> <span class="bp">cls</span></div>
+<span class="n">run_uuid</span> <span class="o">=</span> <span class="n">uuid</span><span class="o">.</span><span class="n">uuid4</span><span class="p">()</span><span class="o">.</span><span class="n">hex</span>
 
 
-
-<div class="viewcode-block" id="GraphBenchmark">
-<a class="viewcode-back" href="../../../api/nxbench.benchmarks.html#nxbench.benchmarks.benchmark.GraphBenchmark">[docs]</a>
-<span class="nd">@generate_benchmark_methods</span>
-<span class="k">class</span> <span class="nc">GraphBenchmark</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Base class for all graph algorithm benchmarks.&quot;&quot;&quot;</span>
-
+<div class="viewcode-block" id="load_config">
+<a class="viewcode-back" href="../../../api/nxbench.benchmarks.html#nxbench.benchmarks.benchmark.load_config">[docs]</a>
+<span class="k">def</span> <span class="nf">load_config</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Load benchmark configuration dynamically.&quot;&quot;&quot;</span>
     <span class="n">config</span> <span class="o">=</span> <span class="n">get_benchmark_config</span><span class="p">()</span>
+    <span class="k">return</span> <span class="p">{</span>
+        <span class="s2">&quot;algorithms&quot;</span><span class="p">:</span> <span class="n">config</span><span class="o">.</span><span class="n">algorithms</span><span class="p">,</span>
+        <span class="s2">&quot;datasets&quot;</span><span class="p">:</span> <span class="n">config</span><span class="o">.</span><span class="n">datasets</span><span class="p">,</span>
+        <span class="s2">&quot;env_data&quot;</span><span class="p">:</span> <span class="n">config</span><span class="o">.</span><span class="n">env_data</span><span class="p">,</span>
+    <span class="p">}</span></div>
 
-<div class="viewcode-block" id="GraphBenchmark.__init__">
-<a class="viewcode-back" href="../../../api/nxbench.benchmarks.html#nxbench.benchmarks.benchmark.GraphBenchmark.__init__">[docs]</a>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">data_manager</span> <span class="o">=</span> <span class="n">BenchmarkDataManager</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">graphs</span> <span class="o">=</span> <span class="p">{}</span></div>
 
 
-<div class="viewcode-block" id="GraphBenchmark.setup_cache">
-<a class="viewcode-back" href="../../../api/nxbench.benchmarks.html#nxbench.benchmarks.benchmark.GraphBenchmark.setup_cache">[docs]</a>
-    <span class="k">def</span> <span class="nf">setup_cache</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Cache graph data for benchmarks.&quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">graphs</span> <span class="o">=</span> <span class="p">{}</span>
-
-        <span class="n">datasets</span> <span class="o">=</span> <span class="p">[</span><span class="n">ds</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">ds</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">datasets</span><span class="p">]</span>
-
-        <span class="k">for</span> <span class="n">dataset_name</span> <span class="ow">in</span> <span class="n">datasets</span><span class="p">:</span>
-            <span class="n">dataset_config</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span>
-                <span class="p">(</span><span class="n">ds</span> <span class="k">for</span> <span class="n">ds</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">datasets</span> <span class="k">if</span> <span class="n">ds</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="n">dataset_name</span><span class="p">),</span>
-                <span class="kc">None</span><span class="p">,</span>
+<div class="viewcode-block" id="setup_cache">
+<a class="viewcode-back" href="../../../api/nxbench.benchmarks.html#nxbench.benchmarks.benchmark.setup_cache">[docs]</a>
+<span class="k">def</span> <span class="nf">setup_cache</span><span class="p">(</span>
+    <span class="n">datasets</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">DatasetConfig</span><span class="p">],</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">nx</span><span class="o">.</span><span class="n">Graph</span><span class="p">,</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Load and cache datasets to avoid redundant loading.&quot;&quot;&quot;</span>
+    <span class="n">data_manager</span> <span class="o">=</span> <span class="n">BenchmarkDataManager</span><span class="p">()</span>
+    <span class="n">graphs</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">dataset_config</span> <span class="ow">in</span> <span class="n">datasets</span><span class="p">:</span>
+        <span class="n">dataset_name</span> <span class="o">=</span> <span class="n">dataset_config</span><span class="o">.</span><span class="n">name</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">graph</span><span class="p">,</span> <span class="n">metadata</span> <span class="o">=</span> <span class="n">data_manager</span><span class="o">.</span><span class="n">load_network_sync</span><span class="p">(</span><span class="n">dataset_config</span><span class="p">)</span>
+            <span class="n">graphs</span><span class="p">[</span><span class="n">dataset_name</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">metadata</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Cached dataset &#39;</span><span class="si">{</span><span class="n">dataset_name</span><span class="si">}</span><span class="s2">&#39; with </span><span class="si">{</span><span class="n">graph</span><span class="o">.</span><span class="n">number_of_nodes</span><span class="p">()</span><span class="si">}</span><span class="s2"> &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;nodes and </span><span class="si">{</span><span class="n">graph</span><span class="o">.</span><span class="n">number_of_edges</span><span class="p">()</span><span class="si">}</span><span class="s2"> edges.&quot;</span>
             <span class="p">)</span>
-            <span class="k">if</span> <span class="n">dataset_config</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Dataset configuration for &#39;</span><span class="si">{</span><span class="n">dataset_name</span><span class="si">}</span><span class="s2">&#39; not found.&quot;</span><span class="p">)</span>
-                <span class="k">continue</span>
-            <span class="k">try</span><span class="p">:</span>
-                <span class="n">graph</span><span class="p">,</span> <span class="n">metadata</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_manager</span><span class="o">.</span><span class="n">load_network_sync</span><span class="p">(</span><span class="n">dataset_config</span><span class="p">)</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">graphs</span><span class="p">[</span><span class="n">dataset_name</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">metadata</span><span class="p">)</span>
-                <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
-                    <span class="sa">f</span><span class="s2">&quot;Cached dataset &#39;</span><span class="si">{</span><span class="n">dataset_name</span><span class="si">}</span><span class="s2">&#39; with &quot;</span>
-                    <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">graph</span><span class="o">.</span><span class="n">number_of_nodes</span><span class="p">()</span><span class="si">}</span><span class="s2"> nodes&quot;</span>
-                <span class="p">)</span>
-            <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
-                <span class="n">logger</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Failed to load dataset &#39;</span><span class="si">{</span><span class="n">dataset_name</span><span class="si">}</span><span class="s2">&#39;&quot;</span><span class="p">)</span></div>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Failed to load dataset &#39;</span><span class="si">{</span><span class="n">dataset_name</span><span class="si">}</span><span class="s2">&#39;&quot;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">graphs</span></div>
 
 
-<div class="viewcode-block" id="GraphBenchmark.setup">
-<a class="viewcode-back" href="../../../api/nxbench.benchmarks.html#nxbench.benchmarks.benchmark.GraphBenchmark.setup">[docs]</a>
-    <span class="k">def</span> <span class="nf">setup</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;ASV setup method. Called before any benchmarks are run.&quot;&quot;&quot;</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;ASV setup: Initializing benchmark cache.&quot;</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">setup_cache</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="configure_backend">
+<a class="viewcode-back" href="../../../api/nxbench.benchmarks.html#nxbench.benchmarks.benchmark.configure_backend">[docs]</a>
+<span class="nd">@task</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;configure_backend&quot;</span><span class="p">,</span> <span class="n">cache_key_fn</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">persist_result</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">configure_backend</span><span class="p">(</span><span class="n">original_graph</span><span class="p">:</span> <span class="n">nx</span><span class="o">.</span><span class="n">Graph</span><span class="p">,</span> <span class="n">backend</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">num_thread</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Prepare the backend for execution.&quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">backend</span> <span class="o">==</span> <span class="s2">&quot;networkx&quot;</span><span class="p">:</span>
+        <span class="n">graph</span> <span class="o">=</span> <span class="n">original_graph</span>
+    <span class="k">elif</span> <span class="s2">&quot;parallel&quot;</span> <span class="ow">in</span> <span class="n">backend</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">nxp</span> <span class="o">=</span> <span class="n">import_module</span><span class="p">(</span><span class="s2">&quot;nx_parallel&quot;</span><span class="p">)</span>
+            <span class="n">graph</span> <span class="o">=</span> <span class="n">nxp</span><span class="o">.</span><span class="n">ParallelGraph</span><span class="p">(</span><span class="n">original_graph</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Configured nx_parallel backend.&quot;</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="s2">&quot;nx-parallel backend not available.&quot;</span><span class="p">)</span>
+            <span class="k">raise</span>
+    <span class="k">elif</span> <span class="s2">&quot;cugraph&quot;</span> <span class="ow">in</span> <span class="n">backend</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">cugraph</span> <span class="o">=</span> <span class="n">import_module</span><span class="p">(</span><span class="s2">&quot;nx_cugraph&quot;</span><span class="p">)</span>
+            <span class="n">edge_attr</span> <span class="o">=</span> <span class="s2">&quot;weight&quot;</span> <span class="k">if</span> <span class="n">nx</span><span class="o">.</span><span class="n">is_weighted</span><span class="p">(</span><span class="n">original_graph</span><span class="p">)</span> <span class="k">else</span> <span class="kc">None</span>
+            <span class="n">graph</span> <span class="o">=</span> <span class="n">cugraph</span><span class="o">.</span><span class="n">from_networkx</span><span class="p">(</span><span class="n">original_graph</span><span class="p">,</span> <span class="n">edge_attrs</span><span class="o">=</span><span class="n">edge_attr</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Configured cugraph backend.&quot;</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="s2">&quot;cugraph backend not available.&quot;</span><span class="p">)</span>
+            <span class="k">raise</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="s2">&quot;Error converting graph to cugraph format&quot;</span><span class="p">)</span>
+            <span class="k">raise</span>
+    <span class="k">elif</span> <span class="s2">&quot;graphblas&quot;</span> <span class="ow">in</span> <span class="n">backend</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">gb</span> <span class="o">=</span> <span class="n">import_module</span><span class="p">(</span><span class="s2">&quot;graphblas&quot;</span><span class="p">)</span>
+            <span class="n">ga</span> <span class="o">=</span> <span class="n">import_module</span><span class="p">(</span><span class="s2">&quot;graphblas_algorithms&quot;</span><span class="p">)</span>
+            <span class="n">gb</span><span class="o">.</span><span class="n">ss</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s2">&quot;nthreads&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">num_thread</span>
+            <span class="n">graph</span> <span class="o">=</span> <span class="n">ga</span><span class="o">.</span><span class="n">Graph</span><span class="o">.</span><span class="n">from_networkx</span><span class="p">(</span><span class="n">original_graph</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Configured graphblas backend.&quot;</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="s2">&quot;graphblas_algorithms backend not available.&quot;</span><span class="p">)</span>
+            <span class="k">raise</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="s2">&quot;Error converting graph to graphblas format&quot;</span><span class="p">)</span>
+            <span class="k">raise</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unsupported backend: </span><span class="si">{</span><span class="n">backend</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unsupported backend: </span><span class="si">{</span><span class="n">backend</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">graph</span></div>
 
 
-<div class="viewcode-block" id="GraphBenchmark.prepare_benchmark">
-<a class="viewcode-back" href="../../../api/nxbench.benchmarks.html#nxbench.benchmarks.benchmark.GraphBenchmark.prepare_benchmark">[docs]</a>
-    <span class="k">def</span> <span class="nf">prepare_benchmark</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span> <span class="n">dataset_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">backend</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">num_thread</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span>
-    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initialize the dataset and backend, returning the converted graph.&quot;&quot;&quot;</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
-            <span class="sa">f</span><span class="s2">&quot;Preparing benchmark with dataset=</span><span class="si">{</span><span class="n">dataset_name</span><span class="si">}</span><span class="s2">, &quot;</span>
-            <span class="sa">f</span><span class="s2">&quot;backend=</span><span class="si">{</span><span class="n">backend</span><span class="si">}</span><span class="s2">, threads=</span><span class="si">{</span><span class="n">num_thread</span><span class="si">}</span><span class="s2">&quot;</span>
+
+<div class="viewcode-block" id="run_algorithm">
+<a class="viewcode-back" href="../../../api/nxbench.benchmarks.html#nxbench.benchmarks.benchmark.run_algorithm">[docs]</a>
+<span class="nd">@task</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;run_algorithm&quot;</span><span class="p">,</span> <span class="n">cache_key_fn</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">persist_result</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">run_algorithm</span><span class="p">(</span>
+    <span class="n">graph</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">algo_config</span><span class="p">:</span> <span class="n">AlgorithmConfig</span><span class="p">,</span> <span class="n">num_thread</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">backend</span><span class="p">:</span> <span class="nb">str</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Run the algorithm on the configured backend&quot;&quot;&quot;</span>
+    <span class="n">logger</span> <span class="o">=</span> <span class="n">get_run_logger</span><span class="p">()</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">algo_func</span> <span class="o">=</span> <span class="n">algo_config</span><span class="o">.</span><span class="n">get_callable</span><span class="p">(</span><span class="n">backend</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">ImportError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;Could not get a callable for </span><span class="si">{</span><span class="n">algo_config</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2"> from </span><span class="si">{</span><span class="n">backend</span><span class="si">}</span><span class="s2">.&quot;</span>
         <span class="p">)</span>
+        <span class="k">return</span> <span class="kc">None</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
 
-        <span class="n">dataset_name</span> <span class="o">=</span> <span class="n">dataset_name</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s2">&quot;&#39;&quot;</span><span class="p">)</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Looking for dataset &#39;</span><span class="si">{</span><span class="n">dataset_name</span><span class="si">}</span><span class="s2">&#39; in cache&quot;</span><span class="p">)</span>
+    <span class="n">pos_args</span><span class="p">,</span> <span class="n">kwargs</span> <span class="o">=</span> <span class="n">process_algorithm_params</span><span class="p">(</span><span class="n">algo_config</span><span class="o">.</span><span class="n">params</span><span class="p">)</span>
 
-        <span class="n">graph_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">graphs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">dataset_name</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">graph_data</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Graph for dataset &#39;</span><span class="si">{</span><span class="n">dataset_name</span><span class="si">}</span><span class="s2">&#39; not found in cache.&quot;</span><span class="p">)</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Available datasets: </span><span class="si">{</span><span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">graphs</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-            <span class="k">return</span> <span class="kc">None</span>
+    <span class="n">kwargs</span> <span class="o">=</span> <span class="n">add_seeding</span><span class="p">(</span><span class="n">kwargs</span><span class="p">,</span> <span class="n">algo_func</span><span class="p">,</span> <span class="n">algo_config</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
 
-        <span class="n">original_graph</span><span class="p">,</span> <span class="n">metadata</span> <span class="o">=</span> <span class="n">graph_data</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
-            <span class="sa">f</span><span class="s2">&quot;Found graph with </span><span class="si">{</span><span class="n">original_graph</span><span class="o">.</span><span class="n">number_of_nodes</span><span class="p">()</span><span class="si">}</span><span class="s2"> nodes, &quot;</span>
-            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">original_graph</span><span class="o">.</span><span class="n">number_of_edges</span><span class="p">()</span><span class="si">}</span><span class="s2"> edges&quot;</span>
-        <span class="p">)</span>
-
-        <span class="c1"># initially clear env completely</span>
-        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">nx</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">backends</span><span class="p">,</span> <span class="s2">&quot;parallel&quot;</span><span class="p">):</span>
-            <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">nx</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">backends</span><span class="o">.</span><span class="n">parallel</span><span class="p">,</span> <span class="s2">&quot;active&quot;</span><span class="p">):</span>
-                <span class="n">nx</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">backends</span><span class="o">.</span><span class="n">parallel</span><span class="o">.</span><span class="n">active</span> <span class="o">=</span> <span class="kc">False</span>
-            <span class="n">nx</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">backends</span><span class="o">.</span><span class="n">parallel</span><span class="o">.</span><span class="n">n_jobs</span> <span class="o">=</span> <span class="mi">1</span>
-        <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;NX_CUGRAPH_AUTOCONFIG&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;False&quot;</span>
-
-        <span class="k">for</span> <span class="n">var_name</span> <span class="ow">in</span> <span class="p">[</span>
+    <span class="n">error</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">original_env</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">vars_to_set</span> <span class="o">=</span> <span class="p">[</span>
             <span class="s2">&quot;NUM_THREAD&quot;</span><span class="p">,</span>
             <span class="s2">&quot;OMP_NUM_THREADS&quot;</span><span class="p">,</span>
             <span class="s2">&quot;MKL_NUM_THREADS&quot;</span><span class="p">,</span>
             <span class="s2">&quot;OPENBLAS_NUM_THREADS&quot;</span><span class="p">,</span>
-        <span class="p">]:</span>
+        <span class="p">]</span>
+        <span class="k">for</span> <span class="n">var_name</span> <span class="ow">in</span> <span class="n">vars_to_set</span><span class="p">:</span>
+            <span class="n">original_env</span><span class="p">[</span><span class="n">var_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">var_name</span><span class="p">)</span>
             <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="n">var_name</span><span class="p">]</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">num_thread</span><span class="p">)</span>
 
-        <span class="k">if</span> <span class="n">backend</span> <span class="o">==</span> <span class="s2">&quot;networkx&quot;</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">original_graph</span>
+        <span class="k">with</span> <span class="n">memory_tracker</span><span class="p">()</span> <span class="k">as</span> <span class="n">mem</span><span class="p">:</span>
+            <span class="n">start_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">perf_counter</span><span class="p">()</span>
+            <span class="c1"># pass the graph plus the processed pos_args and kwargs</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="n">algo_func</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="o">*</span><span class="n">pos_args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+            <span class="n">end_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">perf_counter</span><span class="p">()</span>
 
-        <span class="k">if</span> <span class="s2">&quot;parallel&quot;</span> <span class="ow">in</span> <span class="n">backend</span> <span class="ow">and</span> <span class="n">is_nx_parallel_available</span><span class="p">():</span>
-            <span class="k">try</span><span class="p">:</span>
-                <span class="n">nxp</span> <span class="o">=</span> <span class="n">import_module</span><span class="p">(</span><span class="s2">&quot;nx_parallel&quot;</span><span class="p">)</span>
-            <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
-                <span class="n">logger</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="s2">&quot;nx-parallel backend not available&quot;</span><span class="p">)</span>
-                <span class="k">return</span> <span class="kc">None</span>
-            <span class="n">nx</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">backends</span><span class="o">.</span><span class="n">parallel</span><span class="o">.</span><span class="n">active</span> <span class="o">=</span> <span class="kc">True</span>
-            <span class="n">nx</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">backends</span><span class="o">.</span><span class="n">parallel</span><span class="o">.</span><span class="n">n_jobs</span> <span class="o">=</span> <span class="n">num_thread</span>
-            <span class="k">return</span> <span class="n">nxp</span><span class="o">.</span><span class="n">ParallelGraph</span><span class="p">(</span><span class="n">original_graph</span><span class="p">)</span>
+        <span class="n">execution_time</span> <span class="o">=</span> <span class="n">end_time</span> <span class="o">-</span> <span class="n">start_time</span>
+        <span class="n">peak_memory</span> <span class="o">=</span> <span class="n">mem</span><span class="p">[</span><span class="s2">&quot;peak&quot;</span><span class="p">]</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Algorithm &#39;</span><span class="si">{</span><span class="n">algo_config</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&#39; executed successfully.&quot;</span><span class="p">)</span>
 
-        <span class="k">if</span> <span class="s2">&quot;cugraph&quot;</span> <span class="ow">in</span> <span class="n">backend</span> <span class="ow">and</span> <span class="n">is_nx_cugraph_available</span><span class="p">():</span>
-            <span class="k">try</span><span class="p">:</span>
-                <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;NX_CUGRAPH_AUTOCONFIG&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;True&quot;</span>
-                <span class="n">cugraph</span> <span class="o">=</span> <span class="n">import_module</span><span class="p">(</span><span class="s2">&quot;nx_cugraph&quot;</span><span class="p">)</span>
-            <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
-                <span class="n">logger</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="s2">&quot;cugraph backend not available&quot;</span><span class="p">)</span>
-                <span class="k">return</span> <span class="kc">None</span>
-            <span class="k">try</span><span class="p">:</span>
-                <span class="n">edge_attr</span> <span class="o">=</span> <span class="s2">&quot;weight&quot;</span> <span class="k">if</span> <span class="n">nx</span><span class="o">.</span><span class="n">is_weighted</span><span class="p">(</span><span class="n">original_graph</span><span class="p">)</span> <span class="k">else</span> <span class="kc">None</span>
-                <span class="k">return</span> <span class="n">cugraph</span><span class="o">.</span><span class="n">from_networkx</span><span class="p">(</span><span class="n">original_graph</span><span class="p">,</span> <span class="n">edge_attrs</span><span class="o">=</span><span class="n">edge_attr</span><span class="p">)</span>
-            <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
-                <span class="n">logger</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="s2">&quot;Error converting graph to cugraph format&quot;</span><span class="p">)</span>
-                <span class="k">return</span> <span class="kc">None</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="s2">&quot;Algorithm run failed&quot;</span><span class="p">)</span>
+        <span class="n">execution_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">perf_counter</span><span class="p">()</span> <span class="o">-</span> <span class="n">start_time</span>
+        <span class="n">peak_memory</span> <span class="o">=</span> <span class="n">mem</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;peak&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">error</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
 
-        <span class="k">if</span> <span class="s2">&quot;graphblas&quot;</span> <span class="ow">in</span> <span class="n">backend</span> <span class="ow">and</span> <span class="n">is_graphblas_available</span><span class="p">():</span>
-            <span class="k">try</span><span class="p">:</span>
-                <span class="n">gb</span> <span class="o">=</span> <span class="n">import_module</span><span class="p">(</span><span class="s2">&quot;graphblas&quot;</span><span class="p">)</span>
-                <span class="n">ga</span> <span class="o">=</span> <span class="n">import_module</span><span class="p">(</span><span class="s2">&quot;graphblas_algorithms&quot;</span><span class="p">)</span>
-            <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
-                <span class="n">logger</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="s2">&quot;graphblas_algorithms backend not available&quot;</span><span class="p">)</span>
-                <span class="k">return</span> <span class="kc">None</span>
-            <span class="k">try</span><span class="p">:</span>
-                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
-                    <span class="sa">f</span><span class="s2">&quot;GraphBlas Algorithms nthreads=</span><span class="si">{</span><span class="n">gb</span><span class="o">.</span><span class="n">ss</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;nthreads&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2"> &quot;</span>
-                <span class="p">)</span>
-                <span class="k">return</span> <span class="n">ga</span><span class="o">.</span><span class="n">Graph</span><span class="o">.</span><span class="n">from_networkx</span><span class="p">(</span><span class="n">original_graph</span><span class="p">)</span>
-            <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
-                <span class="n">logger</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="s2">&quot;Error converting graph to graphblas format&quot;</span><span class="p">)</span>
-                <span class="k">return</span> <span class="kc">None</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unsupported backend: </span><span class="si">{</span><span class="n">backend</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-            <span class="k">return</span> <span class="kc">None</span></div>
+    <span class="k">finally</span><span class="p">:</span>
+        <span class="c1"># restore environment variables</span>
+        <span class="k">for</span> <span class="n">var_name</span> <span class="ow">in</span> <span class="n">vars_to_set</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">original_env</span><span class="p">[</span><span class="n">var_name</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">del</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="n">var_name</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="n">var_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">original_env</span><span class="p">[</span><span class="n">var_name</span><span class="p">]</span>
 
-
-<div class="viewcode-block" id="GraphBenchmark.do_benchmark">
-<a class="viewcode-back" href="../../../api/nxbench.benchmarks.html#nxbench.benchmarks.benchmark.GraphBenchmark.do_benchmark">[docs]</a>
-    <span class="k">def</span> <span class="nf">do_benchmark</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span>
-        <span class="n">algo_config</span><span class="p">:</span> <span class="n">AlgorithmConfig</span><span class="p">,</span>
-        <span class="n">dataset_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
-        <span class="n">backend</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
-        <span class="n">num_thread</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
-    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
-            <span class="sa">f</span><span class="s2">&quot;Running benchmark for </span><span class="si">{</span><span class="n">algo_config</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2"> on </span><span class="si">{</span><span class="n">dataset_name</span><span class="si">}</span><span class="s2"> with &quot;</span>
-            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">backend</span><span class="si">}</span><span class="s2"> using </span><span class="si">{</span><span class="n">num_thread</span><span class="si">}</span><span class="s2"> threads&quot;</span>
-        <span class="p">)</span>
-
-        <span class="n">converted_graph</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">prepare_benchmark</span><span class="p">(</span><span class="n">dataset_name</span><span class="p">,</span> <span class="n">backend</span><span class="p">,</span> <span class="n">num_thread</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">converted_graph</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;execution_time&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="s2">&quot;nan&quot;</span><span class="p">),</span> <span class="s2">&quot;memory_used&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="s2">&quot;nan&quot;</span><span class="p">)}</span>
-
-        <span class="k">try</span><span class="p">:</span>
-            <span class="n">algo_func</span> <span class="o">=</span> <span class="n">get_algorithm_function</span><span class="p">(</span><span class="n">algo_config</span><span class="p">,</span> <span class="n">backend</span><span class="p">)</span>
-            <span class="n">alg_func_name</span> <span class="o">=</span> <span class="p">(</span>
-                <span class="n">algo_func</span><span class="o">.</span><span class="n">func</span><span class="o">.</span><span class="vm">__name__</span>
-                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">algo_func</span><span class="p">,</span> <span class="n">partial</span><span class="p">)</span>
-                <span class="k">else</span> <span class="n">algo_func</span><span class="o">.</span><span class="vm">__name__</span>
-            <span class="p">)</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Got algorithm function: </span><span class="si">{</span><span class="n">alg_func_name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-        <span class="k">except</span> <span class="p">(</span><span class="ne">ImportError</span><span class="p">,</span> <span class="ne">AttributeError</span><span class="p">):</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Function not available for backend </span><span class="si">{</span><span class="n">backend</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">traceback</span><span class="o">.</span><span class="n">format_exc</span><span class="p">())</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">teardown_specific</span><span class="p">(</span><span class="n">backend</span><span class="p">,</span> <span class="n">num_thread</span><span class="p">)</span>
-            <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;execution_time&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="s2">&quot;nan&quot;</span><span class="p">),</span> <span class="s2">&quot;memory_used&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="s2">&quot;nan&quot;</span><span class="p">)}</span>
-
-        <span class="k">try</span><span class="p">:</span>
-            <span class="n">pos_args</span><span class="p">,</span> <span class="n">kwargs</span> <span class="o">=</span> <span class="n">process_algorithm_params</span><span class="p">(</span><span class="n">algo_config</span><span class="o">.</span><span class="n">params</span><span class="p">)</span>
-
-            <span class="k">with</span> <span class="n">memory_tracker</span><span class="p">()</span> <span class="k">as</span> <span class="n">mem</span><span class="p">:</span>
-                <span class="n">start_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">perf_counter</span><span class="p">()</span>
-                <span class="n">result</span> <span class="o">=</span> <span class="n">algo_func</span><span class="p">(</span><span class="n">converted_graph</span><span class="p">,</span> <span class="o">*</span><span class="n">pos_args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-                <span class="n">end_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">perf_counter</span><span class="p">()</span>
-
-            <span class="n">execution_time</span> <span class="o">=</span> <span class="n">end_time</span> <span class="o">-</span> <span class="n">start_time</span>
-            <span class="n">current</span><span class="p">,</span> <span class="n">peak</span> <span class="o">=</span> <span class="n">mem</span><span class="p">[</span><span class="s2">&quot;current&quot;</span><span class="p">],</span> <span class="n">mem</span><span class="p">[</span><span class="s2">&quot;peak&quot;</span><span class="p">]</span>
-
-            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="p">(</span><span class="nb">float</span><span class="p">,</span> <span class="nb">int</span><span class="p">)):</span>
-                <span class="n">result</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
-
-            <span class="n">original_graph</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">graphs</span><span class="p">[</span><span class="n">dataset_name</span><span class="p">]</span>
-            <span class="n">validator</span> <span class="o">=</span> <span class="n">BenchmarkValidator</span><span class="p">()</span>
-            <span class="k">try</span><span class="p">:</span>
-                <span class="n">validator</span><span class="o">.</span><span class="n">validate_result</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">algo_config</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">original_graph</span><span class="p">)</span>
-                <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
-                    <span class="sa">f</span><span class="s2">&quot;Validation passed for algorithm &#39;</span><span class="si">{</span><span class="n">algo_config</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&#39; on &quot;</span>
-                    <span class="sa">f</span><span class="s2">&quot;dataset &#39;</span><span class="si">{</span><span class="n">dataset_name</span><span class="si">}</span><span class="s2">&#39;&quot;</span>
-                <span class="p">)</span>
-            <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
-                <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Validation warning for &#39;</span><span class="si">{</span><span class="n">algo_config</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&#39;&quot;</span><span class="p">)</span>
-
-            <span class="n">metrics</span> <span class="o">=</span> <span class="p">{</span>
-                <span class="s2">&quot;execution_time&quot;</span><span class="p">:</span> <span class="n">execution_time</span><span class="p">,</span>
-                <span class="s2">&quot;memory_used&quot;</span><span class="p">:</span> <span class="n">peak</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1024</span> <span class="o">*</span> <span class="mi">1024</span><span class="p">),</span>  <span class="c1"># bytes to MB</span>
-            <span class="p">}</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Benchmark results for </span><span class="si">{</span><span class="n">algo_config</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">metrics</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error running algorithm &#39;</span><span class="si">{</span><span class="n">algo_config</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&#39;&quot;</span><span class="p">)</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">traceback</span><span class="o">.</span><span class="n">format_exc</span><span class="p">())</span>
-            <span class="n">metrics</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;execution_time&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="s2">&quot;nan&quot;</span><span class="p">),</span> <span class="s2">&quot;memory_used&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="s2">&quot;nan&quot;</span><span class="p">)}</span>
-        <span class="k">finally</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">teardown_specific</span><span class="p">(</span><span class="n">backend</span><span class="p">,</span> <span class="n">num_thread</span><span class="p">)</span>
-
-        <span class="k">return</span> <span class="n">metrics</span></div>
-
-
-<div class="viewcode-block" id="GraphBenchmark.teardown_specific">
-<a class="viewcode-back" href="../../../api/nxbench.benchmarks.html#nxbench.benchmarks.benchmark.GraphBenchmark.teardown_specific">[docs]</a>
-    <span class="k">def</span> <span class="nf">teardown_specific</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">backend</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">num_thread</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Reset any backend-specific configurations to avoid state leakage.&quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="s2">&quot;parallel&quot;</span> <span class="ow">in</span> <span class="n">backend</span><span class="p">:</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Tearing down parallel backend configurations.&quot;</span><span class="p">)</span>
-            <span class="n">nx</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">backends</span><span class="o">.</span><span class="n">parallel</span><span class="o">.</span><span class="n">active</span> <span class="o">=</span> <span class="kc">False</span>
-            <span class="n">nx</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">backends</span><span class="o">.</span><span class="n">parallel</span><span class="o">.</span><span class="n">n_jobs</span> <span class="o">=</span> <span class="mi">1</span>
-
-        <span class="k">if</span> <span class="s2">&quot;cugraph&quot;</span> <span class="ow">in</span> <span class="n">backend</span><span class="p">:</span>
-            <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;NX_CUGRAPH_AUTOCONFIG&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;False&quot;</span>
-
-        <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;NUM_THREAD&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;1&quot;</span>
-        <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;OMP_NUM_THREADS&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;1&quot;</span>
-        <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;OPENBLAS_NUM_THREADS&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;1&quot;</span>
-        <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;MKL_NUM_THREADS&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;1&quot;</span></div>
-
-
-<div class="viewcode-block" id="GraphBenchmark.teardown">
-<a class="viewcode-back" href="../../../api/nxbench.benchmarks.html#nxbench.benchmarks.benchmark.GraphBenchmark.teardown">[docs]</a>
-    <span class="k">def</span> <span class="nf">teardown</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;ASV teardown method. Called after all benchmarks are run.&quot;&quot;&quot;</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;ASV teardown: Cleaning up if necessary.&quot;</span><span class="p">)</span></div>
-</div>
+    <span class="k">return</span> <span class="n">result</span><span class="p">,</span> <span class="n">execution_time</span><span class="p">,</span> <span class="n">peak_memory</span><span class="p">,</span> <span class="n">error</span></div>
 
 
 
-<div class="viewcode-block" id="get_algorithm_function">
-<a class="viewcode-back" href="../../../api/nxbench.benchmarks.html#nxbench.benchmarks.benchmark.get_algorithm_function">[docs]</a>
-<span class="k">def</span> <span class="nf">get_algorithm_function</span><span class="p">(</span><span class="n">algo_config</span><span class="p">:</span> <span class="n">AlgorithmConfig</span><span class="p">,</span> <span class="n">backend_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Retrieve the algorithm function for the specified backend.</span>
-
-<span class="sd">    Parameters</span>
-<span class="sd">    ----------</span>
-<span class="sd">    algo_config : AlgorithmConfig</span>
-<span class="sd">        Configuration object containing details about the algorithm, including its</span>
-<span class="sd">        function reference.</span>
-<span class="sd">    backend_name : str</span>
-<span class="sd">        The name of the backend for which the algorithm function is being retrieved.</span>
-
-<span class="sd">    Returns</span>
-<span class="sd">    -------</span>
-<span class="sd">    Any</span>
-<span class="sd">        The algorithm function or a partially applied function for the specified</span>
-<span class="sd">        backend.</span>
-
-<span class="sd">    Raises</span>
-<span class="sd">    ------</span>
-<span class="sd">    ImportError</span>
-<span class="sd">        If the function reference for the algorithm is not found.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="n">algo_config</span><span class="o">.</span><span class="n">func_ref</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">ImportError</span><span class="p">(</span>
-            <span class="sa">f</span><span class="s2">&quot;Function &#39;</span><span class="si">{</span><span class="n">algo_config</span><span class="o">.</span><span class="n">func</span><span class="si">}</span><span class="s2">&#39; could not be imported for algorithm &quot;</span>
-            <span class="sa">f</span><span class="s2">&quot;&#39;</span><span class="si">{</span><span class="n">algo_config</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&#39;&quot;</span>
-        <span class="p">)</span>
-    <span class="k">if</span> <span class="n">backend_name</span> <span class="o">!=</span> <span class="s2">&quot;networkx&quot;</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">partial</span><span class="p">(</span><span class="n">algo_config</span><span class="o">.</span><span class="n">func_ref</span><span class="p">,</span> <span class="n">backend</span><span class="o">=</span><span class="n">backend_name</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">algo_config</span><span class="o">.</span><span class="n">func_ref</span></div>
+<div class="viewcode-block" id="validate_results">
+<a class="viewcode-back" href="../../../api/nxbench.benchmarks.html#nxbench.benchmarks.benchmark.validate_results">[docs]</a>
+<span class="nd">@task</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;validate_results&quot;</span><span class="p">,</span> <span class="n">cache_key_fn</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">persist_result</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">validate_results</span><span class="p">(</span>
+    <span class="n">result</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">algo_config</span><span class="p">:</span> <span class="n">AlgorithmConfig</span><span class="p">,</span> <span class="n">graph</span><span class="p">:</span> <span class="n">Any</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]:</span>
+    <span class="n">logger</span> <span class="o">=</span> <span class="n">get_run_logger</span><span class="p">()</span>
+    <span class="n">validator</span> <span class="o">=</span> <span class="n">BenchmarkValidator</span><span class="p">()</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">validator</span><span class="o">.</span><span class="n">validate_result</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">algo_config</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">graph</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Validation passed for algorithm &#39;</span><span class="si">{</span><span class="n">algo_config</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&#39;.&quot;</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Validation warning for &#39;</span><span class="si">{</span><span class="n">algo_config</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&#39;&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="s2">&quot;warning&quot;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+    <span class="k">return</span> <span class="s2">&quot;passed&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span></div>
 
 
 
-<div class="viewcode-block" id="process_algorithm_params">
-<a class="viewcode-back" href="../../../api/nxbench.benchmarks.html#nxbench.benchmarks.benchmark.process_algorithm_params">[docs]</a>
-<span class="k">def</span> <span class="nf">process_algorithm_params</span><span class="p">(</span>
-    <span class="n">params</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span>
-<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">list</span><span class="p">[</span><span class="n">Any</span><span class="p">],</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Process and separate algorithm parameters into positional and keyword arguments.</span>
+<div class="viewcode-block" id="collect_metrics">
+<a class="viewcode-back" href="../../../api/nxbench.benchmarks.html#nxbench.benchmarks.benchmark.collect_metrics">[docs]</a>
+<span class="nd">@task</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;collect_metrics&quot;</span><span class="p">,</span> <span class="n">cache_key_fn</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">persist_result</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">collect_metrics</span><span class="p">(</span>
+    <span class="n">execution_time</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="c1">### ADDED:</span>
+    <span class="n">execution_time_with_preloading</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="c1">### END ADDED</span>
+    <span class="n">peak_memory</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="n">graph</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
+    <span class="n">algo_config</span><span class="p">:</span> <span class="n">AlgorithmConfig</span><span class="p">,</span>
+    <span class="n">backend</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">dataset_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">num_thread</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="n">validation_status</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">validation_message</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">error</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+    <span class="n">logger</span> <span class="o">=</span> <span class="n">get_run_logger</span><span class="p">()</span>
 
-<span class="sd">    Parameters</span>
-<span class="sd">    ----------</span>
-<span class="sd">    params : dict[str, Any]</span>
-<span class="sd">        A dictionary of algorithm parameters, where keys can indicate either positional</span>
-<span class="sd">        or keyword arguments.</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">nx</span><span class="o">.</span><span class="n">Graph</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="s2">&quot;to_networkx&quot;</span><span class="p">):</span>
+        <span class="n">graph</span> <span class="o">=</span> <span class="n">graph</span><span class="o">.</span><span class="n">to_networkx</span><span class="p">()</span>
 
-<span class="sd">    Returns</span>
-<span class="sd">    -------</span>
-<span class="sd">    tuple[list[Any], dict[str, Any]]</span>
-<span class="sd">        A tuple containing a list of positional arguments and a dictionary of keyword</span>
-<span class="sd">        arguments.</span>
+    <span class="k">if</span> <span class="n">error</span><span class="p">:</span>
+        <span class="n">metrics</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;execution_time&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="s2">&quot;nan&quot;</span><span class="p">),</span>
+            <span class="s2">&quot;execution_time_with_preloading&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="s2">&quot;nan&quot;</span><span class="p">),</span>
+            <span class="s2">&quot;memory_used&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="s2">&quot;nan&quot;</span><span class="p">),</span>
+            <span class="s2">&quot;num_nodes&quot;</span><span class="p">:</span> <span class="p">(</span><span class="n">graph</span><span class="o">.</span><span class="n">number_of_nodes</span><span class="p">()),</span>
+            <span class="s2">&quot;num_edges&quot;</span><span class="p">:</span> <span class="p">(</span><span class="n">graph</span><span class="o">.</span><span class="n">number_of_edges</span><span class="p">()),</span>
+            <span class="s2">&quot;algorithm&quot;</span><span class="p">:</span> <span class="n">algo_config</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+            <span class="s2">&quot;backend&quot;</span><span class="p">:</span> <span class="n">backend</span><span class="p">,</span>
+            <span class="s2">&quot;dataset&quot;</span><span class="p">:</span> <span class="n">dataset_name</span><span class="p">,</span>
+            <span class="s2">&quot;num_thread&quot;</span><span class="p">:</span> <span class="n">num_thread</span><span class="p">,</span>
+            <span class="s2">&quot;error&quot;</span><span class="p">:</span> <span class="n">error</span><span class="p">,</span>
+            <span class="s2">&quot;validation&quot;</span><span class="p">:</span> <span class="n">validation_status</span><span class="p">,</span>
+            <span class="s2">&quot;validation_message&quot;</span><span class="p">:</span> <span class="n">validation_message</span><span class="p">,</span>
+        <span class="p">}</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">metrics</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;execution_time&quot;</span><span class="p">:</span> <span class="n">execution_time</span><span class="p">,</span>
+            <span class="s2">&quot;execution_time_with_preloading&quot;</span><span class="p">:</span> <span class="n">execution_time_with_preloading</span><span class="p">,</span>
+            <span class="s2">&quot;memory_used&quot;</span><span class="p">:</span> <span class="n">peak_memory</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1024</span> <span class="o">*</span> <span class="mi">1024</span><span class="p">),</span>  <span class="c1"># convert to MB</span>
+            <span class="s2">&quot;num_nodes&quot;</span><span class="p">:</span> <span class="p">(</span><span class="n">graph</span><span class="o">.</span><span class="n">number_of_nodes</span><span class="p">()),</span>
+            <span class="s2">&quot;num_edges&quot;</span><span class="p">:</span> <span class="p">(</span><span class="n">graph</span><span class="o">.</span><span class="n">number_of_edges</span><span class="p">()),</span>
+            <span class="s2">&quot;algorithm&quot;</span><span class="p">:</span> <span class="n">algo_config</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+            <span class="s2">&quot;backend&quot;</span><span class="p">:</span> <span class="n">backend</span><span class="p">,</span>
+            <span class="s2">&quot;dataset&quot;</span><span class="p">:</span> <span class="n">dataset_name</span><span class="p">,</span>
+            <span class="s2">&quot;num_thread&quot;</span><span class="p">:</span> <span class="n">num_thread</span><span class="p">,</span>
+            <span class="s2">&quot;validation&quot;</span><span class="p">:</span> <span class="n">validation_status</span><span class="p">,</span>
+            <span class="s2">&quot;validation_message&quot;</span><span class="p">:</span> <span class="n">validation_message</span><span class="p">,</span>
+        <span class="p">}</span>
 
-<span class="sd">    Notes</span>
-<span class="sd">    -----</span>
-<span class="sd">    Parameters prefixed with an underscore (&quot;_&quot;) are treated as positional arguments.</span>
-<span class="sd">    If a parameter value is a</span>
-<span class="sd">    dictionary containing a &quot;func&quot; key, the function is imported dynamically.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">pos_args</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="n">kwargs</span> <span class="o">=</span> <span class="p">{}</span>
-    <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">params</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)</span> <span class="ow">and</span> <span class="s2">&quot;func&quot;</span> <span class="ow">in</span> <span class="n">value</span><span class="p">:</span>
-            <span class="n">module_path</span><span class="p">,</span> <span class="n">func_name</span> <span class="o">=</span> <span class="n">value</span><span class="p">[</span><span class="s2">&quot;func&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">rsplit</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
-            <span class="n">module</span> <span class="o">=</span> <span class="nb">__import__</span><span class="p">(</span><span class="n">module_path</span><span class="p">,</span> <span class="n">fromlist</span><span class="o">=</span><span class="p">[</span><span class="n">func_name</span><span class="p">])</span>
-            <span class="n">value</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">module</span><span class="p">,</span> <span class="n">func_name</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">key</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;_&quot;</span><span class="p">):</span>
-            <span class="n">pos_args</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">kwargs</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
-    <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
-        <span class="sa">f</span><span class="s2">&quot;Processed algorithm parameters: pos_args=</span><span class="si">{</span><span class="n">pos_args</span><span class="si">}</span><span class="s2">, kwargs=</span><span class="si">{</span><span class="n">kwargs</span><span class="si">}</span><span class="s2">&quot;</span>
+    <span class="n">metrics</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">get_machine_info</span><span class="p">())</span>
+    <span class="k">return</span> <span class="n">metrics</span></div>
+
+
+
+<div class="viewcode-block" id="teardown_specific">
+<a class="viewcode-back" href="../../../api/nxbench.benchmarks.html#nxbench.benchmarks.benchmark.teardown_specific">[docs]</a>
+<span class="nd">@task</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;teardown_specific&quot;</span><span class="p">,</span> <span class="n">cache_key_fn</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">persist_result</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">teardown_specific</span><span class="p">(</span><span class="n">backend</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+    <span class="n">logger</span> <span class="o">=</span> <span class="n">get_run_logger</span><span class="p">()</span>
+    <span class="k">if</span> <span class="s2">&quot;parallel&quot;</span> <span class="ow">in</span> <span class="n">backend</span> <span class="ow">and</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">nx</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">backends</span><span class="p">,</span> <span class="s2">&quot;parallel&quot;</span><span class="p">):</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Tearing down parallel backend configurations.&quot;</span><span class="p">)</span>
+        <span class="n">nx</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">backends</span><span class="o">.</span><span class="n">parallel</span><span class="o">.</span><span class="n">active</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="n">nx</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">backends</span><span class="o">.</span><span class="n">parallel</span><span class="o">.</span><span class="n">n_jobs</span> <span class="o">=</span> <span class="mi">1</span>
+
+    <span class="k">if</span> <span class="s2">&quot;cugraph&quot;</span> <span class="ow">in</span> <span class="n">backend</span><span class="p">:</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;NX_CUGRAPH_AUTOCONFIG&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;False&quot;</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Reset environment variables for backend &#39;</span><span class="si">{</span><span class="n">backend</span><span class="si">}</span><span class="s2">&#39;.&quot;</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="run_single_benchmark">
+<a class="viewcode-back" href="../../../api/nxbench.benchmarks.html#nxbench.benchmarks.benchmark.run_single_benchmark">[docs]</a>
+<span class="k">async</span> <span class="k">def</span> <span class="nf">run_single_benchmark</span><span class="p">(</span>
+    <span class="n">backend</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">num_thread</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="n">algo_config</span><span class="p">:</span> <span class="n">AlgorithmConfig</span><span class="p">,</span>
+    <span class="n">dataset_config</span><span class="p">:</span> <span class="n">DatasetConfig</span><span class="p">,</span>
+    <span class="n">original_graph</span><span class="p">:</span> <span class="n">nx</span><span class="o">.</span><span class="n">Graph</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">logger</span> <span class="o">=</span> <span class="n">get_run_logger</span><span class="p">()</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+        <span class="sa">f</span><span class="s2">&quot;Running benchmark for dataset &#39;</span><span class="si">{</span><span class="n">dataset_config</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&#39; with backend &quot;</span>
+        <span class="sa">f</span><span class="s2">&quot;&#39;</span><span class="si">{</span><span class="n">backend</span><span class="si">}</span><span class="s2">&#39; and </span><span class="si">{</span><span class="n">num_thread</span><span class="si">}</span><span class="s2"> threads.&quot;</span>
     <span class="p">)</span>
-    <span class="k">return</span> <span class="n">pos_args</span><span class="p">,</span> <span class="n">kwargs</span></div>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">preload_start</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">perf_counter</span><span class="p">()</span>
+        <span class="n">graph</span> <span class="o">=</span> <span class="n">configure_backend</span><span class="p">(</span><span class="n">original_graph</span><span class="p">,</span> <span class="n">backend</span><span class="p">,</span> <span class="n">num_thread</span><span class="p">)</span>
+        <span class="n">preload_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">perf_counter</span><span class="p">()</span> <span class="o">-</span> <span class="n">preload_start</span>
+
+        <span class="n">result</span><span class="p">,</span> <span class="n">execution_time</span><span class="p">,</span> <span class="n">peak_memory</span><span class="p">,</span> <span class="n">error</span> <span class="o">=</span> <span class="n">run_algorithm</span><span class="p">(</span>
+            <span class="n">graph</span><span class="o">=</span><span class="n">graph</span><span class="p">,</span>
+            <span class="n">algo_config</span><span class="o">=</span><span class="n">algo_config</span><span class="p">,</span>
+            <span class="n">num_thread</span><span class="o">=</span><span class="n">num_thread</span><span class="p">,</span>
+            <span class="n">backend</span><span class="o">=</span><span class="n">backend</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="n">execution_time_with_preloading</span> <span class="o">=</span> <span class="n">execution_time</span> <span class="o">+</span> <span class="n">preload_time</span>
+
+        <span class="n">validation_status</span><span class="p">,</span> <span class="n">validation_message</span> <span class="o">=</span> <span class="n">validate_results</span><span class="p">(</span>
+            <span class="n">result</span><span class="p">,</span> <span class="n">algo_config</span><span class="p">,</span> <span class="n">graph</span>
+        <span class="p">)</span>
+        <span class="n">metrics</span> <span class="o">=</span> <span class="n">collect_metrics</span><span class="p">(</span>
+            <span class="n">execution_time</span><span class="o">=</span><span class="n">execution_time</span><span class="p">,</span>
+            <span class="n">execution_time_with_preloading</span><span class="o">=</span><span class="n">execution_time_with_preloading</span><span class="p">,</span>
+            <span class="n">peak_memory</span><span class="o">=</span><span class="n">peak_memory</span><span class="p">,</span>
+            <span class="n">graph</span><span class="o">=</span><span class="n">graph</span><span class="p">,</span>
+            <span class="n">algo_config</span><span class="o">=</span><span class="n">algo_config</span><span class="p">,</span>
+            <span class="n">backend</span><span class="o">=</span><span class="n">backend</span><span class="p">,</span>
+            <span class="n">dataset_name</span><span class="o">=</span><span class="n">dataset_config</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+            <span class="n">num_thread</span><span class="o">=</span><span class="n">num_thread</span><span class="p">,</span>
+            <span class="n">validation_status</span><span class="o">=</span><span class="n">validation_status</span><span class="p">,</span>
+            <span class="n">validation_message</span><span class="o">=</span><span class="n">validation_message</span><span class="p">,</span>
+            <span class="n">error</span><span class="o">=</span><span class="n">error</span><span class="p">,</span>
+        <span class="p">)</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="n">metrics</span> <span class="o">=</span> <span class="n">collect_metrics</span><span class="p">(</span>
+            <span class="n">execution_time</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="s2">&quot;nan&quot;</span><span class="p">),</span>
+            <span class="n">execution_time_with_preloading</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="s2">&quot;nan&quot;</span><span class="p">),</span>
+            <span class="n">peak_memory</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+            <span class="n">graph</span><span class="o">=</span><span class="n">original_graph</span><span class="p">,</span>
+            <span class="n">algo_config</span><span class="o">=</span><span class="n">algo_config</span><span class="p">,</span>
+            <span class="n">backend</span><span class="o">=</span><span class="n">backend</span><span class="p">,</span>
+            <span class="n">dataset_name</span><span class="o">=</span><span class="n">dataset_config</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+            <span class="n">num_thread</span><span class="o">=</span><span class="n">num_thread</span><span class="p">,</span>
+            <span class="n">validation_status</span><span class="o">=</span><span class="s2">&quot;failed&quot;</span><span class="p">,</span>
+            <span class="n">validation_message</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">),</span>
+            <span class="n">error</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">),</span>
+        <span class="p">)</span>
+    <span class="k">finally</span><span class="p">:</span>
+        <span class="n">teardown_specific</span><span class="p">(</span><span class="n">backend</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Teared down resources after benchmarking.&quot;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">metrics</span></div>
+
+
+
+<div class="viewcode-block" id="benchmark_suite">
+<a class="viewcode-back" href="../../../api/nxbench.benchmarks.html#nxbench.benchmarks.benchmark.benchmark_suite">[docs]</a>
+<span class="nd">@flow</span><span class="p">(</span>
+    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;multiverse_benchmark&quot;</span><span class="p">,</span>
+    <span class="n">flow_run_name</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;run_</span><span class="si">{</span><span class="n">run_uuid</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+    <span class="n">task_runner</span><span class="o">=</span><span class="n">ThreadPoolTaskRunner</span><span class="p">(</span><span class="n">max_workers</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;MAX_WORKERS&quot;</span><span class="p">))),</span>
+<span class="p">)</span>
+<span class="k">async</span> <span class="k">def</span> <span class="nf">benchmark_suite</span><span class="p">(</span>
+    <span class="n">algorithms</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">AlgorithmConfig</span><span class="p">],</span>
+    <span class="n">datasets</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">DatasetConfig</span><span class="p">],</span>
+    <span class="n">backends</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
+    <span class="n">threads</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span>
+    <span class="n">graphs</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">nx</span><span class="o">.</span><span class="n">Graph</span><span class="p">,</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]],</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Run the full suite of benchmarks in parallel using asyncio.&quot;&quot;&quot;</span>
+    <span class="n">logger</span> <span class="o">=</span> <span class="n">get_run_logger</span><span class="p">()</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Starting benchmark suite.&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">create_benchmark_subflow</span><span class="p">(</span><span class="n">name_suffix</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">resource_type</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">num_thread</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+        <span class="nd">@flow</span><span class="p">(</span>
+            <span class="n">name</span><span class="o">=</span><span class="s2">&quot;benchmark_subflow&quot;</span><span class="p">,</span>
+            <span class="n">flow_run_name</span><span class="o">=</span><span class="n">name_suffix</span><span class="p">,</span>
+            <span class="n">task_runner</span><span class="o">=</span><span class="n">DaskTaskRunner</span><span class="p">(</span>
+                <span class="n">cluster_kwargs</span><span class="o">=</span><span class="p">{</span>
+                    <span class="s2">&quot;n_workers&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+                    <span class="s2">&quot;resources&quot;</span><span class="p">:</span> <span class="p">{</span><span class="n">resource_type</span><span class="p">:</span> <span class="mi">1</span><span class="p">},</span>
+                    <span class="s2">&quot;threads_per_worker&quot;</span><span class="p">:</span> <span class="n">num_thread</span><span class="p">,</span>
+                    <span class="s2">&quot;processes&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+                <span class="p">}</span>
+            <span class="p">),</span>
+        <span class="p">)</span>
+        <span class="k">async</span> <span class="k">def</span> <span class="nf">benchmark_subflow</span><span class="p">(</span>
+            <span class="n">backend</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+            <span class="n">num_thread</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+            <span class="n">algo_config</span><span class="p">:</span> <span class="n">AlgorithmConfig</span><span class="p">,</span>
+            <span class="n">dataset_config</span><span class="p">:</span> <span class="n">DatasetConfig</span><span class="p">,</span>
+            <span class="n">original_graph</span><span class="p">:</span> <span class="n">nx</span><span class="o">.</span><span class="n">Graph</span><span class="p">,</span>
+        <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="k">await</span> <span class="n">run_single_benchmark</span><span class="p">(</span>
+                <span class="n">backend</span><span class="p">,</span>
+                <span class="n">num_thread</span><span class="p">,</span>
+                <span class="n">algo_config</span><span class="p">,</span>
+                <span class="n">dataset_config</span><span class="p">,</span>
+                <span class="n">original_graph</span><span class="p">,</span>
+            <span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">benchmark_subflow</span>
+
+    <span class="n">tasks</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">backend</span><span class="p">,</span> <span class="n">num_thread</span><span class="p">,</span> <span class="n">algo_config</span><span class="p">,</span> <span class="n">dataset_config</span> <span class="ow">in</span> <span class="n">product</span><span class="p">(</span>
+        <span class="n">backends</span><span class="p">,</span> <span class="n">threads</span><span class="p">,</span> <span class="n">algorithms</span><span class="p">,</span> <span class="n">datasets</span>
+    <span class="p">):</span>
+        <span class="n">dataset_name</span> <span class="o">=</span> <span class="n">dataset_config</span><span class="o">.</span><span class="n">name</span>
+        <span class="k">if</span> <span class="n">dataset_name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">graphs</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Dataset &#39;</span><span class="si">{</span><span class="n">dataset_name</span><span class="si">}</span><span class="s2">&#39; not cached. Skipping.&quot;</span><span class="p">)</span>
+            <span class="k">continue</span>
+        <span class="n">original_graph</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">graphs</span><span class="p">[</span><span class="n">dataset_name</span><span class="p">]</span>
+        <span class="n">resource_type</span> <span class="o">=</span> <span class="s2">&quot;GPU&quot;</span> <span class="k">if</span> <span class="n">backend</span> <span class="o">==</span> <span class="s2">&quot;cugraph&quot;</span> <span class="k">else</span> <span class="s2">&quot;process&quot;</span>
+        <span class="n">name_suffix</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">algo_config</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">dataset_name</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">backend</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">num_thread</span><span class="si">}</span><span class="s2">&quot;</span>
+
+        <span class="n">unique_subflow</span> <span class="o">=</span> <span class="n">create_benchmark_subflow</span><span class="p">(</span>
+            <span class="n">name_suffix</span><span class="p">,</span> <span class="n">resource_type</span><span class="p">,</span> <span class="n">num_thread</span>
+        <span class="p">)</span>
+
+        <span class="n">tasks</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+            <span class="n">unique_subflow</span><span class="p">(</span>
+                <span class="n">backend</span><span class="o">=</span><span class="n">backend</span><span class="p">,</span>
+                <span class="n">num_thread</span><span class="o">=</span><span class="n">num_thread</span><span class="p">,</span>
+                <span class="n">algo_config</span><span class="o">=</span><span class="n">algo_config</span><span class="p">,</span>
+                <span class="n">dataset_config</span><span class="o">=</span><span class="n">dataset_config</span><span class="p">,</span>
+                <span class="n">original_graph</span><span class="o">=</span><span class="n">original_graph</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
+
+    <span class="k">return</span> <span class="k">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">gather</span><span class="p">(</span><span class="o">*</span><span class="n">tasks</span><span class="p">,</span> <span class="n">return_exceptions</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="main_benchmark">
+<a class="viewcode-back" href="../../../api/nxbench.benchmarks.html#nxbench.benchmarks.benchmark.main_benchmark">[docs]</a>
+<span class="k">async</span> <span class="k">def</span> <span class="nf">main_benchmark</span><span class="p">(</span>
+    <span class="n">results_dir</span><span class="p">:</span> <span class="n">Path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="s2">&quot;results&quot;</span><span class="p">),</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Execute benchmarks using Prefect.&quot;&quot;&quot;</span>
+    <span class="n">final_results</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">timestamp</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">time</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s2">&quot;%Y%m</span><span class="si">%d</span><span class="s2">%H%M%S&quot;</span><span class="p">))</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">config</span> <span class="o">=</span> <span class="n">load_config</span><span class="p">()</span>
+        <span class="n">algorithms</span> <span class="o">=</span> <span class="n">config</span><span class="p">[</span><span class="s2">&quot;algorithms&quot;</span><span class="p">]</span>
+        <span class="n">datasets</span> <span class="o">=</span> <span class="n">config</span><span class="p">[</span><span class="s2">&quot;datasets&quot;</span><span class="p">]</span>
+        <span class="n">env_data</span> <span class="o">=</span> <span class="n">config</span><span class="p">[</span><span class="s2">&quot;env_data&quot;</span><span class="p">]</span>
+
+        <span class="n">available_backends</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">get_available_backends</span><span class="p">()</span>
+        <span class="p">)</span>  <span class="c1"># e.g. {&quot;networkx&quot;: &quot;3.4.2&quot;, &quot;graphblas&quot;: &quot;2023.10.0&quot;}</span>
+
+        <span class="c1"># parse user-specified constraints for Python versions, backends, threads</span>
+        <span class="n">pythons</span> <span class="o">=</span> <span class="n">env_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;pythons&quot;</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;3.10&quot;</span><span class="p">])</span>
+        <span class="n">backend_configs</span> <span class="o">=</span> <span class="n">env_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;backend&quot;</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;networkx&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;networkx==3.4.1&quot;</span><span class="p">]})</span>
+        <span class="n">num_threads</span> <span class="o">=</span> <span class="n">env_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;num_threads&quot;</span><span class="p">,</span> <span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">num_threads</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="n">num_threads</span> <span class="o">=</span> <span class="p">[</span><span class="n">num_threads</span><span class="p">]</span>
+        <span class="n">num_threads</span> <span class="o">=</span> <span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">num_threads</span><span class="p">]</span>
+
+        <span class="c1"># check Python version</span>
+        <span class="n">actual_python_version</span> <span class="o">=</span> <span class="n">get_python_version</span><span class="p">()</span>  <span class="c1"># e.g. &quot;3.10.12&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">any</span><span class="p">(</span><span class="n">py_ver</span> <span class="ow">in</span> <span class="n">actual_python_version</span> <span class="k">for</span> <span class="n">py_ver</span> <span class="ow">in</span> <span class="n">pythons</span><span class="p">):</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;No requested Python version matches the actual interpreter &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;(</span><span class="si">{</span><span class="n">actual_python_version</span><span class="si">}</span><span class="s2">). Aborting.&quot;</span>
+            <span class="p">)</span>
+            <span class="k">return</span>
+
+        <span class="c1"># filter out backends not installed or not matching pinned versions</span>
+        <span class="n">chosen_backends</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">backend_version_map</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">backend</span><span class="p">,</span> <span class="n">requested_versions</span> <span class="ow">in</span> <span class="n">backend_configs</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">installed_version</span> <span class="o">=</span> <span class="n">available_backends</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">backend</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">installed_version</span><span class="p">:</span>
+                <span class="k">continue</span>
+
+            <span class="n">matched</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="k">for</span> <span class="n">req_ver</span> <span class="ow">in</span> <span class="n">requested_versions</span><span class="p">:</span>
+                <span class="k">if</span> <span class="s2">&quot;==&quot;</span> <span class="ow">in</span> <span class="n">req_ver</span><span class="p">:</span>
+                    <span class="c1"># e.g. &quot;networkx==3.4.1&quot;</span>
+                    <span class="n">_</span><span class="p">,</span> <span class="n">pinned_version</span> <span class="o">=</span> <span class="n">req_ver</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;==&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">pinned_version</span> <span class="o">==</span> <span class="n">installed_version</span><span class="p">:</span>
+                        <span class="n">matched</span> <span class="o">=</span> <span class="kc">True</span>
+                        <span class="k">break</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="c1"># if the user didn&#39;t pin a version, accept the installed version</span>
+                    <span class="n">matched</span> <span class="o">=</span> <span class="kc">True</span>
+                    <span class="k">break</span>
+
+            <span class="k">if</span> <span class="n">matched</span><span class="p">:</span>
+                <span class="n">chosen_backends</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">backend</span><span class="p">)</span>
+                <span class="n">backend_version_map</span><span class="p">[</span><span class="n">backend</span><span class="p">]</span> <span class="o">=</span> <span class="n">installed_version</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">chosen_backends</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;No valid backends found or matched. Exiting.&quot;</span><span class="p">)</span>
+            <span class="k">return</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;Chosen backends: </span><span class="si">{</span><span class="n">chosen_backends</span><span class="si">}</span><span class="s2"> &quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;(Installed versions: </span><span class="si">{</span><span class="n">backend_version_map</span><span class="si">}</span><span class="s2">)&quot;</span>
+        <span class="p">)</span>
+
+        <span class="n">graphs</span> <span class="o">=</span> <span class="n">setup_cache</span><span class="p">(</span><span class="n">datasets</span><span class="p">)</span>
+
+        <span class="n">results</span> <span class="o">=</span> <span class="k">await</span> <span class="n">benchmark_suite</span><span class="p">(</span>
+            <span class="n">algorithms</span><span class="o">=</span><span class="n">algorithms</span><span class="p">,</span>
+            <span class="n">datasets</span><span class="o">=</span><span class="n">datasets</span><span class="p">,</span>
+            <span class="n">backends</span><span class="o">=</span><span class="n">chosen_backends</span><span class="p">,</span>
+            <span class="n">threads</span><span class="o">=</span><span class="n">num_threads</span><span class="p">,</span>
+            <span class="n">graphs</span><span class="o">=</span><span class="n">graphs</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">run_result</span> <span class="ow">in</span> <span class="n">results</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">run_result</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">run_result</span><span class="p">[</span><span class="s2">&quot;python_version&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">actual_python_version</span>
+                <span class="n">bname</span> <span class="o">=</span> <span class="n">run_result</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;backend&quot;</span><span class="p">,</span> <span class="s2">&quot;unknown&quot;</span><span class="p">)</span>
+                <span class="n">run_result</span><span class="p">[</span><span class="s2">&quot;backend_version&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">backend_version_map</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+                    <span class="n">bname</span><span class="p">,</span> <span class="s2">&quot;unknown&quot;</span>
+                <span class="p">)</span>
+                <span class="n">final_results</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">run_result</span><span class="p">)</span>
+
+    <span class="k">finally</span><span class="p">:</span>
+        <span class="n">results_dir</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="s2">&quot;results&quot;</span><span class="p">)</span>
+        <span class="n">results_dir</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">out_file</span> <span class="o">=</span> <span class="n">results_dir</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">run_uuid</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">timestamp</span><span class="si">}</span><span class="s2">.json&quot;</span>
+
+        <span class="k">with</span> <span class="n">out_file</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">json</span><span class="o">.</span><span class="n">dump</span><span class="p">([</span><span class="n">r</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">final_results</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">r</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)],</span> <span class="n">f</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Benchmark suite results saved to </span><span class="si">{</span><span class="n">out_file</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span></div>
 
 </pre></div>
         </article>
