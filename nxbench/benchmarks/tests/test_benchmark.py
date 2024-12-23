@@ -612,7 +612,7 @@ async def test_main_benchmark_no_backends(
     tmp_path,
     caplog,
 ):
-    caplog.set_level(logging.ERROR, logger="nxbench")
+    caplog.set_level(logging.ERROR)
 
     mock_path_obj = MagicMock()
     mock_path_obj.mkdir.return_value = None
@@ -637,7 +637,7 @@ async def test_main_benchmark_no_backends(
     assert any(
         "No valid backends found or matched. Exiting." in rec.message
         for rec in caplog.records
-    ), "Expected an error log about no valid backends."
+    )
 
 
 @pytest.mark.asyncio

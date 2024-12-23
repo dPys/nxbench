@@ -235,8 +235,8 @@ async def test_discover_networks_by_category(monkeypatch, tmp_path):
             return """
             <html><body>
               <table>
-                <a href="network1.php">Net1</a>
-                <a href="network2.php">Net2</a>
+                <tr><td><a href="network1.php">Net1</a></td></tr>
+                <tr><td><a href="network2.php">Net2</a></td></tr>
               </table>
             </body></html>
             """
@@ -244,7 +244,7 @@ async def test_discover_networks_by_category(monkeypatch, tmp_path):
             return """
             <html><body>
               <table>
-                <a href="network3.php">Net3</a>
+                <tr><td><a href="network3.php">Net3</a></td></tr>
               </table>
             </body></html>
             """
