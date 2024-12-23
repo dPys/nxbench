@@ -1,5 +1,5 @@
 import sqlite3
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
 import pandas as pd
 import pytest
@@ -81,9 +81,14 @@ def test_get_unique_values(benchmark_db, sample_benchmark_result):
 
 
 def test_filter_results_by_date(benchmark_db, sample_benchmark_result):
-    timestamp = datetime.now(timezone.utc).isoformat()
+    """Ensures that results are filtered by start_date."""
+    timestamp_before_save = datetime.now(timezone.utc).isoformat()
     benchmark_db.save_results(sample_benchmark_result)
-    filtered_results = benchmark_db.get_results(start_date=timestamp, as_pandas=False)
+    # Using the same timestamp as start_date means the newly inserted result
+    # should be included (because `timestamp >= timestamp_before_save`).
+    filtered_results = benchmark_db.get_results(
+        start_date=timestamp_before_save, as_pandas=False
+    )
     assert len(filtered_results) == 1
 
 
@@ -106,3 +111,127 @@ def test_get_results_as_pandas(benchmark_db, sample_benchmark_result):
 def test_invalid_column_unique_values(benchmark_db):
     with pytest.raises(ValueError, match="Invalid column name: nonexistent_column"):
         benchmark_db.get_unique_values("nonexistent_column")
+
+
+def test_save_multiple_results(benchmark_db, sample_benchmark_result):
+    """Test saving multiple BenchmarkResult objects at once."""
+    result2 = BenchmarkResult(
+        execution_time=2.34,
+        execution_time_with_preloading=2.5,
+        memory_used=789.01,
+        algorithm="test_algo_2",
+        backend="test_backend_2",
+        dataset="test_dataset_2",
+        num_nodes=200,
+        num_edges=400,
+        num_thread=2,
+        date=2345678,
+        metadata={},
+        is_directed=False,
+        is_weighted=True,
+        validation="passed",
+        validation_message="OK",
+    )
+
+    benchmark_db.save_results([sample_benchmark_result, result2])
+
+    results = benchmark_db.get_results(as_pandas=False)
+    assert len(results) == 2
+    algo_names = {r["algorithm"] for r in results}
+    assert "test_algo" in algo_names
+    assert "test_algo_2" in algo_names
+
+
+def test_save_results_with_minimal_data(benchmark_db):
+    """Test that saving a BenchmarkResult without optional fields does not break."""
+    minimal_result = BenchmarkResult(
+        execution_time=0.99,
+        execution_time_with_preloading=None,
+        memory_used=100.0,
+        algorithm="minimal_algo",
+        backend="minimal_backend",
+        dataset="minimal_dataset",
+        num_nodes=10,
+        num_edges=20,
+        num_thread=1,
+        date=999999,
+        metadata={},
+        is_directed=False,
+        is_weighted=False,
+        validation=None,
+        validation_message=None,
+    )
+
+    benchmark_db.save_results(minimal_result)
+
+    results = benchmark_db.get_results(as_pandas=False)
+    assert len(results) == 1
+    result = results[0]
+    assert result["algorithm"] == "minimal_algo"
+    assert result["git_commit"] is None
+    assert result["machine_info"] is None
+    assert result["python_version"] is None
+    assert result["package_versions"] is None
+
+
+def test_get_results_with_filters(benchmark_db, sample_benchmark_result):
+    """Test filtering results by multiple fields: algorithm & backend."""
+    result2 = BenchmarkResult(
+        execution_time=5.67,
+        execution_time_with_preloading=6.5,
+        memory_used=999.99,
+        algorithm="filtered_algo",
+        backend="filtered_backend",
+        dataset="another_dataset",
+        num_nodes=999,
+        num_edges=1998,
+        num_thread=4,
+        date=999888,
+        metadata={},
+        is_directed=True,
+        is_weighted=True,
+        validation="passed",
+        validation_message="OK",
+    )
+
+    benchmark_db.save_results([sample_benchmark_result, result2])
+
+    filtered_results = benchmark_db.get_results(
+        algorithm="filtered_algo", backend="filtered_backend", as_pandas=False
+    )
+    assert len(filtered_results) == 1
+    assert filtered_results[0]["algorithm"] == "filtered_algo"
+    assert filtered_results[0]["backend"] == "filtered_backend"
+
+
+def test_delete_results_by_date(benchmark_db, sample_benchmark_result):
+    """Test deleting results older than a certain date."""
+    benchmark_db.save_results(sample_benchmark_result)
+    old_date_str = (datetime.now(timezone.utc) - timedelta(days=2)).isoformat()
+
+    with sqlite3.connect(benchmark_db.db_path) as conn:
+        conn.execute("UPDATE benchmarks SET timestamp=? WHERE id=1", (old_date_str,))
+        conn.commit()
+
+    rows_deleted = benchmark_db.delete_results(
+        before_date=datetime.now(timezone.utc).isoformat()
+    )
+    assert rows_deleted == 1
+
+    remaining = benchmark_db.get_results(as_pandas=False)
+    assert len(remaining) == 0
+
+    benchmark_db.save_results(sample_benchmark_result)
+    future_date_str = (datetime.now(timezone.utc) + timedelta(days=1)).isoformat()
+    rows_deleted = benchmark_db.delete_results(before_date=future_date_str)
+    assert rows_deleted == 1
+
+
+def test_delete_results_no_match(benchmark_db, sample_benchmark_result):
+    """Ensure delete_results returns 0 if no row matches the criteria."""
+    benchmark_db.save_results(sample_benchmark_result)
+    rows_deleted = benchmark_db.delete_results(algorithm="nonexistent_algo")
+    assert rows_deleted == 0
+
+    remaining = benchmark_db.get_results(as_pandas=False)
+    assert len(remaining) == 1
