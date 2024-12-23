@@ -598,7 +598,7 @@ async def test_main_benchmark_success(
 
 
 @pytest.mark.asyncio
-@pytest.mark.usefixtures("patch_machine_info")
+@pytest.mark.usefixtures("patch_machine_info", "patch_python_version")
 @patch("nxbench.benchmarks.benchmark.setup_cache", return_value={"ds1": ("graph", {})})
 @patch("nxbench.benchmarks.benchmark.benchmark_suite", new_callable=AsyncMock)
 @patch("nxbench.benchmarks.benchmark.load_config")
@@ -614,14 +614,14 @@ async def test_main_benchmark_no_backends(
 ):
     """
     Test that the benchmark logs an error when no valid backends are found.
-    We forcibly configure the "nxbench" logger to ensure its ERROR logs
-    go to stderr, which pytest's caplog fixture then captures.
+    Make sure we patch get_python_version => "3.10" so the 'no matching python' check
+    doesn't short-circuit first.
     """
     from nxbench.benchmarks.benchmark import logger as nxbench_logger
 
-    nxbench_logger.handlers[:] = []
     nxbench_logger.disabled = False
     nxbench_logger.setLevel(logging.DEBUG)
+    nxbench_logger.handlers[:] = []
     nxbench_logger.propagate = True
 
     stream_handler = logging.StreamHandler()
