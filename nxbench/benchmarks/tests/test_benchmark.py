@@ -612,32 +612,36 @@ async def test_main_benchmark_no_backends(
     tmp_path,
     caplog,
 ):
-    caplog.set_level(logging.ERROR)
+    """
+    Test that the benchmark logs an error when no valid backends are found.
+    Using 'caplog.at_level' in a context manager prevents side-effects
+    on other tests (like those that rely on WARNING logs).
+    """
+    with caplog.at_level(logging.ERROR, logger="nxbench"):
+        mock_path_obj = MagicMock()
+        mock_path_obj.mkdir.return_value = None
 
-    mock_path_obj = MagicMock()
-    mock_path_obj.mkdir.return_value = None
+        def path_side_effect(arg):
+            if arg == "results":
+                return tmp_path
+            return tmp_path / arg
 
-    def path_side_effect(arg):
-        if arg == "results":
-            return tmp_path
-        return tmp_path / arg
+        mock_path_cls.side_effect = path_side_effect
 
-    mock_path_cls.side_effect = path_side_effect
+        new_config = mock_benchmark_config.copy()
+        new_config["env_data"]["backend"] = {"some_nonexistent_backend": ["1.0"]}
+        mock_load_config.return_value = new_config
 
-    new_config = mock_benchmark_config.copy()
-    new_config["env_data"]["backend"] = {"some_nonexistent_backend": ["1.0"]}
-    mock_load_config.return_value = new_config
+        with patch(
+            "nxbench.benchmarks.benchmark.get_available_backends",
+            return_value={"networkx": "3.4.1"},
+        ):
+            await main_benchmark(results_dir=tmp_path)
 
-    with patch(
-        "nxbench.benchmarks.benchmark.get_available_backends",
-        return_value={"networkx": "3.4.1"},
-    ):
-        await main_benchmark(results_dir=tmp_path)
-
-    assert any(
-        "No valid backends found or matched. Exiting." in rec.message
-        for rec in caplog.records
-    )
+        assert any(
+            "No valid backends found or matched. Exiting." in rec.message
+            for rec in caplog.records
+        ), "Expected an error log about no valid backends."
 
 
 @pytest.mark.asyncio

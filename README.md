@@ -6,7 +6,7 @@
 # NxBench
 
 <p align="center">
-  <img src="doc/_static/assets/nxbench_logo.png" alt="NxBench Logo" width="150"/>
+  <img src="doc/_static/assets/nxbench_logo.png" alt="NxBench Logo" width="125"/>
 </p>
 
 **nxbench** is a comprehensive benchmarking suite designed to facilitate comparative profiling of graph analytic algorithms across NetworkX and compatible backends. Built using Prefect and Dask, nxbench places an emphasis on extensible and granular performance analysis, enabling developers and researchers to optimize their graph analysis workflows efficiently and reproducibly.
