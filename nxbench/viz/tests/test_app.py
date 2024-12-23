@@ -64,17 +64,10 @@ def mock_load_and_prepare_data_return():
 @pytest.fixture
 def mock_load_data_function(mock_load_and_prepare_data_return):
     """
-    Patch 'nxbench.viz.utils.load_and_prepare_data' to return our mock data.
-
-    This ensures we don't need real CSV files or a real environment to test.
-
-    Yields
-    ------
-    MagicMock
-        A mock object for load_and_prepare_data that always returns the data
-        from mock_load_and_prepare_data_return.
+    Patch 'nxbench.viz.app.load_and_prepare_data' to return our mock data,
+    ensuring no real CSV file is read.
     """
-    with patch("nxbench.viz.utils.load_and_prepare_data") as mocked:
+    with patch("nxbench.viz.app.load_and_prepare_data") as mocked:
         mocked.return_value = mock_load_and_prepare_data_return
         yield mocked
 
