@@ -478,7 +478,11 @@ async def main_benchmark(
         )
 
         for run_result in results:
-            if run_result is not None:
+            if isinstance(run_result, BaseException):
+                logger.error("A subflow raised an exception: %s", run_result)
+                continue
+
+            if isinstance(run_result, dict):
                 run_result["python_version"] = actual_python_version
                 bname = run_result.get("backend", "unknown")
                 run_result["backend_version"] = backend_version_map.get(
