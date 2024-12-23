@@ -1,3 +1,4 @@
+import importlib.resources as importlib_resources
 import tempfile
 import warnings
 import zipfile
@@ -997,3 +998,300 @@ def test_load_metadata_exception():
         with tempfile.TemporaryDirectory() as temp_dir:
             with pytest.raises(RuntimeError, match="Metadata load failed"):
                 BenchmarkDataManager(data_dir=temp_dir)
+
+
+@pytest.mark.asyncio
+async def test_no_suitable_file_found_after_extract(data_manager, tmp_path):
+    data_manager.data_dir = tmp_path
+    extracted_folder = data_manager.data_dir / "missing_graph_extracted"
+    extracted_folder.mkdir(exist_ok=True)
+
+    data_manager._metadata_df = pd.concat(
+        [
+            data_manager._metadata_df,
+            pd.DataFrame(
+                [
+                    {
+                        "name": "missing_graph",
+                        "directed": False,
+                        "weighted": False,
+                        "download_url": "http://example.com/missing.zip",
+                    }
+                ]
+            ),
+        ],
+        ignore_index=True,
+    )
+
+    with patch.object(data_manager, "_download_file", return_value=None):
+        with patch("zipfile.ZipFile") as mock_zip_class:
+            mock_zip = MagicMock()
+            mock_zip.extractall = MagicMock()
+            mock_zip_class.return_value.__enter__.return_value = mock_zip
+
+            data_manager._find_graph_file = MagicMock(return_value=None)
+
+            with pytest.raises(
+                FileNotFoundError, match="No suitable graph file found after extracting"
+            ):
+                await data_manager._download_and_extract_network(
+                    "missing_graph", "http://example.com/missing.zip"
+                )
+
+
+@pytest.mark.asyncio
+async def test_load_nr_graph_no_suitable_file_found(data_manager):
+    """Test that FileNotFoundError is raised if no suitable file is found after
+    downloading.
+    """
+    with patch.object(data_manager, "_download_and_extract_network", return_value=None):
+        with patch.object(
+            data_manager,
+            "_load_graph_file",
+            side_effect=FileNotFoundError("Mocked no file"),
+        ):
+            data_manager.get_metadata = MagicMock(
+                return_value={
+                    "download_url": "http://example.com/test.zip",
+                    "directed": False,
+                }
+            )
+            config = DatasetConfig(
+                name="not_found_after_download", source="networkrepository", params={}
+            )
+            with pytest.raises(
+                FileNotFoundError,
+                match="No suitable graph file found after downloading",
+            ):
+                await data_manager.load_network(config)
+
+
+@pytest.mark.asyncio
+async def test_convert_numeric_nodes_to_strings_in_mtx(
+    data_manager, create_edge_file, tmp_path
+):
+    data_manager.data_dir = tmp_path
+
+    mtx_content = """%%MatrixMarket matrix coordinate real general
+4 4 3
+1 2 1.0
+2 3 2.0
+3 4 3.0
+"""
+    local_mtx_path = data_manager.data_dir / "numeric_nodes_mtx.mtx"
+    local_mtx_path.write_text(mtx_content)
+
+    data_manager._metadata_df = pd.concat(
+        [
+            data_manager._metadata_df,
+            pd.DataFrame(
+                [{"name": "numeric_nodes_mtx", "directed": False, "weighted": True}]
+            ),
+        ],
+        ignore_index=True,
+    )
+
+    config = DatasetConfig(
+        name="numeric_nodes_mtx",
+        source="local",
+        params={"path": str(local_mtx_path)},
+        metadata={"directed": False, "weighted": True},
+    )
+
+    graph, metadata = await data_manager.load_network(config)
+
+    assert all(isinstance(node, (str, int)) for node in graph.nodes())
+
+
+@pytest.mark.asyncio
+async def test_load_unweighted_edgelist_failure(data_manager, create_edge_file):
+    edge_content = """A B
+B C
+"""
+    create_edge_file("unweighted_failure.edges", edge_content)
+
+    # Add to metadata so we don't fail with "not found in cache"
+    data_manager._metadata_df = pd.concat(
+        [
+            data_manager._metadata_df,
+            pd.DataFrame(
+                [
+                    {
+                        "name": "unweighted_failure",
+                        "directed": False,
+                        "weighted": False,
+                        "download_url": "http://example.com/unweighted_failure.edges",
+                    }
+                ]
+            ),
+        ],
+        ignore_index=True,
+    )
+
+    with patch(
+        "networkx.read_edgelist", side_effect=Exception("Unweighted parse failed")
+    ):
+        config = DatasetConfig(
+            name="unweighted_failure",
+            source="networkrepository",
+            params={},
+            metadata={"directed": False, "weighted": False},
+        )
+
+        with pytest.raises(Exception, match="Unweighted parse failed"):
+            await data_manager.load_network(config)
+
+
+@pytest.mark.asyncio
+async def test_load_edges_unexpected_error_parsing_weights(
+    data_manager, create_edge_file
+):
+    edge_content = """A B 1.0
+B C not_a_float
+C D 3.0
+"""
+    create_edge_file("unexpected_error.edges", edge_content)
+
+    data_manager._metadata_df = pd.concat(
+        [
+            data_manager._metadata_df,
+            pd.DataFrame(
+                [
+                    {
+                        "name": "unexpected_error",
+                        "directed": False,
+                        "weighted": True,
+                        "download_url": "http://example.com/unexpected_error.edges",
+                    }
+                ]
+            ),
+        ],
+        ignore_index=True,
+    )
+
+    with patch("builtins.open", side_effect=TypeError("Unexpected error")):
+        config = DatasetConfig(
+            name="unexpected_error",
+            source="networkrepository",
+            params={},
+            metadata={"directed": False, "weighted": True},
+        )
+        graph, metadata = await data_manager.load_network(config)
+
+    assert (
+        graph.number_of_nodes() > 0
+    ), "We should still get nodes from the fallback parse"
+
+
+@pytest.mark.asyncio
+async def test_load_mtx_with_corrected_file_exists(data_manager, tmp_path):
+    """Test loading a Matrix Market file when a corrected version already exists."""
+    corrected_mtx_file = tmp_path / "example_corrected.mtx"
+    corrected_mtx_content = """%%MatrixMarket matrix coordinate real general
+3 3 2
+1 2 1.0
+2 3 2.0
+"""
+    corrected_mtx_file.write_text(corrected_mtx_content)
+
+    original_mtx_file = tmp_path / "example.mtx"
+    original_mtx_file.write_text("This file is intentionally incorrect or not used")
+
+    data_manager._metadata_df = pd.concat(
+        [
+            data_manager._metadata_df,
+            pd.DataFrame(
+                [{"name": "example_corrected", "directed": False, "weighted": True}]
+            ),
+        ],
+        ignore_index=True,
+    )
+
+    corrected_mtx_file.rename(data_manager.data_dir / "example_corrected_corrected.mtx")
+    original_mtx_file.rename(data_manager.data_dir / "example_corrected.mtx")
+
+    config = DatasetConfig(
+        name="example_corrected",
+        source="networkrepository",
+        params={},
+        metadata={"directed": False, "weighted": True},
+    )
+
+    graph, metadata = await data_manager.load_network(config)
+
+    assert graph.number_of_nodes() == 3, "Should load from the corrected file"
+    assert graph.number_of_edges() == 2
+    assert "example_corrected" in data_manager._network_cache, "Should cache the graph"
+
+
+@pytest.mark.asyncio
+async def test_load_network_from_cache(data_manager):
+    data_manager._metadata_df = pd.concat(
+        [
+            data_manager._metadata_df,
+            pd.DataFrame(
+                [
+                    {
+                        "name": "cache_test_graph",
+                        "directed": False,
+                        "weighted": False,
+                    }
+                ]
+            ),
+        ],
+        ignore_index=True,
+    )
+
+    config = DatasetConfig(
+        name="cache_test_graph",
+        source="generator",
+        params={"generator": "networkx.empty_graph", "n": 5},
+        metadata={"directed": False, "weighted": False},
+    )
+
+    graph1, metadata1 = await data_manager.load_network(config)
+
+    graph2, metadata2 = await data_manager.load_network(config)
+
+    assert nx.is_isomorphic(
+        graph1, graph2
+    ), "They should have same structure, even if not the same object"
+    assert metadata1 == metadata2, "Metadata should match for cached graph"
+
+
+def test_load_network_invalid_source_expanded(data_manager):
+    data_manager._metadata_df = pd.concat(
+        [
+            data_manager._metadata_df,
+            pd.DataFrame(
+                [
+                    {
+                        "name": "invalid_source_expanded",
+                        "directed": False,
+                        "weighted": False,
+                        "download_url": "http://example.com/not_used",
+                    }
+                ]
+            ),
+        ],
+        ignore_index=True,
+    )
+
+    config = DatasetConfig(
+        name="invalid_source_expanded",
+        source="doesnotexist",
+        params={},
+        metadata={"directed": False, "weighted": False},
+    )
+
+    with pytest.raises(ValueError, match="Invalid network source: doesnotexist"):
+        data_manager.load_network_sync(config)
+
+
+def test_load_metadata_failure():
+    """Test that a RuntimeError is raised when loading metadata fails."""
+    with patch.object(
+        importlib_resources, "open_text", side_effect=Exception("Mocked exception")
+    ):
+        with pytest.raises(RuntimeError, match="Failed to load network metadata"):
+            _ = BenchmarkDataManager()
