@@ -2,6 +2,7 @@
 [![PyPI](https://badge.fury.io/py/nxbench.svg)](https://badge.fury.io/py/nxbench)
 [![pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit&logoColor=white)](https://pre-commit.com/)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+[![codecov](https://codecov.io/gh/dPys/nxbench/graph/badge.svg?token=1M8NM7MQLI)](https://codecov.io/gh/dPys/nxbench)
 
 # NxBench
 
