@@ -775,7 +775,11 @@
         <span class="p">)</span>
 
         <span class="k">for</span> <span class="n">run_result</span> <span class="ow">in</span> <span class="n">results</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">run_result</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">run_result</span><span class="p">,</span> <span class="ne">BaseException</span><span class="p">):</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;A subflow raised an exception: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">run_result</span><span class="p">)</span>
+                <span class="k">continue</span>
+
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">run_result</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
                 <span class="n">run_result</span><span class="p">[</span><span class="s2">&quot;python_version&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">actual_python_version</span>
                 <span class="n">bname</span> <span class="o">=</span> <span class="n">run_result</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;backend&quot;</span><span class="p">,</span> <span class="s2">&quot;unknown&quot;</span><span class="p">)</span>
                 <span class="n">run_result</span><span class="p">[</span><span class="s2">&quot;backend_version&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">backend_version_map</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
