@@ -614,9 +614,20 @@ async def test_main_benchmark_no_backends(
 ):
     """
     Test that the benchmark logs an error when no valid backends are found.
-    Using 'caplog.at_level' in a context manager prevents side-effects
-    on other tests (like those that rely on WARNING logs).
+    We forcibly configure the "nxbench" logger to ensure its ERROR logs
+    go to stderr, which pytest's caplog fixture then captures.
     """
+    from nxbench.benchmarks.benchmark import logger as nxbench_logger
+
+    nxbench_logger.handlers[:] = []
+    nxbench_logger.disabled = False
+    nxbench_logger.setLevel(logging.DEBUG)
+    nxbench_logger.propagate = True
+
+    stream_handler = logging.StreamHandler()
+    stream_handler.setLevel(logging.DEBUG)
+    nxbench_logger.addHandler(stream_handler)
+
     with caplog.at_level(logging.ERROR, logger="nxbench"):
         mock_path_obj = MagicMock()
         mock_path_obj.mkdir.return_value = None
@@ -638,10 +649,10 @@ async def test_main_benchmark_no_backends(
         ):
             await main_benchmark(results_dir=tmp_path)
 
-        assert any(
-            "No valid backends found or matched. Exiting." in rec.message
-            for rec in caplog.records
-        ), "Expected an error log about no valid backends."
+    assert any(
+        "No valid backends found or matched. Exiting." in rec.message
+        for rec in caplog.records
+    ), "Expected an error log about no valid backends."
 
 
 @pytest.mark.asyncio
