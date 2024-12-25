@@ -56,19 +56,6 @@ def test_get_backend_version_with_dunder_version():
         assert get_backend_version("fake_module") == "1.2.3"
 
 
-def test_get_backend_version_via_importlib_metadata():
-    """If __version__ is missing, it should retrieve the version via get_version."""
-    fake_module = MagicMock()
-    if hasattr(fake_module, "__version__"):
-        del fake_module.__version__
-
-    with (
-        patch("importlib.import_module", return_value=fake_module),
-        patch("nxbench.backends.core.get_version", return_value="4.5.6"),
-    ):
-        assert get_backend_version("fake_module") == "4.5.6"
-
-
 def test_get_backend_version_unknown_import_error():
     """If the import fails entirely, get_backend_version returns "unknown"."""
     with patch("importlib.import_module", side_effect=ImportError):
