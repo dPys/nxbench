@@ -1,6 +1,7 @@
 import os
 import random
 import tracemalloc
+from importlib.metadata import PackageNotFoundError
 from unittest.mock import MagicMock, patch
 
 import numpy as np
@@ -426,3 +427,111 @@ def test_add_seeding(algo_func, kwargs_in, expected_kwargs):
     if "seed" not in expected_kwargs:
         if "seed" in kwargs_in:
             pass
+
+
+def test_get_available_backends_package_not_found():
+    """
+    Test scenario where a backend module import succeeds, but get_version
+    raises PackageNotFoundError. We should gracefully skip version retrieval.
+    """
+    mock_networkx_module = type("MockNetworkX", (), {})()  # no __version__
+
+    with (
+        patch(
+            "nxbench.benchmarks.utils.importlib.import_module",
+            return_value=mock_networkx_module,
+        ),
+        patch(
+            "nxbench.benchmarks.utils.get_version",
+            side_effect=PackageNotFoundError("networkx not found"),
+        ),
+    ):
+        backends = get_available_backends()
+        assert "networkx" not in backends
+
+
+def test_add_seeding_non_int_seed():
+    """
+    Test that if the 'seed' in kwargs is non-integer, no global seeds
+    are set, and none are passed to the algorithm function.
+    """
+    old_python_random_state = random.getstate()
+    old_numpy_random_state = np.random.get_state()
+
+    try:
+        kwargs_in = {"seed": "not_an_int"}
+
+        def dummy_func_no_seed():
+            pass
+
+        updated_kwargs = add_seeding(
+            kwargs_in, dummy_func_no_seed, "dummy_func_no_seed"
+        )
+
+        assert "seed" not in updated_kwargs
+
+        assert random.getstate() == old_python_random_state
+        assert np.allclose(np.random.get_state()[1], old_numpy_random_state[1])
+
+    finally:
+        # Restore original states
+        random.setstate(old_python_random_state)
+        np.random.set_state(old_numpy_random_state)
+
+
+@pytest.mark.parametrize("relative_path", ["some_relative_config.yaml", "./conf.yaml"])
+def test_get_benchmark_config_relative_path(relative_path, tmp_path):
+    """
+    Ensure that if NXBENCH_CONFIG_FILE is set to a relative path,
+    we correctly resolve the absolute path before calling from_yaml.
+    """
+    config_file = tmp_path / "some_relative_config.yaml"
+    config_file.write_text("benchmarks: []")
+
+    with (
+        patch.dict(os.environ, {"NXBENCH_CONFIG_FILE": relative_path}),
+        patch(
+            "pathlib.Path.exists",
+            return_value=True,
+        ),
+        patch(
+            "pathlib.Path.is_absolute",
+            return_value=False,
+        ),
+        patch.object(
+            BenchmarkConfig, "from_yaml", return_value="loaded_from_relative_path"
+        ) as mock_from_yaml,
+        patch("pathlib.Path.resolve", return_value=config_file) as mock_resolve,
+    ):
+        config = get_benchmark_config()
+        mock_from_yaml.assert_called_once_with(str(config_file))
+        mock_resolve.assert_called_once()
+        assert config == "loaded_from_relative_path"
+
+
+def test_process_algorithm_params_dict_no_func():
+    """
+    Ensure that if a dictionary param does not have a "func" key,
+    it remains unchanged and is treated as a normal dictionary.
+    """
+    params = {
+        "_pos1": {"some_data": 123},
+        "kw1": {"nested": {"no_func_here": True}},
+    }
+    pos_args, kwargs = process_algorithm_params(params)
+    assert pos_args == [{"some_data": 123}]
+    assert kwargs["kw1"] == {"nested": {"no_func_here": True}}
+
+
+def test_configure_benchmarks_returns_existing_if_set():
+    """
+    Once a BenchmarkConfig is set, calling get_benchmark_config() again
+    should return the same object rather than re-loading or re-parsing.
+    """
+    bc = BenchmarkConfig(algorithms=[], datasets=[], env_data={}, machine_info={})
+    configure_benchmarks(bc)
+
+    with patch("nxbench.benchmarks.utils.load_default_config") as mock_default:
+        same_config = get_benchmark_config()
+        mock_default.assert_not_called()
+        assert same_config is bc
