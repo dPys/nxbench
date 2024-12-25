@@ -12,13 +12,9 @@ from nxbench.benchmarking.utils import (
     add_seeding,
     configure_benchmarks,
     get_available_algorithms,
-    get_available_backends,
     get_benchmark_config,
     get_machine_info,
     get_python_version,
-    is_graphblas_available,
-    is_nx_cugraph_available,
-    is_nx_parallel_available,
     load_default_config,
     memory_tracker,
     process_algorithm_params,
@@ -134,116 +130,6 @@ def test_load_default_config():
     assert "pythons" in default.env_data
     # machine_info might be empty by default
     assert isinstance(default.machine_info, dict)
-
-
-def test_backend_availability():
-    """Test backend availability detection."""
-    with patch("importlib.util.find_spec") as mock_find_spec:
-        # test when backends are available
-        mock_find_spec.return_value = True
-        assert is_nx_cugraph_available() is True
-        assert is_graphblas_available() is True
-        assert is_nx_parallel_available() is True
-
-        # test when backends are not available
-        mock_find_spec.return_value = None
-        assert is_nx_cugraph_available() is False
-        assert is_graphblas_available() is False
-        assert is_nx_parallel_available() is False
-
-
-def test_get_available_backends():
-    """
-    Test getting the dictionary of available backends
-    under two scenarios:
-      1. All optional libraries (nx_cugraph, graphblas_algorithms, nx_parallel) are
-      available
-      2. Only networkx is available
-    """
-    mock_networkx_module = type("MockNetworkX", (), {"__version__": "3.4.1"})
-    mock_cugraph_module = type("MockCugraph", (), {"__version__": "1.0.0"})
-    mock_graphblas_module = type("MockGraphblas", (), {"__version__": "2023.10.0"})
-    mock_parallel_module = type("MockParallel", (), {"__version__": "0.3rc0.dev0"})
-
-    # First scenario: everything is installed
-    with (
-        patch("nxbench.benchmarking.utils.is_nx_cugraph_available", return_value=True),
-        patch("nxbench.benchmarking.utils.is_graphblas_available", return_value=True),
-        patch("nxbench.benchmarking.utils.is_nx_parallel_available", return_value=True),
-        patch(
-            "nxbench.benchmarking.utils.importlib.import_module"
-        ) as mock_import_module,
-        patch("nxbench.benchmarking.utils.get_version") as mock_get_version,
-    ):
-
-        def import_side_effect(name, *args, **kwargs):
-            if name == "networkx":
-                return mock_networkx_module
-            if name == "nx_cugraph":
-                return mock_cugraph_module
-            if name == "graphblas_algorithms":
-                return mock_graphblas_module
-            if name == "nx_parallel":
-                return mock_parallel_module
-            raise ImportError(f"No module named {name}")
-
-        mock_import_module.side_effect = import_side_effect
-
-        def version_side_effect(name):
-            if name == "networkx":
-                return "3.4.1"
-            if name == "nx_cugraph":
-                return "1.0.0"
-            if name == "graphblas_algorithms":
-                return "2023.10.0"
-            if name == "nx_parallel":
-                return "0.3rc0.dev0"
-            raise ImportError(f"Unknown package: {name}")
-
-        mock_get_version.side_effect = version_side_effect
-
-        backends = get_available_backends()
-        assert "networkx" in backends
-        assert backends["networkx"] == "3.4.1"
-        assert "cugraph" in backends
-        assert backends["cugraph"] == "1.0.0"
-        assert "graphblas" in backends
-        assert backends["graphblas"] == "2023.10.0"
-        assert "parallel" in backends
-        assert backends["parallel"] == "0.3rc0.dev0"
-
-    # Second scenario: only networkx is installed/available
-    with (
-        patch("nxbench.benchmarking.utils.is_nx_cugraph_available", return_value=False),
-        patch("nxbench.benchmarking.utils.is_graphblas_available", return_value=False),
-        patch(
-            "nxbench.benchmarking.utils.is_nx_parallel_available", return_value=False
-        ),
-        patch(
-            "nxbench.benchmarking.utils.importlib.import_module"
-        ) as mock_import_module,
-        patch("nxbench.benchmarking.utils.get_version") as mock_get_version,
-    ):
-
-        def only_networkx_side_effect(name, *args, **kwargs):
-            if name == "networkx":
-                return mock_networkx_module
-            raise ImportError(f"No module named {name}")
-
-        mock_import_module.side_effect = only_networkx_side_effect
-
-        def version_networkx_side_effect(pkg_name):
-            if pkg_name == "networkx":
-                return "3.4.1"
-            raise ImportError(f"Package not found: {pkg_name}")
-
-        mock_get_version.side_effect = version_networkx_side_effect
-
-        backends = get_available_backends()
-        # In this scenario, we expect only networkx
-        assert len(backends) == 1
-        assert "networkx" in backends
-        assert backends["networkx"] == "3.4.1"
 
 
 def test_get_python_version():

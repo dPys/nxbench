@@ -1,11 +1,11 @@
 nxbench.benchmarking package
-==========================
+============================
 
 Submodules
 ----------
 
 nxbench.benchmarking.benchmark module
------------------------------------
+-------------------------------------
 
 .. automodule:: nxbench.benchmarking.benchmark
    :members:
@@ -13,7 +13,7 @@ nxbench.benchmarking.benchmark module
    :show-inheritance:
 
 nxbench.benchmarking.config module
---------------------------------
+----------------------------------
 
 .. automodule:: nxbench.benchmarking.config
    :members:
@@ -21,7 +21,7 @@ nxbench.benchmarking.config module
    :show-inheritance:
 
 nxbench.benchmarking.export module
---------------------------------
+----------------------------------
 
 .. automodule:: nxbench.benchmarking.export
    :members:
@@ -29,7 +29,7 @@ nxbench.benchmarking.export module
    :show-inheritance:
 
 nxbench.benchmarking.utils module
--------------------------------
+---------------------------------
 
 .. automodule:: nxbench.benchmarking.utils
    :members:
