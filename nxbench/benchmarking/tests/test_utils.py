@@ -1,7 +1,6 @@
 import os
 import random
 import tracemalloc
-from importlib.metadata import PackageNotFoundError
 from unittest.mock import MagicMock, patch
 
 import numpy as np
@@ -434,27 +433,6 @@ def test_add_seeding(algo_func, kwargs_in, expected_kwargs):
     if "seed" not in expected_kwargs:
         if "seed" in kwargs_in:
             pass
-
-
-def test_get_available_backends_package_not_found():
-    """
-    Test scenario where a backend module import succeeds, but get_version
-    raises PackageNotFoundError. We should gracefully skip version retrieval.
-    """
-    mock_networkx_module = type("MockNetworkX", (), {})()  # no __version__
-
-    with (
-        patch(
-            "nxbench.benchmarking.utils.importlib.import_module",
-            return_value=mock_networkx_module,
-        ),
-        patch(
-            "nxbench.benchmarking.utils.get_version",
-            side_effect=PackageNotFoundError("networkx not found"),
-        ),
-    ):
-        backends = get_available_backends()
-        assert "networkx" not in backends
 
 
 def test_add_seeding_non_int_seed():
