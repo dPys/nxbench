@@ -1,14 +1,6 @@
 nxbench.validation package
 ==========================
 
-Subpackages
------------
-
-.. toctree::
-   :maxdepth: 4
-
-   nxbench.validation.scripts
-
 Submodules
 ----------
 

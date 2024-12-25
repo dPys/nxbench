@@ -8,14 +8,13 @@ import random
 import sys
 import tracemalloc
 from contextlib import contextmanager
-from importlib.metadata import PackageNotFoundError
-from importlib.metadata import version as get_version
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
 import numpy as np
 import psutil
 
+from nxbench.backends.registry import backend_manager
 from nxbench.benchmarking.config import AlgorithmConfig, BenchmarkConfig, DatasetConfig
 from nxbench.benchmarking.constants import ALGORITHM_SUBMODULES
 
@@ -95,84 +94,10 @@ def load_default_config() -> BenchmarkConfig:
     )
 
 
-def is_nx_cugraph_available():
-    try:
-        import importlib.util
-    except ImportError:
-        return False
-    else:
-        return importlib.util.find_spec("nx_cugraph") is not None
-
-
-def is_graphblas_available():
-    try:
-        import importlib.util
-    except ImportError:
-        return False
-    else:
-        return importlib.util.find_spec("graphblas_algorithms") is not None
-
-
-def is_nx_parallel_available():
-    try:
-        import importlib.util
-    except ImportError:
-        return False
-    else:
-        return importlib.util.find_spec("nx_parallel") is not None
-
-
 def get_python_version() -> str:
     """Get formatted Python version string."""
     version_info = sys.version_info
     return f"{version_info.major}.{version_info.minor}.{version_info.micro}"
-
-
-def get_available_backends() -> dict[str, str]:
-    """Return a dict of available backends and their versions."""
-    available = {}
-
-    try:
-        networkx = importlib.import_module("networkx")
-        nx_version = getattr(networkx, "__version__", None)
-        if nx_version is None:
-            nx_version = get_version("networkx")
-        available["networkx"] = nx_version
-    except (ImportError, PackageNotFoundError):
-        pass
-
-    if is_nx_cugraph_available():
-        try:
-            nx_cugraph = importlib.import_module("nx_cugraph")
-            cugraph_version = getattr(nx_cugraph, "__version__", None)
-            if cugraph_version is None:
-                cugraph_version = get_version("nx_cugraph")
-            available["cugraph"] = cugraph_version
-        except (ImportError, PackageNotFoundError):
-            pass
-
-    if is_graphblas_available():
-        try:
-            graphblas_algorithms = importlib.import_module("graphblas_algorithms")
-            gb_version = getattr(graphblas_algorithms, "__version__", None)
-            if gb_version is None:
-                gb_version = get_version("graphblas_algorithms")
-            available["graphblas"] = gb_version
-        except (ImportError, PackageNotFoundError):
-            pass
-
-    if is_nx_parallel_available():
-        try:
-            nx_parallel = importlib.import_module("nx_parallel")
-            parallel_version = getattr(nx_parallel, "__version__", None)
-            if parallel_version is None:
-                parallel_version = get_version("nx_parallel")
-            available["parallel"] = parallel_version
-        except (ImportError, PackageNotFoundError):
-            pass
-
-    logger.debug(f"Available backends and versions: {available}")
-    return available
 
 
 class MemorySnapshot:
@@ -370,3 +295,16 @@ def add_seeding(kwargs: dict, algo_func: Any, algorithm_name: str) -> dict:
             f"{user_seed}."
         )
     return kwargs
+
+
+def list_available_backends() -> dict[str, str]:
+    """
+    Return a dict of all registered backends that are installed,
+    mapped to their version string.
+    """
+    installed = {}
+    for backend_name in backend_manager._registry:
+        if backend_manager.is_available(backend_name):
+            installed[backend_name] = backend_manager.get_version(backend_name)
+    logger.debug(f"Available backends: {installed}")
+    return installed

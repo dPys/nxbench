@@ -90,6 +90,7 @@ include-package-data = true
 packages = [
     'nxbench',
     "nxbench.data",
+    "nxbench.backends",
     "nxbench.benchmarking",
     "nxbench.validation",
     "nxbench.viz",
@@ -97,7 +98,7 @@ packages = [
 ]
 
 [tool.setuptools.package-data]
-"nxbench.configs" = ["asv.conf.json", "example.yaml"]
+"nxbench.configs" = ["example.yaml"]
 "nxbench.data" = ["network_directory.csv"]
 
 platforms = [
@@ -149,7 +150,7 @@ filterwarnings = [
     # "error",
 ]
 python_files = [
-    "nxbench/benchmarking/tests/test_*.py", "nxbench/data/tests/test_*.py", "nxbench/validation/tests/test_*.py", "nxbench/viz/tests/test_*.py", "nxbench/tests/test_*.py",
+    "nxbench/benchmarking/tests/test_*.py", "nxbench/data/tests/test_*.py", "nxbench/backends/tests/test_*.py", "nxbench/validation/tests/test_*.py", "nxbench/viz/tests/test_*.py", "nxbench/tests/test_*.py",
 ]
 python_functions = [
     "test_*",
@@ -163,6 +164,7 @@ omit = [
     "nxbench/_version.py",
     "nxbench/viz/tests/test_app.py",
     "nxbench/viz/tests/test_utils.py",
+    "nxbench/backends/tests/test_core.py",
     "nxbench/benchmarking/tests/test_benchmark.py",
     "nxbench/benchmarking/tests/test_config.py",
     "nxbench/benchmarking/tests/test_utils.py",

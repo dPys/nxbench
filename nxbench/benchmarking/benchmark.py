@@ -4,7 +4,6 @@ import logging
 import os
 import time
 import uuid
-from importlib import import_module
 from itertools import product
 from pathlib import Path
 from typing import Any
@@ -15,13 +14,14 @@ from prefect import flow, get_run_logger, task
 from prefect.task_runners import ThreadPoolTaskRunner
 from prefect_dask.task_runners import DaskTaskRunner
 
+from nxbench.backends.registry import backend_manager
 from nxbench.benchmarking.config import AlgorithmConfig, DatasetConfig
 from nxbench.benchmarking.utils import (
     add_seeding,
-    get_available_backends,
     get_benchmark_config,
     get_machine_info,
     get_python_version,
+    list_available_backends,
     memory_tracker,
     process_algorithm_params,
 )
@@ -77,47 +77,8 @@ def setup_cache(
 
 @task(name="configure_backend", cache_key_fn=None, persist_result=False)
 def configure_backend(original_graph: nx.Graph, backend: str, num_thread: int) -> Any:
-    """Prepare the backend for execution."""
-    if backend == "networkx":
-        graph = original_graph
-    elif "parallel" in backend:
-        try:
-            nxp = import_module("nx_parallel")
-            graph = nxp.ParallelGraph(original_graph)
-            logger.debug("Configured nx_parallel backend.")
-        except ImportError:
-            logger.exception("nx-parallel backend not available.")
-            raise
-    elif "cugraph" in backend:
-        try:
-            cugraph = import_module("nx_cugraph")
-            edge_attr = "weight" if nx.is_weighted(original_graph) else None
-            graph = cugraph.from_networkx(original_graph, edge_attrs=edge_attr)
-            logger.debug("Configured cugraph backend.")
-        except ImportError:
-            logger.exception("cugraph backend not available.")
-            raise
-        except Exception:
-            logger.exception("Error converting graph to cugraph format")
-            raise
-    elif "graphblas" in backend:
-        try:
-            gb = import_module("graphblas")
-            ga = import_module("graphblas_algorithms")
-            gb.ss.config["nthreads"] = num_thread
-            graph = ga.Graph.from_networkx(original_graph)
-            logger.debug("Configured graphblas backend.")
-        except ImportError:
-            logger.exception("graphblas_algorithms backend not available.")
-            raise
-        except Exception:
-            logger.exception("Error converting graph to graphblas format")
-            raise
-    else:
-        logger.error(f"Unsupported backend: {backend}")
-        raise ValueError(f"Unsupported backend: {backend}")
-
-    return graph
+    """Convert an Nx graph for the specified backend."""
+    return backend_manager.configure_backend(backend, original_graph, num_thread)
 
 
 @task(name="run_algorithm", cache_key_fn=None, persist_result=False)
@@ -250,15 +211,8 @@ def collect_metrics(
 
 @task(name="teardown_specific", cache_key_fn=None, persist_result=False)
 def teardown_specific(backend: str):
-    logger = get_run_logger()
-    if "parallel" in backend and hasattr(nx.config.backends, "parallel"):
-        logger.debug("Tearing down parallel backend configurations.")
-        nx.config.backends.parallel.active = False
-        nx.config.backends.parallel.n_jobs = 1
-
-    if "cugraph" in backend:
-        os.environ["NX_CUGRAPH_AUTOCONFIG"] = "False"
-    logger.debug(f"Reset environment variables for backend '{backend}'.")
+    """If the backend provides a teardown function, call it."""
+    backend_manager.teardown_backend(backend)
 
 
 async def run_single_benchmark(
@@ -413,10 +367,6 @@ async def main_benchmark(
         datasets = config["datasets"]
         env_data = config["env_data"]
 
-        available_backends = (
-            get_available_backends()
-        )  # e.g. {"networkx": "3.4.2", "graphblas": "2023.10.0"}
-
         # parse user-specified constraints for Python versions, backends, threads
         pythons = env_data.get("pythons", ["3.10"])
         backend_configs = env_data.get("backend", {"networkx": ["networkx==3.4.1"]})
@@ -433,6 +383,10 @@ async def main_benchmark(
                 f"({actual_python_version}). Aborting."
             )
             return
+
+        available_backends = (
+            list_available_backends()
+        )  # e.g. {"networkx": "3.4.2", "graphblas_algorithms": "2023.10.0"}
 
         # filter out backends not installed or not matching pinned versions
         chosen_backends = []
