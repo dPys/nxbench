@@ -10,7 +10,7 @@ import networkx as nx
 import pandas as pd
 import pytest
 
-from nxbench.benchmarks.config import DatasetConfig
+from nxbench.benchmarking.config import DatasetConfig
 from nxbench.data.loader import BenchmarkDataManager
 
 warnings.filterwarnings("ignore")

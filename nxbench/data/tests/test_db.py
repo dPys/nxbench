@@ -4,7 +4,7 @@ from datetime import datetime, timedelta, timezone
 import pandas as pd
 import pytest
 
-from nxbench.benchmarks.config import BenchmarkResult
+from nxbench.benchmarking.config import BenchmarkResult
 from nxbench.data.db import BenchmarkDB
 
 

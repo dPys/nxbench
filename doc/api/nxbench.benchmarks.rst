@@ -1,37 +1,37 @@
-nxbench.benchmarks package
+nxbench.benchmarking package
 ==========================
 
 Submodules
 ----------
 
-nxbench.benchmarks.benchmark module
+nxbench.benchmarking.benchmark module
 -----------------------------------
 
-.. automodule:: nxbench.benchmarks.benchmark
+.. automodule:: nxbench.benchmarking.benchmark
    :members:
    :undoc-members:
    :show-inheritance:
 
-nxbench.benchmarks.config module
+nxbench.benchmarking.config module
 --------------------------------
 
-.. automodule:: nxbench.benchmarks.config
+.. automodule:: nxbench.benchmarking.config
    :members:
    :undoc-members:
    :show-inheritance:
 
-nxbench.benchmarks.export module
+nxbench.benchmarking.export module
 --------------------------------
 
-.. automodule:: nxbench.benchmarks.export
+.. automodule:: nxbench.benchmarking.export
    :members:
    :undoc-members:
    :show-inheritance:
 
-nxbench.benchmarks.utils module
+nxbench.benchmarking.utils module
 -------------------------------
 
-.. automodule:: nxbench.benchmarks.utils
+.. automodule:: nxbench.benchmarking.utils
    :members:
    :undoc-members:
    :show-inheritance:
@@ -39,7 +39,7 @@ nxbench.benchmarks.utils module
 Module contents
 ---------------
 
-.. automodule:: nxbench.benchmarks
+.. automodule:: nxbench.benchmarking
    :members:
    :undoc-members:
    :show-inheritance:

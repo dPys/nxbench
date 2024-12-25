@@ -16,8 +16,8 @@ from typing import TYPE_CHECKING, Any
 import numpy as np
 import psutil
 
-from nxbench.benchmarks.config import AlgorithmConfig, BenchmarkConfig, DatasetConfig
-from nxbench.benchmarks.constants import ALGORITHM_SUBMODULES
+from nxbench.benchmarking.config import AlgorithmConfig, BenchmarkConfig, DatasetConfig
+from nxbench.benchmarking.constants import ALGORITHM_SUBMODULES
 
 if TYPE_CHECKING:
     from collections.abc import Callable

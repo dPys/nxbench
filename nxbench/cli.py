@@ -6,9 +6,9 @@ from pathlib import Path
 import click
 import pandas as pd
 
-from nxbench.benchmarks.benchmark import main_benchmark
-from nxbench.benchmarks.config import DatasetConfig
-from nxbench.benchmarks.export import ResultsExporter
+from nxbench.benchmarking.benchmark import main_benchmark
+from nxbench.benchmarking.config import DatasetConfig
+from nxbench.benchmarking.export import ResultsExporter
 from nxbench.data.loader import BenchmarkDataManager
 from nxbench.data.repository import NetworkRepository
 from nxbench.log import _config as package_config

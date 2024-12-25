@@ -7,7 +7,7 @@ Subpackages
 .. toctree::
    :maxdepth: 4
 
-   nxbench.benchmarks
+   nxbench.benchmarking
    nxbench.data
    nxbench.validation
    nxbench.viz
