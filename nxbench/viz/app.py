@@ -128,7 +128,7 @@ def make_parallel_categories_figure(
             dimensions=dims,
             line={
                 "color": color_values,
-                "colorscale": "Tealrose",
+                "colorscale": "Blues",
                 "showscale": True,
                 "colorbar": {"title": colorbar_title},
             },
