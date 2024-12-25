@@ -90,7 +90,7 @@ include-package-data = true
 packages = [
     'nxbench',
     "nxbench.data",
-    "nxbench.benchmarks",
+    "nxbench.benchmarking",
     "nxbench.validation",
     "nxbench.viz",
     'nxbench.configs',
@@ -149,7 +149,7 @@ filterwarnings = [
     # "error",
 ]
 python_files = [
-    "nxbench/benchmarks/tests/test_*.py", "nxbench/data/tests/test_*.py", "nxbench/validation/tests/test_*.py", "nxbench/viz/tests/test_*.py", "nxbench/tests/test_*.py",
+    "nxbench/benchmarking/tests/test_*.py", "nxbench/data/tests/test_*.py", "nxbench/validation/tests/test_*.py", "nxbench/viz/tests/test_*.py", "nxbench/tests/test_*.py",
 ]
 python_functions = [
     "test_*",
@@ -163,9 +163,9 @@ omit = [
     "nxbench/_version.py",
     "nxbench/viz/tests/test_app.py",
     "nxbench/viz/tests/test_utils.py",
-    "nxbench/benchmarks/tests/test_benchmark.py",
-    "nxbench/benchmarks/tests/test_config.py",
-    "nxbench/benchmarks/tests/test_utils.py",
+    "nxbench/benchmarking/tests/test_benchmark.py",
+    "nxbench/benchmarking/tests/test_config.py",
+    "nxbench/benchmarking/tests/test_utils.py",
     "nxbench/data/tests/test_synthesize.py",
     "nxbench/data/tests/test_repository.py",
     "nxbench/data/tests/test_db.py",
