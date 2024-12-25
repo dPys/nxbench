@@ -6,8 +6,8 @@ from unittest.mock import MagicMock, patch
 import numpy as np
 import pytest
 
-from nxbench.benchmarks.config import BenchmarkConfig
-from nxbench.benchmarks.utils import (
+from nxbench.benchmarking.config import BenchmarkConfig
+from nxbench.benchmarking.utils import (
     MemorySnapshot,
     add_seeding,
     configure_benchmarks,
@@ -30,12 +30,12 @@ def _reset_benchmark_config():
     """Reset the global _BENCHMARK_CONFIG to None
     before and after every test to avoid side effects.
     """
-    import nxbench.benchmarks.utils
+    import nxbench.benchmarking.utils
 
-    original_config = nxbench.benchmarks.utils._BENCHMARK_CONFIG
-    nxbench.benchmarks.utils._BENCHMARK_CONFIG = None
+    original_config = nxbench.benchmarking.utils._BENCHMARK_CONFIG
+    nxbench.benchmarking.utils._BENCHMARK_CONFIG = None
     yield
-    nxbench.benchmarks.utils._BENCHMARK_CONFIG = original_config
+    nxbench.benchmarking.utils._BENCHMARK_CONFIG = original_config
 
 
 def test_configure_benchmarks_already_set():
@@ -84,7 +84,7 @@ def test_get_benchmark_config_no_env_no_default():
     We patch load_default_config to see if it was called.
     """
     with patch(
-        "nxbench.benchmarks.utils.load_default_config", return_value="default_config"
+        "nxbench.benchmarking.utils.load_default_config", return_value="default_config"
     ) as mock_default:
         config = get_benchmark_config()
         assert config == "default_config"
@@ -167,11 +167,13 @@ def test_get_available_backends():
 
     # First scenario: everything is installed
     with (
-        patch("nxbench.benchmarks.utils.is_nx_cugraph_available", return_value=True),
-        patch("nxbench.benchmarks.utils.is_graphblas_available", return_value=True),
-        patch("nxbench.benchmarks.utils.is_nx_parallel_available", return_value=True),
-        patch("nxbench.benchmarks.utils.importlib.import_module") as mock_import_module,
-        patch("nxbench.benchmarks.utils.get_version") as mock_get_version,
+        patch("nxbench.benchmarking.utils.is_nx_cugraph_available", return_value=True),
+        patch("nxbench.benchmarking.utils.is_graphblas_available", return_value=True),
+        patch("nxbench.benchmarking.utils.is_nx_parallel_available", return_value=True),
+        patch(
+            "nxbench.benchmarking.utils.importlib.import_module"
+        ) as mock_import_module,
+        patch("nxbench.benchmarking.utils.get_version") as mock_get_version,
     ):
 
         def import_side_effect(name, *args, **kwargs):
@@ -212,11 +214,15 @@ def test_get_available_backends():
 
     # Second scenario: only networkx is installed/available
     with (
-        patch("nxbench.benchmarks.utils.is_nx_cugraph_available", return_value=False),
-        patch("nxbench.benchmarks.utils.is_graphblas_available", return_value=False),
-        patch("nxbench.benchmarks.utils.is_nx_parallel_available", return_value=False),
-        patch("nxbench.benchmarks.utils.importlib.import_module") as mock_import_module,
-        patch("nxbench.benchmarks.utils.get_version") as mock_get_version,
+        patch("nxbench.benchmarking.utils.is_nx_cugraph_available", return_value=False),
+        patch("nxbench.benchmarking.utils.is_graphblas_available", return_value=False),
+        patch(
+            "nxbench.benchmarking.utils.is_nx_parallel_available", return_value=False
+        ),
+        patch(
+            "nxbench.benchmarking.utils.importlib.import_module"
+        ) as mock_import_module,
+        patch("nxbench.benchmarking.utils.get_version") as mock_get_version,
     ):
 
         def only_networkx_side_effect(name, *args, **kwargs):
@@ -317,10 +323,11 @@ def test_get_available_algorithms():
     mock_module._privatefunc = _privatefunc
 
     with (
-        patch("nxbench.benchmarks.constants.ALGORITHM_SUBMODULES", fake_submodules),
-        patch("nxbench.benchmarks.utils.importlib.util.find_spec", return_value=True),
+        patch("nxbench.benchmarking.constants.ALGORITHM_SUBMODULES", fake_submodules),
+        patch("nxbench.benchmarking.utils.importlib.util.find_spec", return_value=True),
         patch(
-            "nxbench.benchmarks.utils.importlib.import_module", return_value=mock_module
+            "nxbench.benchmarking.utils.importlib.import_module",
+            return_value=mock_module,
         ),
     ):
         algos = get_available_algorithms()
@@ -426,3 +433,90 @@ def test_add_seeding(algo_func, kwargs_in, expected_kwargs):
     if "seed" not in expected_kwargs:
         if "seed" in kwargs_in:
             pass
+
+
+def test_add_seeding_non_int_seed():
+    """
+    Test that if the 'seed' in kwargs is non-integer, no global seeds
+    are set, and none are passed to the algorithm function.
+    """
+    old_python_random_state = random.getstate()
+    old_numpy_random_state = np.random.get_state()
+
+    try:
+        kwargs_in = {"seed": "not_an_int"}
+
+        def dummy_func_no_seed():
+            pass
+
+        updated_kwargs = add_seeding(
+            kwargs_in, dummy_func_no_seed, "dummy_func_no_seed"
+        )
+
+        assert "seed" not in updated_kwargs
+
+        assert random.getstate() == old_python_random_state
+        assert np.allclose(np.random.get_state()[1], old_numpy_random_state[1])
+
+    finally:
+        # Restore original states
+        random.setstate(old_python_random_state)
+        np.random.set_state(old_numpy_random_state)
+
+
+@pytest.mark.parametrize("relative_path", ["some_relative_config.yaml", "./conf.yaml"])
+def test_get_benchmark_config_relative_path(relative_path, tmp_path):
+    """
+    Ensure that if NXBENCH_CONFIG_FILE is set to a relative path,
+    we correctly resolve the absolute path before calling from_yaml.
+    """
+    config_file = tmp_path / "some_relative_config.yaml"
+    config_file.write_text("benchmarks: []")
+
+    with (
+        patch.dict(os.environ, {"NXBENCH_CONFIG_FILE": relative_path}),
+        patch(
+            "pathlib.Path.exists",
+            return_value=True,
+        ),
+        patch(
+            "pathlib.Path.is_absolute",
+            return_value=False,
+        ),
+        patch.object(
+            BenchmarkConfig, "from_yaml", return_value="loaded_from_relative_path"
+        ) as mock_from_yaml,
+        patch("pathlib.Path.resolve", return_value=config_file) as mock_resolve,
+    ):
+        config = get_benchmark_config()
+        mock_from_yaml.assert_called_once_with(str(config_file))
+        mock_resolve.assert_called_once()
+        assert config == "loaded_from_relative_path"
+
+
+def test_process_algorithm_params_dict_no_func():
+    """
+    Ensure that if a dictionary param does not have a "func" key,
+    it remains unchanged and is treated as a normal dictionary.
+    """
+    params = {
+        "_pos1": {"some_data": 123},
+        "kw1": {"nested": {"no_func_here": True}},
+    }
+    pos_args, kwargs = process_algorithm_params(params)
+    assert pos_args == [{"some_data": 123}]
+    assert kwargs["kw1"] == {"nested": {"no_func_here": True}}
+
+
+def test_configure_benchmarks_returns_existing_if_set():
+    """
+    Once a BenchmarkConfig is set, calling get_benchmark_config() again
+    should return the same object rather than re-loading or re-parsing.
+    """
+    bc = BenchmarkConfig(algorithms=[], datasets=[], env_data={}, machine_info={})
+    configure_benchmarks(bc)
+
+    with patch("nxbench.benchmarking.utils.load_default_config") as mock_default:
+        same_config = get_benchmark_config()
+        mock_default.assert_not_called()
+        assert same_config is bc

@@ -45,7 +45,7 @@ ENV/
 
 # Benchmark results and data
 results/
-.benchmarks/
+.benchmarking/
 ~/.nxbench/
 
 # Git

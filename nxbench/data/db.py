@@ -8,7 +8,7 @@ from pathlib import Path
 
 import pandas as pd
 
-from nxbench.benchmarks.config import BenchmarkResult
+from nxbench.benchmarking.config import BenchmarkResult
 
 warnings.filterwarnings("ignore")
 

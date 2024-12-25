@@ -15,8 +15,8 @@ from prefect import flow, get_run_logger, task
 from prefect.task_runners import ThreadPoolTaskRunner
 from prefect_dask.task_runners import DaskTaskRunner
 
-from nxbench.benchmarks.config import AlgorithmConfig, DatasetConfig
-from nxbench.benchmarks.utils import (
+from nxbench.benchmarking.config import AlgorithmConfig, DatasetConfig
+from nxbench.benchmarking.utils import (
     add_seeding,
     get_available_backends,
     get_benchmark_config,

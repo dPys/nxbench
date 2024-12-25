@@ -1,7 +1,7 @@
 import sys  # isort:skip
 import os  # isort:skip
 from unittest.mock import MagicMock, patch, AsyncMock  # isort:skip
-from nxbench.benchmarks.config import (  # isort:skip
+from nxbench.benchmarking.config import (  # isort:skip
     AlgorithmConfig,
     DatasetConfig,
 )
@@ -16,7 +16,7 @@ import networkx as nx  # isort:skip  # noqa: E402
 from nxbench.validation.registry import BenchmarkValidator  # isort:skip  # noqa: E402
 from nxbench.data.loader import BenchmarkDataManager  # isort:skip  # noqa: E402
 
-from nxbench.benchmarks.benchmark import (  # isort:skip  # noqa: E402
+from nxbench.benchmarking.benchmark import (  # isort:skip  # noqa: E402
     load_config,
     setup_cache,
     configure_backend,
@@ -32,7 +32,9 @@ from nxbench.benchmarks.benchmark import (  # isort:skip  # noqa: E402
 
 @pytest.fixture(autouse=True)
 def patch_run_logger():  # noqa: PT004
-    with patch("nxbench.benchmarks.benchmark.get_run_logger", return_value=MagicMock()):
+    with patch(
+        "nxbench.benchmarking.benchmark.get_run_logger", return_value=MagicMock()
+    ):
         yield
 
 
@@ -92,7 +94,7 @@ def mock_dataset_config():
 def patch_machine_info():  # noqa: PT004
     """Patch get_machine_info to return static data."""
     with patch(
-        "nxbench.benchmarks.benchmark.get_machine_info",
+        "nxbench.benchmarking.benchmark.get_machine_info",
         return_value={"machine": "test_machine", "cpu": "test_cpu"},
     ):
         yield
@@ -102,7 +104,7 @@ def patch_machine_info():  # noqa: PT004
 def patch_python_version():  # noqa: PT004
     """Patch get_python_version to return '3.10.12' by default."""
     with patch(
-        "nxbench.benchmarks.benchmark.get_python_version",
+        "nxbench.benchmarking.benchmark.get_python_version",
         return_value="3.10.12",
     ):
         yield
@@ -114,7 +116,7 @@ def patch_python_version():  # noqa: PT004
 
 
 @pytest.mark.asyncio
-@patch("nxbench.benchmarks.benchmark.get_benchmark_config")
+@patch("nxbench.benchmarking.benchmark.get_benchmark_config")
 async def test_load_config_success(mock_get_config, mock_benchmark_config):
     mock_get_config.return_value = MagicMock(
         algorithms=mock_benchmark_config["algorithms"],
@@ -142,7 +144,7 @@ async def test_setup_cache_success(mock_benchmark_data_manager, example_graph):
     )
 
     with patch(
-        "nxbench.benchmarks.benchmark.BenchmarkDataManager",
+        "nxbench.benchmarking.benchmark.BenchmarkDataManager",
         return_value=mock_benchmark_data_manager,
     ):
         ds_config = DatasetConfig(name="ds1", source="networkrepository")
@@ -159,7 +161,7 @@ async def test_setup_cache_failure(mock_benchmark_data_manager, caplog):
     mock_benchmark_data_manager.load_network_sync.side_effect = ValueError("Load fail")
 
     with patch(
-        "nxbench.benchmarks.benchmark.BenchmarkDataManager",
+        "nxbench.benchmarking.benchmark.BenchmarkDataManager",
         return_value=mock_benchmark_data_manager,
     ):
         ds_config = DatasetConfig(name="ds1", source="networkrepository")
@@ -196,7 +198,7 @@ def test_configure_backend_success(backend, example_graph):
             mock_module.from_networkx.return_value = "cugraph_graph"
 
         with patch(
-            "nxbench.benchmarks.benchmark.import_module", return_value=mock_module
+            "nxbench.benchmarking.benchmark.import_module", return_value=mock_module
         ):
             if backend == "parallel":
                 result_p = configure_backend.fn(example_graph, backend, 2)
@@ -210,7 +212,7 @@ def test_configure_backend_success(backend, example_graph):
         mock_ga = MagicMock()
         mock_ga.Graph.from_networkx.return_value = "graphblas_graph"
         with patch(
-            "nxbench.benchmarks.benchmark.import_module",
+            "nxbench.benchmarking.benchmark.import_module",
             side_effect=[mock_module, mock_ga],
         ):
             result_gb = configure_backend.fn(example_graph, backend, 2)
@@ -227,7 +229,7 @@ def test_configure_backend_unsupported(example_graph):
 ###############################################################################
 
 
-@patch("nxbench.benchmarks.benchmark.memory_tracker", autospec=True)
+@patch("nxbench.benchmarking.benchmark.memory_tracker", autospec=True)
 def test_run_algorithm_success(
     mock_memory_tracker, mock_algorithm_config, example_graph
 ):
@@ -253,7 +255,7 @@ def test_run_algorithm_success(
         assert error is None
 
 
-@patch("nxbench.benchmarks.benchmark.memory_tracker", autospec=True)
+@patch("nxbench.benchmarking.benchmark.memory_tracker", autospec=True)
 def test_run_algorithm_importerror(
     mock_memory_tracker, mock_algorithm_config, example_graph
 ):
@@ -277,7 +279,7 @@ def test_run_algorithm_importerror(
         assert "No module" in error
 
 
-@patch("nxbench.benchmarks.benchmark.memory_tracker", autospec=True)
+@patch("nxbench.benchmarking.benchmark.memory_tracker", autospec=True)
 def test_run_algorithm_exception(
     mock_memory_tracker, mock_algorithm_config, example_graph
 ):
@@ -405,8 +407,8 @@ def test_teardown_specific(backend):
 
 
 @pytest.mark.asyncio
-@patch("nxbench.benchmarks.benchmark.memory_tracker", autospec=True)
-@patch("nxbench.benchmarks.benchmark.teardown_specific", autospec=True)
+@patch("nxbench.benchmarking.benchmark.memory_tracker", autospec=True)
+@patch("nxbench.benchmarking.benchmark.teardown_specific", autospec=True)
 async def test_run_single_benchmark_success(
     mock_teardown,
     mock_memory_tracker,
@@ -422,19 +424,19 @@ async def test_run_single_benchmark_success(
 
     with (
         patch(
-            "nxbench.benchmarks.benchmark.configure_backend",
+            "nxbench.benchmarking.benchmark.configure_backend",
             new=MagicMock(return_value="graph_after_config"),
         ),
         patch(
-            "nxbench.benchmarks.benchmark.run_algorithm",
+            "nxbench.benchmarking.benchmark.run_algorithm",
             new=MagicMock(return_value=("result", 1.5, 5000000, None)),
         ),
         patch(
-            "nxbench.benchmarks.benchmark.validate_results",
+            "nxbench.benchmarking.benchmark.validate_results",
             new=MagicMock(return_value=("passed", "")),
         ),
         patch(
-            "nxbench.benchmarks.benchmark.collect_metrics",
+            "nxbench.benchmarking.benchmark.collect_metrics",
             new=MagicMock(return_value={"metric": "dummy_value"}),
         ) as mock_collect,
     ):
@@ -453,8 +455,8 @@ async def test_run_single_benchmark_success(
 
 
 @pytest.mark.asyncio
-@patch("nxbench.benchmarks.benchmark.memory_tracker", autospec=True)
-@patch("nxbench.benchmarks.benchmark.teardown_specific", autospec=True)
+@patch("nxbench.benchmarking.benchmark.memory_tracker", autospec=True)
+@patch("nxbench.benchmarking.benchmark.teardown_specific", autospec=True)
 async def test_run_single_benchmark_exception(
     mock_teardown,
     mock_memory_tracker,
@@ -470,11 +472,11 @@ async def test_run_single_benchmark_exception(
 
     with (
         patch(
-            "nxbench.benchmarks.benchmark.configure_backend",
+            "nxbench.benchmarking.benchmark.configure_backend",
             side_effect=ValueError("backend error"),
         ),
         patch(
-            "nxbench.benchmarks.benchmark.collect_metrics",
+            "nxbench.benchmarking.benchmark.collect_metrics",
             return_value={"error": "wrapped"},
         ) as mock_collect,
     ):
@@ -495,9 +497,9 @@ async def test_run_single_benchmark_exception(
 
 
 @pytest.mark.asyncio
-@patch("nxbench.benchmarks.benchmark.DaskTaskRunner", new=MagicMock())
-@patch("nxbench.benchmarks.benchmark.flow", new=lambda *args, **kwargs: lambda fn: fn)
-@patch("nxbench.benchmarks.benchmark.run_single_benchmark", new_callable=AsyncMock)
+@patch("nxbench.benchmarking.benchmark.DaskTaskRunner", new=MagicMock())
+@patch("nxbench.benchmarking.benchmark.flow", new=lambda *args, **kwargs: lambda fn: fn)
+@patch("nxbench.benchmarking.benchmark.run_single_benchmark", new_callable=AsyncMock)
 async def test_benchmark_suite_success(
     mock_run_single,
     mock_algorithm_config,
@@ -556,10 +558,12 @@ async def test_benchmark_suite_missing_dataset(mock_algorithm_config):
 
 @pytest.mark.asyncio
 @pytest.mark.usefixtures("patch_machine_info", "patch_python_version")
-@patch("nxbench.benchmarks.benchmark.setup_cache", return_value={"ds1": ("graph", {})})
-@patch("nxbench.benchmarks.benchmark.benchmark_suite", new_callable=AsyncMock)
-@patch("nxbench.benchmarks.benchmark.load_config")
-@patch("nxbench.benchmarks.benchmark.Path", autospec=True)
+@patch(
+    "nxbench.benchmarking.benchmark.setup_cache", return_value={"ds1": ("graph", {})}
+)
+@patch("nxbench.benchmarking.benchmark.benchmark_suite", new_callable=AsyncMock)
+@patch("nxbench.benchmarking.benchmark.load_config")
+@patch("nxbench.benchmarking.benchmark.Path", autospec=True)
 async def test_main_benchmark_success(
     mock_path_cls,
     mock_load_config,
@@ -583,7 +587,7 @@ async def test_main_benchmark_success(
     mock_load_config.return_value = mock_benchmark_config
 
     with patch(
-        "nxbench.benchmarks.benchmark.get_available_backends",
+        "nxbench.benchmarking.benchmark.get_available_backends",
         return_value={"networkx": "3.4.1"},
     ):
         await main_benchmark(results_dir=tmp_path)
@@ -600,11 +604,11 @@ async def test_main_benchmark_success(
 ## python versions)
 # @pytest.mark.asyncio
 # @pytest.mark.usefixtures("patch_machine_info", "patch_python_version")
-# @patch("nxbench.benchmarks.benchmark.setup_cache", return_value={"ds1": ("graph",
+# @patch("nxbench.benchmarking.benchmark.setup_cache", return_value={"ds1": ("graph",
 # {})})
-# @patch("nxbench.benchmarks.benchmark.benchmark_suite", new_callable=AsyncMock)
-# @patch("nxbench.benchmarks.benchmark.load_config")
-# @patch("nxbench.benchmarks.benchmark.Path", autospec=True)
+# @patch("nxbench.benchmarking.benchmark.benchmark_suite", new_callable=AsyncMock)
+# @patch("nxbench.benchmarking.benchmark.load_config")
+# @patch("nxbench.benchmarking.benchmark.Path", autospec=True)
 # async def test_main_benchmark_no_backends(
 #     mock_path_cls,
 #     mock_load_config,
@@ -619,7 +623,7 @@ async def test_main_benchmark_success(
 #     Make sure we patch get_python_version => "3.10" so the 'no matching python' check
 #     doesn't short-circuit first.
 #     """
-#     from nxbench.benchmarks.benchmark import logger as nxbench_logger
+#     from nxbench.benchmarking.benchmark import logger as nxbench_logger
 
 #     nxbench_logger.disabled = False
 #     nxbench_logger.setLevel(logging.DEBUG)
@@ -646,7 +650,7 @@ async def test_main_benchmark_success(
 #         mock_load_config.return_value = new_config
 
 #         with patch(
-#             "nxbench.benchmarks.benchmark.get_available_backends",
+#             "nxbench.benchmarking.benchmark.get_available_backends",
 #             return_value={"networkx": "3.4.1"},
 #         ):
 #             await main_benchmark(results_dir=tmp_path)
@@ -659,10 +663,12 @@ async def test_main_benchmark_success(
 
 @pytest.mark.asyncio
 @pytest.mark.usefixtures("patch_machine_info")
-@patch("nxbench.benchmarks.benchmark.setup_cache", return_value={"ds1": ("graph", {})})
-@patch("nxbench.benchmarks.benchmark.benchmark_suite", new_callable=AsyncMock)
-@patch("nxbench.benchmarks.benchmark.load_config")
-@patch("nxbench.benchmarks.benchmark.Path", autospec=True)
+@patch(
+    "nxbench.benchmarking.benchmark.setup_cache", return_value={"ds1": ("graph", {})}
+)
+@patch("nxbench.benchmarking.benchmark.benchmark_suite", new_callable=AsyncMock)
+@patch("nxbench.benchmarking.benchmark.load_config")
+@patch("nxbench.benchmarking.benchmark.Path", autospec=True)
 async def test_main_benchmark_no_python_match(
     mock_path_cls,
     mock_load_config,
@@ -687,7 +693,7 @@ async def test_main_benchmark_no_python_match(
     mock_load_config.return_value = new_config
 
     with patch(
-        "nxbench.benchmarks.benchmark.get_available_backends",
+        "nxbench.benchmarking.benchmark.get_available_backends",
         return_value={"networkx": "3.4.1"},
     ):
         await main_benchmark(results_dir=tmp_path)

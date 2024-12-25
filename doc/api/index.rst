@@ -6,7 +6,7 @@ API Documentation
    :caption: Contents:
 
    nxbench
-   nxbench.benchmarks
+   nxbench.benchmarking
    nxbench.data
    nxbench.data.scripts
    nxbench.validation

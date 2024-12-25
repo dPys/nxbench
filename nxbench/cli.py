@@ -6,9 +6,9 @@ from pathlib import Path
 import click
 import pandas as pd
 
-from nxbench.benchmarks.benchmark import main_benchmark
-from nxbench.benchmarks.config import DatasetConfig
-from nxbench.benchmarks.export import ResultsExporter
+from nxbench.benchmarking.benchmark import main_benchmark
+from nxbench.benchmarking.config import DatasetConfig
+from nxbench.benchmarking.export import ResultsExporter
 from nxbench.data.loader import BenchmarkDataManager
 from nxbench.data.repository import NetworkRepository
 from nxbench.log import _config as package_config
@@ -17,7 +17,7 @@ from nxbench.validation.registry import BenchmarkValidator
 logger = logging.getLogger("nxbench")
 
 
-@click.group()
+@click.group(invoke_without_command=True)
 @click.option("-v", "--verbose", count=True, help="Increase verbosity.")
 @click.option(
     "--config",
@@ -33,6 +33,7 @@ logger = logging.getLogger("nxbench")
 )
 @click.pass_context
 def cli(ctx, verbose: int, config: Path | None, output_dir: Path):
+    """Top-level CLI group."""
     if verbose >= 2:
         verbosity_level = 2
     elif verbose == 1:
@@ -41,7 +42,6 @@ def cli(ctx, verbose: int, config: Path | None, output_dir: Path):
         verbosity_level = 0
 
     package_config.set_verbosity_level(verbosity_level)
-
     log_level = [logging.WARNING, logging.INFO, logging.DEBUG][verbosity_level]
     logging.basicConfig(level=log_level)
 
@@ -65,6 +65,10 @@ def cli(ctx, verbose: int, config: Path | None, output_dir: Path):
     ctx.obj["OUTPUT_DIR"] = output_dir.resolve()
     ctx.obj["RESULTS_DIR"] = results_dir.resolve()
 
+    if not ctx.invoked_subcommand:
+        click.echo(ctx.get_help())
+        ctx.exit(0)
+
 
 @cli.group()
 @click.pass_context
@@ -87,8 +91,9 @@ def download(ctx, name: str, category: str | None):
     try:
         graph, metadata = data_manager.load_network_sync(dataset_config)
         logger.info(f"Successfully downloaded dataset: {name}")
-    except Exception:
+    except Exception as e:
         logger.exception("Failed to download dataset")
+        raise click.ClickException(f"Failed to download dataset: {e}")
 
 
 @data.command()
@@ -143,7 +148,11 @@ def run_benchmark(ctx):
     if config:
         logger.debug(f"Config file used for benchmark run: {config}")
 
-    asyncio.run(main_benchmark(results_dir))
+    try:
+        asyncio.run(main_benchmark(results_dir))
+    except Exception as e:
+        logger.exception("Error during benchmark run")
+        raise click.ClickException(f"Benchmark run failed: {e}")
 
 
 @benchmark.command()
@@ -227,7 +236,15 @@ def check(ctx, result_file: Path):
     if config:
         logger.debug(f"Config file used for validate check: {config}")
 
-    df = pd.read_json(result_file)
+    try:
+        df = pd.read_json(result_file)
+    except FileNotFoundError as e:
+        logger.exception("File not found for validate check")
+        raise click.ClickException(f"File {result_file} does not exist")
+    except ValueError as e:
+        logger.exception("Invalid JSON in results file")
+        raise click.ClickException(str(e))
+
     validator = BenchmarkValidator()
 
     for _, row in df.iterrows():
@@ -237,8 +254,9 @@ def check(ctx, result_file: Path):
         try:
             validator.validate_result(result, algorithm_name, graph, raise_errors=True)
             logger.info(f"Validation passed for algorithm '{algorithm_name}'")
-        except Exception:
+        except Exception as e:
             logger.exception(f"Validation failed for algorithm '{algorithm_name}'")
+            raise click.ClickException(f"Validation failed for '{algorithm_name}': {e}")
 
 
 def main():

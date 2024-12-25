@@ -5,8 +5,8 @@ from typing import Any
 
 import pandas as pd
 
-from nxbench.benchmarks.config import BenchmarkResult
-from nxbench.benchmarks.utils import get_python_version
+from nxbench.benchmarking.config import BenchmarkResult
+from nxbench.benchmarking.utils import get_python_version
 from nxbench.data.db import BenchmarkDB
 from nxbench.data.loader import BenchmarkDataManager
 

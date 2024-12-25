@@ -12,7 +12,7 @@ import networkx as nx
 import pandas as pd
 from scipy.io import mmread
 
-from nxbench.benchmarks.config import DatasetConfig
+from nxbench.benchmarking.config import DatasetConfig
 from nxbench.data.synthesize import generate_graph
 from nxbench.data.utils import detect_delimiter, fix_matrix_market_file
 

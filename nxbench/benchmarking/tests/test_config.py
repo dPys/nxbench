@@ -7,14 +7,14 @@ import networkx as nx
 import pytest
 import yaml
 
-from nxbench.benchmarks.config import (
+from nxbench.benchmarking.config import (
     AlgorithmConfig,
     BenchmarkConfig,
     BenchmarkMetrics,
     BenchmarkResult,
     DatasetConfig,
 )
-from nxbench.benchmarks.utils import (
+from nxbench.benchmarking.utils import (
     configure_benchmarks,
     get_benchmark_config,
     load_default_config,
@@ -23,12 +23,12 @@ from nxbench.benchmarks.utils import (
 
 @pytest.fixture(autouse=True)
 def _reset_benchmark_config():
-    import nxbench.benchmarks.config
+    import nxbench.benchmarking.config
 
-    original_config = nxbench.benchmarks.utils._BENCHMARK_CONFIG
-    nxbench.benchmarks.utils._BENCHMARK_CONFIG = None
+    original_config = nxbench.benchmarking.utils._BENCHMARK_CONFIG
+    nxbench.benchmarking.utils._BENCHMARK_CONFIG = None
     yield
-    nxbench.benchmarks.utils._BENCHMARK_CONFIG = original_config
+    nxbench.benchmarking.utils._BENCHMARK_CONFIG = original_config
 
 
 class TestAlgorithmConfig:

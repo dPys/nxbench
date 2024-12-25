@@ -5,8 +5,8 @@ from unittest.mock import MagicMock, mock_open, patch
 import pandas as pd
 import pytest
 
-from nxbench.benchmarks.config import BenchmarkResult
-from nxbench.benchmarks.export import ResultsExporter
+from nxbench.benchmarking.config import BenchmarkResult
+from nxbench.benchmarking.export import ResultsExporter
 
 
 @pytest.fixture(autouse=True)
@@ -19,7 +19,7 @@ def mock_benchmark_data_manager_metadata():
 
 @pytest.fixture
 def mock_logger():
-    with patch("nxbench.benchmarks.export.logger") as mock_log:
+    with patch("nxbench.benchmarking.export.logger") as mock_log:
         yield mock_log
 
 
@@ -31,7 +31,7 @@ class TestResultsExporter:
         assert exporter.results_file == fake_path
         mock_logger.debug.assert_not_called()
 
-    @patch("nxbench.benchmarks.export.Path.open", new_callable=mock_open)
+    @patch("nxbench.benchmarking.export.Path.open", new_callable=mock_open)
     def test_load_results_json_valid(self, mock_file_open, mock_logger):
         mock_json = [
             {
@@ -66,7 +66,7 @@ class TestResultsExporter:
         assert res.metadata.get("extra_field") == "metadata_value"
         mock_logger.info.assert_any_call("Loaded 1 benchmark results from results.json")
 
-    @patch("nxbench.benchmarks.export.Path.open", new_callable=mock_open)
+    @patch("nxbench.benchmarking.export.Path.open", new_callable=mock_open)
     def test_load_results_json_not_list(self, mock_file_open, mock_logger):
         mock_json = {"foo": "bar"}  # Not a list
         mock_file_open.return_value.__enter__.return_value.read.return_value = (
@@ -80,7 +80,7 @@ class TestResultsExporter:
             "Expected a list of results in JSON file, got <class 'dict'>"
         )
 
-    @patch("nxbench.benchmarks.export.Path.open", new_callable=mock_open)
+    @patch("nxbench.benchmarking.export.Path.open", new_callable=mock_open)
     def test_load_results_json_malformed(self, mock_file_open, mock_logger):
         mock_file_open.return_value.__enter__.return_value.read.return_value = (
             "invalid-json"
@@ -188,7 +188,7 @@ class TestResultsExporter:
             assert df.loc[0, "key1"] == "value1"
             assert df.loc[1, "key3"] == "value3"
 
-    @patch("nxbench.benchmarks.export.BenchmarkDB")
+    @patch("nxbench.benchmarking.export.BenchmarkDB")
     def test_export_results_csv(self, mock_db, mock_logger):
         """Test exporting results as CSV with a mock DataFrame."""
         exporter = ResultsExporter(results_file=Path("results.json"))
@@ -201,7 +201,7 @@ class TestResultsExporter:
             df_mock.to_csv.assert_called_once_with(Path("/tmp/out.csv"), index=False)
             mock_logger.info.assert_called_with("Exported results to CSV: /tmp/out.csv")
 
-    @patch("nxbench.benchmarks.export.BenchmarkDB")
+    @patch("nxbench.benchmarking.export.BenchmarkDB")
     def test_export_results_json(self, mock_db, mock_logger):
         """Test exporting results as JSON with a mock DataFrame."""
         exporter = ResultsExporter(results_file=Path("results.json"))
@@ -217,8 +217,8 @@ class TestResultsExporter:
                 "Exported results to JSON: /tmp/out.json"
             )
 
-    @patch("nxbench.benchmarks.export.BenchmarkDB")
-    @patch("nxbench.benchmarks.export.get_python_version", return_value="3.10.14")
+    @patch("nxbench.benchmarking.export.BenchmarkDB")
+    @patch("nxbench.benchmarking.export.get_python_version", return_value="3.10.14")
     def test_export_results_sql_replace(self, mock_pyver, mock_db_class, mock_logger):
         """Test exporting results into SQL with 'replace'."""
         exporter = ResultsExporter(results_file=Path("results.csv"))
@@ -309,7 +309,7 @@ class TestResultsExporter:
             assert len(filtered_b2) == 2
             assert all(filtered_b2["backend"] == "b2")
 
-            with patch("nxbench.benchmarks.export.pd.to_datetime") as mock_td:
+            with patch("nxbench.benchmarking.export.pd.to_datetime") as mock_td:
                 mock_td.side_effect = lambda x: int(
                     x.replace("-", "")
                 )  # "2024-01-02" -> 20240102
