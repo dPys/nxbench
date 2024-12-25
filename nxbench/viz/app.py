@@ -140,7 +140,7 @@ def make_parallel_categories_figure(
     )
     fig.update_layout(
         title=f"Benchmark Results for {selected_algorithm.title()}",
-        template="plotly_white",
+        template="plotly_dark",
     )
 
     store_data = {"mean_values": color_values.tolist(), "counts": counts.tolist()}
@@ -255,7 +255,12 @@ def make_violin_figure(
         ],
         title=f"{y_label} Distribution for {selected_algorithm.title()}",
     )
-    fig.update_layout(template="plotly_white")
+    fig.update_layout(
+        template="plotly_dark",
+        paper_bgcolor="#303030",
+        plot_bgcolor="#303030",
+        font_color="#fff",
+    )
     return fig
 
 
@@ -286,16 +291,21 @@ def run_server(port=8050, debug=False, run=True):
         "results/results.csv", logger
     )
 
-    app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
+    app = dash.Dash(__name__, external_stylesheets=[dbc.themes.DARKLY])
 
     app.layout = html.Div(
-        [
-            html.H1("NetworkX Benchmark Dashboard", style={"textAlign": "center"}),
+        style={"backgroundColor": "#303030", "color": "#fff"},
+        children=[
+            html.H1(
+                "NetworkX Benchmark Dashboard",
+                style={"textAlign": "center", "color": "#fff"},
+            ),
             html.Div(
                 [
                     html.Label("Select Algorithm:", style={"fontWeight": "bold"}),
                     dcc.Dropdown(
                         id="algorithm-dropdown",
+                        style={"width": "100%", "color": "#000"},
                         options=[
                             {"label": alg.title(), "value": alg}
                             for alg in sorted(
@@ -306,7 +316,6 @@ def run_server(port=8050, debug=False, run=True):
                             df_agg.index.get_level_values("algorithm").unique()
                         )[0],
                         clearable=False,
-                        style={"width": "100%"},
                     ),
                 ],
                 style={"width": "48%", "display": "inline-block", "padding": "0 20px"},
@@ -376,7 +385,7 @@ def run_server(port=8050, debug=False, run=True):
                 style={"marginTop": "20px"},
             ),
             dcc.Store(id="mean-values-store"),
-        ]
+        ],
     )
 
     @app.callback(
