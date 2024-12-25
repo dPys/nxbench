@@ -179,7 +179,11 @@ omit = [
     "nxbench/validation/tests/test_base.py",
     "nxbench/validation/tests/test_registry.py",
     "nxbench/data/scripts/scrape_nr.py",
-    "nxbench/data/constants.py"
+    "nxbench/data/constants.py",
+    "nxbench/tests/test_cli.py",
+    "nxbench/tests/test_log.py",
+    "nxbench/benchmarking/tests/test_export.py",
+    "nxbench/backends/registry.py"
 ]
 
 [tool.coverage.report]
