@@ -211,20 +211,16 @@
 <li class="toctree-l4"><a class="reference internal" href="api/nxbench.data.scripts.html">nxbench.data.scripts package</a></li>
 </ul>
 </li>
-<li class="toctree-l3 has-children"><a class="reference internal" href="api/nxbench.validation.html">nxbench.validation package</a><input class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" role="switch" type="checkbox"/><label for="toctree-checkbox-4"><div class="visually-hidden">Toggle navigation of nxbench.validation package</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="simple">
-</ul>
-</li>
+<li class="toctree-l3"><a class="reference internal" href="api/nxbench.validation.html">nxbench.validation package</a></li>
 <li class="toctree-l3"><a class="reference internal" href="api/nxbench.viz.html">nxbench.viz package</a></li>
 </ul>
 </li>
-<li class="toctree-l2 has-children"><a class="reference internal" href="api/nxbench.data.html">nxbench.data package</a><input class="toctree-checkbox" id="toctree-checkbox-5" name="toctree-checkbox-5" role="switch" type="checkbox"/><label for="toctree-checkbox-5"><div class="visually-hidden">Toggle navigation of nxbench.data package</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="api/nxbench.data.html">nxbench.data package</a><input class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" role="switch" type="checkbox"/><label for="toctree-checkbox-4"><div class="visually-hidden">Toggle navigation of nxbench.data package</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
 <li class="toctree-l3"><a class="reference internal" href="api/nxbench.data.scripts.html">nxbench.data.scripts package</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="api/nxbench.data.scripts.html">nxbench.data.scripts package</a></li>
-<li class="toctree-l2 has-children"><a class="reference internal" href="api/nxbench.validation.html">nxbench.validation package</a><input class="toctree-checkbox" id="toctree-checkbox-6" name="toctree-checkbox-6" role="switch" type="checkbox"/><label for="toctree-checkbox-6"><div class="visually-hidden">Toggle navigation of nxbench.validation package</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="simple">
-</ul>
-</li>
+<li class="toctree-l2"><a class="reference internal" href="api/nxbench.validation.html">nxbench.validation package</a></li>
 <li class="toctree-l2"><a class="reference internal" href="api/nxbench.viz.html">nxbench.viz package</a></li>
 </ul>
 </li>
@@ -271,9 +267,11 @@
   <h2>_</h2>
   <table style="width: 100%" class="indextable genindextable"><tr>
     <td style="width: 33%; vertical-align: top;"><ul>
-        <li><a href="api/nxbench.benchmarks.html#nxbench.benchmarking.config.AlgorithmConfig.__init__">__init__() (nxbench.benchmarking.config.AlgorithmConfig method)</a>
+        <li><a href="api/nxbench.backends.html#nxbench.backends.core.BackendManager.__init__">__init__() (nxbench.backends.core.BackendManager method)</a>
 
         <ul>
+          <li><a href="api/nxbench.benchmarks.html#nxbench.benchmarking.config.AlgorithmConfig.__init__">(nxbench.benchmarking.config.AlgorithmConfig method)</a>
+</li>
           <li><a href="api/nxbench.benchmarks.html#nxbench.benchmarking.config.BenchmarkConfig.__init__">(nxbench.benchmarking.config.BenchmarkConfig method)</a>
 </li>
           <li><a href="api/nxbench.benchmarks.html#nxbench.benchmarking.config.BenchmarkMetrics.__init__">(nxbench.benchmarking.config.BenchmarkMetrics method)</a>
@@ -359,6 +357,8 @@
 </li>
         <li><a href="api/nxbench.html#nxbench.log.NxBenchConfig.backend_params">backend_params (nxbench.log.NxBenchConfig attribute)</a>
 </li>
+        <li><a href="api/nxbench.backends.html#nxbench.backends.core.BackendManager">BackendManager (class in nxbench.backends.core)</a>
+</li>
         <li><a href="api/nxbench.html#nxbench.log.LoggingHandlerConfig.backup_count">backup_count (nxbench.log.LoggingHandlerConfig attribute)</a>
 </li>
         <li><a href="api/nxbench.benchmarks.html#nxbench.benchmarking.benchmark.benchmark_suite">benchmark_suite() (in module nxbench.benchmarking.benchmark)</a>
@@ -393,13 +393,25 @@
 </li>
         <li><a href="api/nxbench.data.html#nxbench.data.repository.NetworkMetadata.collection">collection (nxbench.data.repository.NetworkMetadata attribute)</a>
 </li>
-    </ul></td>
-    <td style="width: 33%; vertical-align: top;"><ul>
         <li><a href="api/nxbench.benchmarks.html#nxbench.benchmarking.utils.MemorySnapshot.compare_to">compare_to() (nxbench.benchmarking.utils.MemorySnapshot method)</a>
 </li>
         <li><a href="api/nxbench.benchmarks.html#nxbench.benchmarking.benchmark.configure_backend">configure_backend() (in module nxbench.benchmarking.benchmark)</a>
+
+        <ul>
+          <li><a href="api/nxbench.backends.html#nxbench.backends.core.BackendManager.configure_backend">(nxbench.backends.core.BackendManager method)</a>
 </li>
+        </ul></li>
+    </ul></td>
+    <td style="width: 33%; vertical-align: top;"><ul>
         <li><a href="api/nxbench.benchmarks.html#nxbench.benchmarking.utils.configure_benchmarks">configure_benchmarks() (in module nxbench.benchmarking.utils)</a>
+</li>
+        <li><a href="api/nxbench.backends.html#nxbench.backends.registry.convert_cugraph">convert_cugraph() (in module nxbench.backends.registry)</a>
+</li>
+        <li><a href="api/nxbench.backends.html#nxbench.backends.registry.convert_graphblas">convert_graphblas() (in module nxbench.backends.registry)</a>
+</li>
+        <li><a href="api/nxbench.backends.html#nxbench.backends.registry.convert_networkx">convert_networkx() (in module nxbench.backends.registry)</a>
+</li>
+        <li><a href="api/nxbench.backends.html#nxbench.backends.registry.convert_parallel">convert_parallel() (in module nxbench.backends.registry)</a>
 </li>
         <li><a href="api/nxbench.html#nxbench.log.create_handler">create_handler() (in module nxbench.log)</a>
 </li>
@@ -505,7 +517,7 @@
 </li>
         <li><a href="api/nxbench.benchmarks.html#nxbench.benchmarking.utils.get_available_algorithms">get_available_algorithms() (in module nxbench.benchmarking.utils)</a>
 </li>
-        <li><a href="api/nxbench.benchmarks.html#nxbench.benchmarking.utils.get_available_backends">get_available_backends() (in module nxbench.benchmarking.utils)</a>
+        <li><a href="api/nxbench.backends.html#nxbench.backends.core.get_backend_version">get_backend_version() (in module nxbench.backends.core)</a>
 </li>
         <li><a href="api/nxbench.benchmarks.html#nxbench.benchmarking.utils.get_benchmark_config">get_benchmark_config() (in module nxbench.benchmarking.utils)</a>
 </li>
@@ -537,6 +549,8 @@
 </li>
         <li><a href="api/nxbench.validation.html#nxbench.validation.registry.ValidationRegistry.get_validator">get_validator() (nxbench.validation.registry.ValidationRegistry method)</a>
 </li>
+        <li><a href="api/nxbench.backends.html#nxbench.backends.core.BackendManager.get_version">get_version() (nxbench.backends.core.BackendManager method)</a>
+</li>
         <li><a href="api/nxbench.benchmarks.html#nxbench.benchmarking.config.AlgorithmConfig.groups">groups (nxbench.benchmarking.config.AlgorithmConfig attribute)</a>
 </li>
     </ul></td>
@@ -561,15 +575,17 @@
   <h2>I</h2>
   <table style="width: 100%" class="indextable genindextable"><tr>
     <td style="width: 33%; vertical-align: top;"><ul>
-        <li><a href="api/nxbench.benchmarks.html#nxbench.benchmarking.config.BenchmarkResult.is_directed">is_directed (nxbench.benchmarking.config.BenchmarkResult attribute)</a>
+        <li><a href="api/nxbench.backends.html#nxbench.backends.core.is_available">is_available() (in module nxbench.backends.core)</a>
+
+        <ul>
+          <li><a href="api/nxbench.backends.html#nxbench.backends.core.BackendManager.is_available">(nxbench.backends.core.BackendManager method)</a>
 </li>
-        <li><a href="api/nxbench.benchmarks.html#nxbench.benchmarking.utils.is_graphblas_available">is_graphblas_available() (in module nxbench.benchmarking.utils)</a>
-</li>
+        </ul></li>
     </ul></td>
     <td style="width: 33%; vertical-align: top;"><ul>
-        <li><a href="api/nxbench.benchmarks.html#nxbench.benchmarking.utils.is_nx_cugraph_available">is_nx_cugraph_available() (in module nxbench.benchmarking.utils)</a>
+        <li><a href="api/nxbench.benchmarks.html#nxbench.benchmarking.config.BenchmarkResult.is_directed">is_directed (nxbench.benchmarking.config.BenchmarkResult attribute)</a>
 </li>
-        <li><a href="api/nxbench.benchmarks.html#nxbench.benchmarking.utils.is_nx_parallel_available">is_nx_parallel_available() (in module nxbench.benchmarking.utils)</a>
+        <li><a href="api/nxbench.backends.html#nxbench.backends.core.BackendManager.is_registered">is_registered() (nxbench.backends.core.BackendManager method)</a>
 </li>
         <li><a href="api/nxbench.benchmarks.html#nxbench.benchmarking.config.BenchmarkResult.is_weighted">is_weighted (nxbench.benchmarking.config.BenchmarkResult attribute)</a>
 </li>
@@ -589,6 +605,8 @@
           <li><a href="api/nxbench.html#nxbench.log.LoggingHandlerConfig.level">(nxbench.log.LoggingHandlerConfig attribute)</a>
 </li>
         </ul></li>
+        <li><a href="api/nxbench.benchmarks.html#nxbench.benchmarking.utils.list_available_backends">list_available_backends() (in module nxbench.benchmarking.utils)</a>
+</li>
         <li><a href="api/nxbench.data.html#nxbench.data.repository.NetworkRepository.list_networks">list_networks() (nxbench.data.repository.NetworkRepository method)</a>
 </li>
         <li><a href="api/nxbench.viz.html#nxbench.viz.utils.load_and_prepare_data">load_and_prepare_data() (in module nxbench.viz.utils)</a>
@@ -601,10 +619,10 @@
         </ul></li>
         <li><a href="api/nxbench.viz.html#nxbench.viz.utils.load_data">load_data() (in module nxbench.viz.utils)</a>
 </li>
-        <li><a href="api/nxbench.benchmarks.html#nxbench.benchmarking.utils.load_default_config">load_default_config() (in module nxbench.benchmarking.utils)</a>
-</li>
     </ul></td>
     <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="api/nxbench.benchmarks.html#nxbench.benchmarking.utils.load_default_config">load_default_config() (in module nxbench.benchmarking.utils)</a>
+</li>
         <li><a href="api/nxbench.data.html#nxbench.data.loader.BenchmarkDataManager.load_network">load_network() (nxbench.data.loader.BenchmarkDataManager method)</a>
 </li>
         <li><a href="api/nxbench.data.html#nxbench.data.loader.BenchmarkDataManager.load_network_sync">load_network_sync() (nxbench.data.loader.BenchmarkDataManager method)</a>
@@ -675,6 +693,12 @@
     module
 
         <ul>
+          <li><a href="api/nxbench.backends.html#module-nxbench.backends">nxbench.backends</a>
+</li>
+          <li><a href="api/nxbench.backends.html#module-nxbench.backends.core">nxbench.backends.core</a>
+</li>
+          <li><a href="api/nxbench.backends.html#module-nxbench.backends.registry">nxbench.backends.registry</a>
+</li>
           <li><a href="api/nxbench.benchmarks.html#module-nxbench.benchmarking">nxbench.benchmarking</a>
 </li>
           <li><a href="api/nxbench.benchmarks.html#module-nxbench.benchmarking.benchmark">nxbench.benchmarking.benchmark</a>
@@ -763,6 +787,27 @@
         <li><a href="api/nxbench.benchmarks.html#nxbench.benchmarking.config.BenchmarkResult.num_thread">num_thread (nxbench.benchmarking.config.BenchmarkResult attribute)</a>
 </li>
         <li>
+    nxbench.backends
+
+        <ul>
+          <li><a href="api/nxbench.backends.html#module-nxbench.backends">module</a>
+</li>
+        </ul></li>
+        <li>
+    nxbench.backends.core
+
+        <ul>
+          <li><a href="api/nxbench.backends.html#module-nxbench.backends.core">module</a>
+</li>
+        </ul></li>
+        <li>
+    nxbench.backends.registry
+
+        <ul>
+          <li><a href="api/nxbench.backends.html#module-nxbench.backends.registry">module</a>
+</li>
+        </ul></li>
+        <li>
     nxbench.benchmarking
 
         <ul>
@@ -804,6 +849,8 @@
           <li><a href="api/nxbench.html#module-nxbench.cli">module</a>
 </li>
         </ul></li>
+    </ul></td>
+    <td style="width: 33%; vertical-align: top;"><ul>
         <li>
     nxbench.data
 
@@ -811,8 +858,6 @@
           <li><a href="api/nxbench.data.html#module-nxbench.data">module</a>
 </li>
         </ul></li>
-    </ul></td>
-    <td style="width: 33%; vertical-align: top;"><ul>
         <li>
     nxbench.data.constants
 
@@ -974,6 +1019,8 @@
   <h2>R</h2>
   <table style="width: 100%" class="indextable genindextable"><tr>
     <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="api/nxbench.backends.html#nxbench.backends.core.BackendManager.register_backend">register_backend() (nxbench.backends.core.BackendManager method)</a>
+</li>
         <li><a href="api/nxbench.html#nxbench.log.NxBenchConfig.register_observer">register_observer() (nxbench.log.NxBenchConfig method)</a>
 </li>
         <li><a href="api/nxbench.validation.html#nxbench.validation.registry.ValidationRegistry.register_validator">register_validator() (nxbench.validation.registry.ValidationRegistry method)</a>
@@ -1040,10 +1087,20 @@
 </li>
         <li><a href="api/nxbench.benchmarks.html#nxbench.benchmarking.utils.MemorySnapshot.take">take() (nxbench.benchmarking.utils.MemorySnapshot method)</a>
 </li>
-        <li><a href="api/nxbench.benchmarks.html#nxbench.benchmarking.benchmark.teardown_specific">teardown_specific() (in module nxbench.benchmarking.benchmark)</a>
+        <li><a href="api/nxbench.backends.html#nxbench.backends.core.BackendManager.teardown_backend">teardown_backend() (nxbench.backends.core.BackendManager method)</a>
+</li>
+        <li><a href="api/nxbench.backends.html#nxbench.backends.registry.teardown_cugraph">teardown_cugraph() (in module nxbench.backends.registry)</a>
+</li>
+        <li><a href="api/nxbench.backends.html#nxbench.backends.registry.teardown_graphblas">teardown_graphblas() (in module nxbench.backends.registry)</a>
 </li>
     </ul></td>
     <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="api/nxbench.backends.html#nxbench.backends.registry.teardown_networkx">teardown_networkx() (in module nxbench.backends.registry)</a>
+</li>
+        <li><a href="api/nxbench.backends.html#nxbench.backends.registry.teardown_parallel">teardown_parallel() (in module nxbench.backends.registry)</a>
+</li>
+        <li><a href="api/nxbench.benchmarks.html#nxbench.benchmarking.benchmark.teardown_specific">teardown_specific() (in module nxbench.benchmarking.benchmark)</a>
+</li>
         <li><a href="api/nxbench.benchmarks.html#nxbench.benchmarking.export.ResultsExporter.to_dataframe">to_dataframe() (nxbench.benchmarking.export.ResultsExporter method)</a>
 </li>
         <li><a href="api/nxbench.benchmarks.html#nxbench.benchmarking.config.BenchmarkConfig.to_yaml">to_yaml() (nxbench.benchmarking.config.BenchmarkConfig method)</a>
