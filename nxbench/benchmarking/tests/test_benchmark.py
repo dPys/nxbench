@@ -187,44 +187,51 @@ async def test_setup_cache_failure(mock_benchmark_data_manager, caplog):
     ],
 )
 def test_configure_backend_success(backend, example_graph):
+    """
+    Test that configure_backend handles each supported backend.
+    For 'parallel', 'cugraph', and 'graphblas' we patch is_available => True
+    so it won't raise ImportError if not actually installed.
+    """
     if backend == "networkx":
-        # For NetworkX, the original graph is returned
+        # For NetworkX, the original graph is returned.
         result = configure_backend.fn(example_graph, backend, 4)
         assert result is example_graph
 
-    elif backend in ("parallel", "cugraph"):
-        # Prepare a mock module to be returned by import_module
+    elif backend == "parallel":
         mock_module = MagicMock()
-        if backend == "parallel":
-            # Nx-Parallel
-            mock_module.ParallelGraph.return_value = "parallel_graph"
-        else:  # cugraph
-            mock_module.from_networkx.return_value = "cugraph_graph"
+        mock_module.ParallelGraph.return_value = "parallel_graph"
 
         with (
-            # 1) Mark the backend as available
             patch("nxbench.backends.core.is_available", return_value=True),
-            # 2) Return our mock_module from import_module
             patch("nxbench.backends.registry.import_module", return_value=mock_module),
         ):
-            if backend == "parallel":
-                result_p = configure_backend.fn(example_graph, backend, 2)
-                assert result_p == "parallel_graph"
-            else:  # cugraph
-                result_cu = configure_backend.fn(example_graph, backend, 2)
-                assert result_cu == "cugraph_graph"
+            result_p = configure_backend.fn(example_graph, "parallel", 2)
+            assert result_p == "parallel_graph"
 
-    else:
-        # "graphblas"
+    elif backend == "cugraph":
+        mock_module = MagicMock()
+        mock_module.from_networkx.return_value = "cugraph_graph"
+
+        with (
+            patch("nxbench.backends.core.is_available", return_value=True),
+            patch("nxbench.backends.registry.import_module", return_value=mock_module),
+        ):
+            result_cu = configure_backend.fn(example_graph, "cugraph", 2)
+            assert result_cu == "cugraph_graph"
+
+    else:  # "graphblas"
         mock_module = MagicMock()
         mock_ga = MagicMock()
         mock_ga.Graph.from_networkx.return_value = "graphblas_graph"
 
-        with patch(
-            "nxbench.backends.registry.import_module",
-            side_effect=[mock_module, mock_ga],
+        with (
+            patch("nxbench.backends.core.is_available", return_value=True),
+            patch(
+                "nxbench.backends.registry.import_module",
+                side_effect=[mock_module, mock_ga],
+            ),
         ):
-            result_gb = configure_backend.fn(example_graph, backend, 2)
+            result_gb = configure_backend.fn(example_graph, "graphblas", 2)
             assert result_gb == "graphblas_graph"
 
 
