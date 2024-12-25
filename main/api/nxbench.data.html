@@ -3,7 +3,7 @@
   <head><meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
-<link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="nxbench.data.scripts package" href="nxbench.data.scripts.html" /><link rel="prev" title="nxbench.benchmarks package" href="nxbench.benchmarks.html" />
+<link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="nxbench.data.scripts package" href="nxbench.data.scripts.html" /><link rel="prev" title="nxbench package" href="nxbench.html" />
         <link rel="canonical" href="https://networkx.org/api/nxbench.data.html" />
 
     <link rel="shortcut icon" href="../_static/favicon.ico"/><!-- Generated with Sphinx 8.1.3 and Furo 2024.08.06 -->
@@ -209,7 +209,6 @@
 <li class="toctree-l1"><a class="reference internal" href="../examples.html"><strong>Nxbench Configuration Guide</strong></a></li>
 <li class="toctree-l1 current has-children"><a class="reference internal" href="index.html">API Documentation</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle navigation of API Documentation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="current">
 <li class="toctree-l2 current has-children"><a class="reference internal" href="nxbench.html">nxbench package</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><div class="visually-hidden">Toggle navigation of nxbench package</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="current">
-<li class="toctree-l3"><a class="reference internal" href="nxbench.benchmarks.html">nxbench.benchmarks package</a></li>
 <li class="toctree-l3 current has-children"><a class="current reference internal" href="#">nxbench.data package</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><div class="visually-hidden">Toggle navigation of nxbench.data package</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
 <li class="toctree-l4"><a class="reference internal" href="nxbench.data.scripts.html">nxbench.data.scripts package</a></li>
 </ul>
@@ -220,7 +219,6 @@
 <li class="toctree-l3"><a class="reference internal" href="nxbench.viz.html">nxbench.viz package</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="nxbench.benchmarks.html">nxbench.benchmarks package</a></li>
 <li class="toctree-l2 current has-children current-page"><a class="current reference internal" href="#">nxbench.data package</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-5" name="toctree-checkbox-5" role="switch" type="checkbox"/><label for="toctree-checkbox-5"><div class="visually-hidden">Toggle navigation of nxbench.data package</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
 <li class="toctree-l3"><a class="reference internal" href="nxbench.data.scripts.html">nxbench.data.scripts package</a></li>
 </ul>
@@ -390,7 +388,7 @@
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>results</strong> (<a class="reference internal" href="nxbench.benchmarks.html#nxbench.benchmarks.config.BenchmarkResult" title="nxbench.benchmarks.config.BenchmarkResult"><em>BenchmarkResult</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.13)"><em>list</em></a><em> of </em><a class="reference internal" href="nxbench.benchmarks.html#nxbench.benchmarks.config.BenchmarkResult" title="nxbench.benchmarks.config.BenchmarkResult"><em>BenchmarkResult</em></a>) – Results to save</p></li>
+<li><p><strong>results</strong> (<a class="reference internal" href="nxbench.benchmarks.html#nxbench.benchmarking.config.BenchmarkResult" title="nxbench.benchmarking.config.BenchmarkResult"><em>BenchmarkResult</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.13)"><em>list</em></a><em> of </em><a class="reference internal" href="nxbench.benchmarks.html#nxbench.benchmarking.config.BenchmarkResult" title="nxbench.benchmarking.config.BenchmarkResult"><em>BenchmarkResult</em></a>) – Results to save</p></li>
 <li><p><strong>git_commit</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em>, </em><em>optional</em>) – Git commit hash for version tracking</p></li>
 <li><p><strong>machine_info</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)"><em>dict</em></a><em>, </em><em>optional</em>) – System information</p></li>
 <li><p><strong>python_version</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em>, </em><em>optional</em>) – Python version used</p></li>
@@ -456,7 +454,7 @@
 </dd>
 <dt class="field-even">Parameters<span class="colon">:</span></dt>
 <dd class="field-even"><ul class="simple">
-<li><p><strong>config</strong> (<a class="reference internal" href="nxbench.benchmarks.html#nxbench.benchmarks.config.DatasetConfig" title="nxbench.benchmarks.config.DatasetConfig"><em>DatasetConfig</em></a>)</p></li>
+<li><p><strong>config</strong> (<a class="reference internal" href="nxbench.benchmarks.html#nxbench.benchmarking.config.DatasetConfig" title="nxbench.benchmarking.config.DatasetConfig"><em>DatasetConfig</em></a>)</p></li>
 <li><p><strong>session</strong> (<em>ClientSession</em><em> | </em><em>None</em>)</p></li>
 </ul>
 </dd>
@@ -471,7 +469,7 @@
 <dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a>[<a class="reference external" href="https://networkx.org/documentation/stable/reference/classes/graph.html#networkx.Graph" title="(in NetworkX v3.4.2)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Graph</span></code></a> | <a class="reference external" href="https://networkx.org/documentation/stable/reference/classes/digraph.html#networkx.DiGraph" title="(in NetworkX v3.4.2)"><code class="xref py py-class docutils literal notranslate"><span class="pre">DiGraph</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.13)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></a>]]</span></p>
 </dd>
 <dt class="field-even">Parameters<span class="colon">:</span></dt>
-<dd class="field-even"><p><strong>config</strong> (<a class="reference internal" href="nxbench.benchmarks.html#nxbench.benchmarks.config.DatasetConfig" title="nxbench.benchmarks.config.DatasetConfig"><em>DatasetConfig</em></a>)</p>
+<dd class="field-even"><p><strong>config</strong> (<a class="reference internal" href="nxbench.benchmarks.html#nxbench.benchmarking.config.DatasetConfig" title="nxbench.benchmarking.config.DatasetConfig"><em>DatasetConfig</em></a>)</p>
 </dd>
 </dl>
 </dd></dl>
@@ -1007,14 +1005,14 @@ Collapses multiple hyphens into a single hyphen and strips leading/trailing hyph
               </div>
               <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
             </a>
-          <a class="prev-page" href="nxbench.benchmarks.html">
+          <a class="prev-page" href="nxbench.html">
               <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
               <div class="page-info">
                 <div class="context">
                   <span>Previous</span>
                 </div>
                 
-                <div class="title">nxbench.benchmarks package</div>
+                <div class="title">nxbench package</div>
                 
               </div>
             </a>

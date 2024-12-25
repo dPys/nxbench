@@ -3,10 +3,10 @@
   <head><meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
     <meta name="color-scheme" content="light dark"><link rel="index" title="Index" href="../../../genindex.html" /><link rel="search" title="Search" href="../../../search.html" />
-        <link rel="canonical" href="https://networkx.org/_modules/nxbench/benchmarks/utils.html" />
+        <link rel="canonical" href="https://networkx.org/_modules/nxbench/benchmarking/utils.html" />
 
     <link rel="shortcut icon" href="../../../_static/favicon.ico"/><!-- Generated with Sphinx 8.1.3 and Furo 2024.08.06 -->
-        <title>nxbench.benchmarks.utils - NxBench</title>
+        <title>nxbench.benchmarking.utils - NxBench</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=a746c00c" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo.css?v=354aac6f" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo-extensions.css?v=302659d7" />
@@ -208,7 +208,6 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../examples.html"><strong>Nxbench Configuration Guide</strong></a></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../../../api/index.html">API Documentation</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle navigation of API Documentation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../../api/nxbench.html">nxbench package</a><input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><div class="visually-hidden">Toggle navigation of nxbench package</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
-<li class="toctree-l3"><a class="reference internal" href="../../../api/nxbench.benchmarks.html">nxbench.benchmarks package</a></li>
 <li class="toctree-l3 has-children"><a class="reference internal" href="../../../api/nxbench.data.html">nxbench.data package</a><input class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><div class="visually-hidden">Toggle navigation of nxbench.data package</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
 <li class="toctree-l4"><a class="reference internal" href="../../../api/nxbench.data.scripts.html">nxbench.data.scripts package</a></li>
 </ul>
@@ -219,7 +218,6 @@
 <li class="toctree-l3"><a class="reference internal" href="../../../api/nxbench.viz.html">nxbench.viz package</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="../../../api/nxbench.benchmarks.html">nxbench.benchmarks package</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../../api/nxbench.data.html">nxbench.data package</a><input class="toctree-checkbox" id="toctree-checkbox-5" name="toctree-checkbox-5" role="switch" type="checkbox"/><label for="toctree-checkbox-5"><div class="visually-hidden">Toggle navigation of nxbench.data package</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
 <li class="toctree-l3"><a class="reference internal" href="../../../api/nxbench.data.scripts.html">nxbench.data.scripts package</a></li>
 </ul>
@@ -265,7 +263,7 @@
           </label>
         </div>
         <article role="main" id="furo-main-content">
-          <h1>Source code for nxbench.benchmarks.utils</h1><div class="highlight"><pre>
+          <h1>Source code for nxbench.benchmarking.utils</h1><div class="highlight"><pre>
 <span></span><span class="kn">import</span> <span class="nn">gc</span>
 <span class="kn">import</span> <span class="nn">importlib</span>
 <span class="kn">import</span> <span class="nn">inspect</span>
@@ -284,8 +282,8 @@
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">psutil</span>
 
-<span class="kn">from</span> <span class="nn">nxbench.benchmarks.config</span> <span class="kn">import</span> <span class="n">AlgorithmConfig</span><span class="p">,</span> <span class="n">BenchmarkConfig</span><span class="p">,</span> <span class="n">DatasetConfig</span>
-<span class="kn">from</span> <span class="nn">nxbench.benchmarks.constants</span> <span class="kn">import</span> <span class="n">ALGORITHM_SUBMODULES</span>
+<span class="kn">from</span> <span class="nn">nxbench.benchmarking.config</span> <span class="kn">import</span> <span class="n">AlgorithmConfig</span><span class="p">,</span> <span class="n">BenchmarkConfig</span><span class="p">,</span> <span class="n">DatasetConfig</span>
+<span class="kn">from</span> <span class="nn">nxbench.benchmarking.constants</span> <span class="kn">import</span> <span class="n">ALGORITHM_SUBMODULES</span>
 
 <span class="k">if</span> <span class="n">TYPE_CHECKING</span><span class="p">:</span>
     <span class="kn">from</span> <span class="nn">collections.abc</span> <span class="kn">import</span> <span class="n">Callable</span>
@@ -296,7 +294,7 @@
 
 
 <div class="viewcode-block" id="configure_benchmarks">
-<a class="viewcode-back" href="../../../api/nxbench.benchmarks.html#nxbench.benchmarks.utils.configure_benchmarks">[docs]</a>
+<a class="viewcode-back" href="../../../api/nxbench.benchmarks.html#nxbench.benchmarking.utils.configure_benchmarks">[docs]</a>
 <span class="k">def</span> <span class="nf">configure_benchmarks</span><span class="p">(</span><span class="n">config</span><span class="p">:</span> <span class="n">BenchmarkConfig</span> <span class="o">|</span> <span class="nb">str</span><span class="p">):</span>
     <span class="k">global</span> <span class="n">_BENCHMARK_CONFIG</span>  <span class="c1"># noqa: PLW0603</span>
     <span class="k">if</span> <span class="n">_BENCHMARK_CONFIG</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
@@ -311,7 +309,7 @@
 
 
 <div class="viewcode-block" id="get_benchmark_config">
-<a class="viewcode-back" href="../../../api/nxbench.benchmarks.html#nxbench.benchmarks.utils.get_benchmark_config">[docs]</a>
+<a class="viewcode-back" href="../../../api/nxbench.benchmarks.html#nxbench.benchmarking.utils.get_benchmark_config">[docs]</a>
 <span class="k">def</span> <span class="nf">get_benchmark_config</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">BenchmarkConfig</span><span class="p">:</span>
     <span class="k">global</span> <span class="n">_BENCHMARK_CONFIG</span>  <span class="c1"># noqa: PLW0603</span>
     <span class="k">if</span> <span class="n">_BENCHMARK_CONFIG</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
@@ -338,7 +336,7 @@
 
 
 <div class="viewcode-block" id="load_default_config">
-<a class="viewcode-back" href="../../../api/nxbench.benchmarks.html#nxbench.benchmarks.utils.load_default_config">[docs]</a>
+<a class="viewcode-back" href="../../../api/nxbench.benchmarks.html#nxbench.benchmarking.utils.load_default_config">[docs]</a>
 <span class="k">def</span> <span class="nf">load_default_config</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">BenchmarkConfig</span><span class="p">:</span>
     <span class="n">default_algorithms</span> <span class="o">=</span> <span class="p">[</span>
         <span class="n">AlgorithmConfig</span><span class="p">(</span>
@@ -373,7 +371,7 @@
 
 
 <div class="viewcode-block" id="is_nx_cugraph_available">
-<a class="viewcode-back" href="../../../api/nxbench.benchmarks.html#nxbench.benchmarks.utils.is_nx_cugraph_available">[docs]</a>
+<a class="viewcode-back" href="../../../api/nxbench.benchmarks.html#nxbench.benchmarking.utils.is_nx_cugraph_available">[docs]</a>
 <span class="k">def</span> <span class="nf">is_nx_cugraph_available</span><span class="p">():</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="kn">import</span> <span class="nn">importlib.util</span>
@@ -385,7 +383,7 @@
 
 
 <div class="viewcode-block" id="is_graphblas_available">
-<a class="viewcode-back" href="../../../api/nxbench.benchmarks.html#nxbench.benchmarks.utils.is_graphblas_available">[docs]</a>
+<a class="viewcode-back" href="../../../api/nxbench.benchmarks.html#nxbench.benchmarking.utils.is_graphblas_available">[docs]</a>
 <span class="k">def</span> <span class="nf">is_graphblas_available</span><span class="p">():</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="kn">import</span> <span class="nn">importlib.util</span>
@@ -397,7 +395,7 @@
 
 
 <div class="viewcode-block" id="is_nx_parallel_available">
-<a class="viewcode-back" href="../../../api/nxbench.benchmarks.html#nxbench.benchmarks.utils.is_nx_parallel_available">[docs]</a>
+<a class="viewcode-back" href="../../../api/nxbench.benchmarks.html#nxbench.benchmarking.utils.is_nx_parallel_available">[docs]</a>
 <span class="k">def</span> <span class="nf">is_nx_parallel_available</span><span class="p">():</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="kn">import</span> <span class="nn">importlib.util</span>
@@ -409,7 +407,7 @@
 
 
 <div class="viewcode-block" id="get_python_version">
-<a class="viewcode-back" href="../../../api/nxbench.benchmarks.html#nxbench.benchmarks.utils.get_python_version">[docs]</a>
+<a class="viewcode-back" href="../../../api/nxbench.benchmarks.html#nxbench.benchmarking.utils.get_python_version">[docs]</a>
 <span class="k">def</span> <span class="nf">get_python_version</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Get formatted Python version string.&quot;&quot;&quot;</span>
     <span class="n">version_info</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">version_info</span>
@@ -418,7 +416,7 @@
 
 
 <div class="viewcode-block" id="get_available_backends">
-<a class="viewcode-back" href="../../../api/nxbench.benchmarks.html#nxbench.benchmarks.utils.get_available_backends">[docs]</a>
+<a class="viewcode-back" href="../../../api/nxbench.benchmarks.html#nxbench.benchmarking.utils.get_available_backends">[docs]</a>
 <span class="k">def</span> <span class="nf">get_available_backends</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Return a dict of available backends and their versions.&quot;&quot;&quot;</span>
     <span class="n">available</span> <span class="o">=</span> <span class="p">{}</span>
@@ -468,26 +466,26 @@
 
 
 <div class="viewcode-block" id="MemorySnapshot">
-<a class="viewcode-back" href="../../../api/nxbench.benchmarks.html#nxbench.benchmarks.utils.MemorySnapshot">[docs]</a>
+<a class="viewcode-back" href="../../../api/nxbench.benchmarks.html#nxbench.benchmarking.utils.MemorySnapshot">[docs]</a>
 <span class="k">class</span> <span class="nc">MemorySnapshot</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Class to store and diff memory snapshots.&quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="MemorySnapshot.__init__">
-<a class="viewcode-back" href="../../../api/nxbench.benchmarks.html#nxbench.benchmarks.utils.MemorySnapshot.__init__">[docs]</a>
+<a class="viewcode-back" href="../../../api/nxbench.benchmarks.html#nxbench.benchmarking.utils.MemorySnapshot.__init__">[docs]</a>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">snapshot</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Initialize with optional tracemalloc snapshot.&quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">snapshot</span> <span class="o">=</span> <span class="n">snapshot</span></div>
 
 
 <div class="viewcode-block" id="MemorySnapshot.take">
-<a class="viewcode-back" href="../../../api/nxbench.benchmarks.html#nxbench.benchmarks.utils.MemorySnapshot.take">[docs]</a>
+<a class="viewcode-back" href="../../../api/nxbench.benchmarks.html#nxbench.benchmarking.utils.MemorySnapshot.take">[docs]</a>
     <span class="k">def</span> <span class="nf">take</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Take a new snapshot.&quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">snapshot</span> <span class="o">=</span> <span class="n">tracemalloc</span><span class="o">.</span><span class="n">take_snapshot</span><span class="p">()</span></div>
 
 
 <div class="viewcode-block" id="MemorySnapshot.compare_to">
-<a class="viewcode-back" href="../../../api/nxbench.benchmarks.html#nxbench.benchmarks.utils.MemorySnapshot.compare_to">[docs]</a>
+<a class="viewcode-back" href="../../../api/nxbench.benchmarks.html#nxbench.benchmarking.utils.MemorySnapshot.compare_to">[docs]</a>
     <span class="k">def</span> <span class="nf">compare_to</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="s2">&quot;MemorySnapshot&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Compare this snapshot to another and return (current, peak) memory diff in</span>
 <span class="sd">        bytes.</span>
@@ -504,7 +502,7 @@
 
 
 <div class="viewcode-block" id="memory_tracker">
-<a class="viewcode-back" href="../../../api/nxbench.benchmarks.html#nxbench.benchmarks.utils.memory_tracker">[docs]</a>
+<a class="viewcode-back" href="../../../api/nxbench.benchmarks.html#nxbench.benchmarking.utils.memory_tracker">[docs]</a>
 <span class="nd">@contextmanager</span>
 <span class="k">def</span> <span class="nf">memory_tracker</span><span class="p">():</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Track memory usage of code block.</span>
@@ -535,7 +533,7 @@
 
 
 <div class="viewcode-block" id="get_available_algorithms">
-<a class="viewcode-back" href="../../../api/nxbench.benchmarks.html#nxbench.benchmarks.utils.get_available_algorithms">[docs]</a>
+<a class="viewcode-back" href="../../../api/nxbench.benchmarks.html#nxbench.benchmarking.utils.get_available_algorithms">[docs]</a>
 <span class="k">def</span> <span class="nf">get_available_algorithms</span><span class="p">():</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Get algorithms from specified NetworkX submodules and custom</span>
 <span class="sd">    algorithms.</span>
@@ -591,7 +589,7 @@
 
 
 <div class="viewcode-block" id="get_machine_info">
-<a class="viewcode-back" href="../../../api/nxbench.benchmarks.html#nxbench.benchmarks.utils.get_machine_info">[docs]</a>
+<a class="viewcode-back" href="../../../api/nxbench.benchmarks.html#nxbench.benchmarking.utils.get_machine_info">[docs]</a>
 <span class="k">def</span> <span class="nf">get_machine_info</span><span class="p">():</span>
     <span class="n">info</span> <span class="o">=</span> <span class="p">{</span>
         <span class="s2">&quot;arch&quot;</span><span class="p">:</span> <span class="n">platform</span><span class="o">.</span><span class="n">machine</span><span class="p">(),</span>
@@ -606,7 +604,7 @@
 
 
 <div class="viewcode-block" id="process_algorithm_params">
-<a class="viewcode-back" href="../../../api/nxbench.benchmarks.html#nxbench.benchmarks.utils.process_algorithm_params">[docs]</a>
+<a class="viewcode-back" href="../../../api/nxbench.benchmarks.html#nxbench.benchmarking.utils.process_algorithm_params">[docs]</a>
 <span class="k">def</span> <span class="nf">process_algorithm_params</span><span class="p">(</span>
     <span class="n">params</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">list</span><span class="p">[</span><span class="n">Any</span><span class="p">],</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
@@ -647,7 +645,7 @@
 
 
 <div class="viewcode-block" id="add_seeding">
-<a class="viewcode-back" href="../../../api/nxbench.benchmarks.html#nxbench.benchmarks.utils.add_seeding">[docs]</a>
+<a class="viewcode-back" href="../../../api/nxbench.benchmarks.html#nxbench.benchmarking.utils.add_seeding">[docs]</a>
 <span class="k">def</span> <span class="nf">add_seeding</span><span class="p">(</span><span class="n">kwargs</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">algo_func</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">algorithm_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
     <span class="c1"># 1. Retrieve optional fields from kwargs</span>
     <span class="c1">#    a) user_seed: integer to set global seeds</span>

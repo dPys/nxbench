@@ -3,7 +3,7 @@
   <head><meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
-<link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="nxbench.benchmarks package" href="nxbench.benchmarks.html" /><link rel="prev" title="API Documentation" href="index.html" />
+<link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="nxbench.data package" href="nxbench.data.html" /><link rel="prev" title="API Documentation" href="index.html" />
         <link rel="canonical" href="https://networkx.org/api/nxbench.html" />
 
     <link rel="shortcut icon" href="../_static/favicon.ico"/><!-- Generated with Sphinx 8.1.3 and Furo 2024.08.06 -->
@@ -209,7 +209,6 @@
 <li class="toctree-l1"><a class="reference internal" href="../examples.html"><strong>Nxbench Configuration Guide</strong></a></li>
 <li class="toctree-l1 current has-children"><a class="reference internal" href="index.html">API Documentation</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle navigation of API Documentation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="current">
 <li class="toctree-l2 current has-children current-page"><a class="current reference internal" href="#">nxbench package</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><div class="visually-hidden">Toggle navigation of nxbench package</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
-<li class="toctree-l3"><a class="reference internal" href="nxbench.benchmarks.html">nxbench.benchmarks package</a></li>
 <li class="toctree-l3 has-children"><a class="reference internal" href="nxbench.data.html">nxbench.data package</a><input class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><div class="visually-hidden">Toggle navigation of nxbench.data package</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
 <li class="toctree-l4"><a class="reference internal" href="nxbench.data.scripts.html">nxbench.data.scripts package</a></li>
 </ul>
@@ -220,7 +219,6 @@
 <li class="toctree-l3"><a class="reference internal" href="nxbench.viz.html">nxbench.viz package</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="nxbench.benchmarks.html">nxbench.benchmarks package</a></li>
 <li class="toctree-l2 has-children"><a class="reference internal" href="nxbench.data.html">nxbench.data package</a><input class="toctree-checkbox" id="toctree-checkbox-5" name="toctree-checkbox-5" role="switch" type="checkbox"/><label for="toctree-checkbox-5"><div class="visually-hidden">Toggle navigation of nxbench.data package</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
 <li class="toctree-l3"><a class="reference internal" href="nxbench.data.scripts.html">nxbench.data.scripts package</a></li>
 </ul>
@@ -282,120 +280,6 @@
 <h2>Subpackages<a class="headerlink" href="#subpackages" title="Link to this heading">¶</a></h2>
 <div class="toctree-wrapper compound">
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="nxbench.benchmarks.html">nxbench.benchmarks package</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="nxbench.benchmarks.html#submodules">Submodules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="nxbench.benchmarks.html#module-nxbench.benchmarks.benchmark">nxbench.benchmarks.benchmark module</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="nxbench.benchmarks.html#nxbench.benchmarks.benchmark.benchmark_suite"><code class="docutils literal notranslate"><span class="pre">benchmark_suite()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="nxbench.benchmarks.html#nxbench.benchmarks.benchmark.collect_metrics"><code class="docutils literal notranslate"><span class="pre">collect_metrics()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="nxbench.benchmarks.html#nxbench.benchmarks.benchmark.configure_backend"><code class="docutils literal notranslate"><span class="pre">configure_backend()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="nxbench.benchmarks.html#nxbench.benchmarks.benchmark.load_config"><code class="docutils literal notranslate"><span class="pre">load_config()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="nxbench.benchmarks.html#nxbench.benchmarks.benchmark.main_benchmark"><code class="docutils literal notranslate"><span class="pre">main_benchmark()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="nxbench.benchmarks.html#nxbench.benchmarks.benchmark.run_algorithm"><code class="docutils literal notranslate"><span class="pre">run_algorithm()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="nxbench.benchmarks.html#nxbench.benchmarks.benchmark.run_single_benchmark"><code class="docutils literal notranslate"><span class="pre">run_single_benchmark()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="nxbench.benchmarks.html#nxbench.benchmarks.benchmark.setup_cache"><code class="docutils literal notranslate"><span class="pre">setup_cache()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="nxbench.benchmarks.html#nxbench.benchmarks.benchmark.teardown_specific"><code class="docutils literal notranslate"><span class="pre">teardown_specific()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="nxbench.benchmarks.html#nxbench.benchmarks.benchmark.validate_results"><code class="docutils literal notranslate"><span class="pre">validate_results()</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="nxbench.benchmarks.html#module-nxbench.benchmarks.config">nxbench.benchmarks.config module</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="nxbench.benchmarks.html#nxbench.benchmarks.config.AlgorithmConfig"><code class="docutils literal notranslate"><span class="pre">AlgorithmConfig</span></code></a><ul>
-<li class="toctree-l4"><a class="reference internal" href="nxbench.benchmarks.html#nxbench.benchmarks.config.AlgorithmConfig.__init__"><code class="docutils literal notranslate"><span class="pre">AlgorithmConfig.__init__()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="nxbench.benchmarks.html#nxbench.benchmarks.config.AlgorithmConfig.func"><code class="docutils literal notranslate"><span class="pre">AlgorithmConfig.func</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="nxbench.benchmarks.html#nxbench.benchmarks.config.AlgorithmConfig.get_callable"><code class="docutils literal notranslate"><span class="pre">AlgorithmConfig.get_callable()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="nxbench.benchmarks.html#nxbench.benchmarks.config.AlgorithmConfig.get_func_ref"><code class="docutils literal notranslate"><span class="pre">AlgorithmConfig.get_func_ref()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="nxbench.benchmarks.html#nxbench.benchmarks.config.AlgorithmConfig.get_validate_ref"><code class="docutils literal notranslate"><span class="pre">AlgorithmConfig.get_validate_ref()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="nxbench.benchmarks.html#nxbench.benchmarks.config.AlgorithmConfig.groups"><code class="docutils literal notranslate"><span class="pre">AlgorithmConfig.groups</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="nxbench.benchmarks.html#nxbench.benchmarks.config.AlgorithmConfig.name"><code class="docutils literal notranslate"><span class="pre">AlgorithmConfig.name</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="nxbench.benchmarks.html#nxbench.benchmarks.config.AlgorithmConfig.params"><code class="docutils literal notranslate"><span class="pre">AlgorithmConfig.params</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="nxbench.benchmarks.html#nxbench.benchmarks.config.AlgorithmConfig.requires_directed"><code class="docutils literal notranslate"><span class="pre">AlgorithmConfig.requires_directed</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="nxbench.benchmarks.html#nxbench.benchmarks.config.AlgorithmConfig.requires_undirected"><code class="docutils literal notranslate"><span class="pre">AlgorithmConfig.requires_undirected</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="nxbench.benchmarks.html#nxbench.benchmarks.config.AlgorithmConfig.requires_weighted"><code class="docutils literal notranslate"><span class="pre">AlgorithmConfig.requires_weighted</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="nxbench.benchmarks.html#nxbench.benchmarks.config.AlgorithmConfig.validate_result"><code class="docutils literal notranslate"><span class="pre">AlgorithmConfig.validate_result</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="nxbench.benchmarks.html#nxbench.benchmarks.config.BenchmarkConfig"><code class="docutils literal notranslate"><span class="pre">BenchmarkConfig</span></code></a><ul>
-<li class="toctree-l4"><a class="reference internal" href="nxbench.benchmarks.html#nxbench.benchmarks.config.BenchmarkConfig.__init__"><code class="docutils literal notranslate"><span class="pre">BenchmarkConfig.__init__()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="nxbench.benchmarks.html#nxbench.benchmarks.config.BenchmarkConfig.algorithms"><code class="docutils literal notranslate"><span class="pre">BenchmarkConfig.algorithms</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="nxbench.benchmarks.html#nxbench.benchmarks.config.BenchmarkConfig.datasets"><code class="docutils literal notranslate"><span class="pre">BenchmarkConfig.datasets</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="nxbench.benchmarks.html#nxbench.benchmarks.config.BenchmarkConfig.env_data"><code class="docutils literal notranslate"><span class="pre">BenchmarkConfig.env_data</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="nxbench.benchmarks.html#nxbench.benchmarks.config.BenchmarkConfig.from_yaml"><code class="docutils literal notranslate"><span class="pre">BenchmarkConfig.from_yaml()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="nxbench.benchmarks.html#nxbench.benchmarks.config.BenchmarkConfig.machine_info"><code class="docutils literal notranslate"><span class="pre">BenchmarkConfig.machine_info</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="nxbench.benchmarks.html#nxbench.benchmarks.config.BenchmarkConfig.output_dir"><code class="docutils literal notranslate"><span class="pre">BenchmarkConfig.output_dir</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="nxbench.benchmarks.html#nxbench.benchmarks.config.BenchmarkConfig.to_yaml"><code class="docutils literal notranslate"><span class="pre">BenchmarkConfig.to_yaml()</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="nxbench.benchmarks.html#nxbench.benchmarks.config.BenchmarkMetrics"><code class="docutils literal notranslate"><span class="pre">BenchmarkMetrics</span></code></a><ul>
-<li class="toctree-l4"><a class="reference internal" href="nxbench.benchmarks.html#nxbench.benchmarks.config.BenchmarkMetrics.__init__"><code class="docutils literal notranslate"><span class="pre">BenchmarkMetrics.__init__()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="nxbench.benchmarks.html#nxbench.benchmarks.config.BenchmarkMetrics.execution_time"><code class="docutils literal notranslate"><span class="pre">BenchmarkMetrics.execution_time</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="nxbench.benchmarks.html#nxbench.benchmarks.config.BenchmarkMetrics.memory_used"><code class="docutils literal notranslate"><span class="pre">BenchmarkMetrics.memory_used</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="nxbench.benchmarks.html#nxbench.benchmarks.config.BenchmarkResult"><code class="docutils literal notranslate"><span class="pre">BenchmarkResult</span></code></a><ul>
-<li class="toctree-l4"><a class="reference internal" href="nxbench.benchmarks.html#nxbench.benchmarks.config.BenchmarkResult.__init__"><code class="docutils literal notranslate"><span class="pre">BenchmarkResult.__init__()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="nxbench.benchmarks.html#nxbench.benchmarks.config.BenchmarkResult.algorithm"><code class="docutils literal notranslate"><span class="pre">BenchmarkResult.algorithm</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="nxbench.benchmarks.html#nxbench.benchmarks.config.BenchmarkResult.backend"><code class="docutils literal notranslate"><span class="pre">BenchmarkResult.backend</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="nxbench.benchmarks.html#nxbench.benchmarks.config.BenchmarkResult.dataset"><code class="docutils literal notranslate"><span class="pre">BenchmarkResult.dataset</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="nxbench.benchmarks.html#nxbench.benchmarks.config.BenchmarkResult.date"><code class="docutils literal notranslate"><span class="pre">BenchmarkResult.date</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="nxbench.benchmarks.html#nxbench.benchmarks.config.BenchmarkResult.error"><code class="docutils literal notranslate"><span class="pre">BenchmarkResult.error</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="nxbench.benchmarks.html#nxbench.benchmarks.config.BenchmarkResult.execution_time"><code class="docutils literal notranslate"><span class="pre">BenchmarkResult.execution_time</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="nxbench.benchmarks.html#nxbench.benchmarks.config.BenchmarkResult.execution_time_with_preloading"><code class="docutils literal notranslate"><span class="pre">BenchmarkResult.execution_time_with_preloading</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="nxbench.benchmarks.html#nxbench.benchmarks.config.BenchmarkResult.is_directed"><code class="docutils literal notranslate"><span class="pre">BenchmarkResult.is_directed</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="nxbench.benchmarks.html#nxbench.benchmarks.config.BenchmarkResult.is_weighted"><code class="docutils literal notranslate"><span class="pre">BenchmarkResult.is_weighted</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="nxbench.benchmarks.html#nxbench.benchmarks.config.BenchmarkResult.memory_used"><code class="docutils literal notranslate"><span class="pre">BenchmarkResult.memory_used</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="nxbench.benchmarks.html#nxbench.benchmarks.config.BenchmarkResult.metadata"><code class="docutils literal notranslate"><span class="pre">BenchmarkResult.metadata</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="nxbench.benchmarks.html#nxbench.benchmarks.config.BenchmarkResult.num_edges"><code class="docutils literal notranslate"><span class="pre">BenchmarkResult.num_edges</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="nxbench.benchmarks.html#nxbench.benchmarks.config.BenchmarkResult.num_nodes"><code class="docutils literal notranslate"><span class="pre">BenchmarkResult.num_nodes</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="nxbench.benchmarks.html#nxbench.benchmarks.config.BenchmarkResult.num_thread"><code class="docutils literal notranslate"><span class="pre">BenchmarkResult.num_thread</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="nxbench.benchmarks.html#nxbench.benchmarks.config.BenchmarkResult.validation"><code class="docutils literal notranslate"><span class="pre">BenchmarkResult.validation</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="nxbench.benchmarks.html#nxbench.benchmarks.config.BenchmarkResult.validation_message"><code class="docutils literal notranslate"><span class="pre">BenchmarkResult.validation_message</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="nxbench.benchmarks.html#nxbench.benchmarks.config.DatasetConfig"><code class="docutils literal notranslate"><span class="pre">DatasetConfig</span></code></a><ul>
-<li class="toctree-l4"><a class="reference internal" href="nxbench.benchmarks.html#nxbench.benchmarks.config.DatasetConfig.__init__"><code class="docutils literal notranslate"><span class="pre">DatasetConfig.__init__()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="nxbench.benchmarks.html#nxbench.benchmarks.config.DatasetConfig.metadata"><code class="docutils literal notranslate"><span class="pre">DatasetConfig.metadata</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="nxbench.benchmarks.html#nxbench.benchmarks.config.DatasetConfig.name"><code class="docutils literal notranslate"><span class="pre">DatasetConfig.name</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="nxbench.benchmarks.html#nxbench.benchmarks.config.DatasetConfig.params"><code class="docutils literal notranslate"><span class="pre">DatasetConfig.params</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="nxbench.benchmarks.html#nxbench.benchmarks.config.DatasetConfig.source"><code class="docutils literal notranslate"><span class="pre">DatasetConfig.source</span></code></a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="nxbench.benchmarks.html#module-nxbench.benchmarks.export">nxbench.benchmarks.export module</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="nxbench.benchmarks.html#nxbench.benchmarks.export.ResultsExporter"><code class="docutils literal notranslate"><span class="pre">ResultsExporter</span></code></a><ul>
-<li class="toctree-l4"><a class="reference internal" href="nxbench.benchmarks.html#nxbench.benchmarks.export.ResultsExporter.__init__"><code class="docutils literal notranslate"><span class="pre">ResultsExporter.__init__()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="nxbench.benchmarks.html#nxbench.benchmarks.export.ResultsExporter.export_results"><code class="docutils literal notranslate"><span class="pre">ResultsExporter.export_results()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="nxbench.benchmarks.html#nxbench.benchmarks.export.ResultsExporter.load_results"><code class="docutils literal notranslate"><span class="pre">ResultsExporter.load_results()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="nxbench.benchmarks.html#nxbench.benchmarks.export.ResultsExporter.query_results"><code class="docutils literal notranslate"><span class="pre">ResultsExporter.query_results()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="nxbench.benchmarks.html#nxbench.benchmarks.export.ResultsExporter.to_dataframe"><code class="docutils literal notranslate"><span class="pre">ResultsExporter.to_dataframe()</span></code></a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="nxbench.benchmarks.html#module-nxbench.benchmarks.utils">nxbench.benchmarks.utils module</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="nxbench.benchmarks.html#nxbench.benchmarks.utils.MemorySnapshot"><code class="docutils literal notranslate"><span class="pre">MemorySnapshot</span></code></a><ul>
-<li class="toctree-l4"><a class="reference internal" href="nxbench.benchmarks.html#nxbench.benchmarks.utils.MemorySnapshot.__init__"><code class="docutils literal notranslate"><span class="pre">MemorySnapshot.__init__()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="nxbench.benchmarks.html#nxbench.benchmarks.utils.MemorySnapshot.compare_to"><code class="docutils literal notranslate"><span class="pre">MemorySnapshot.compare_to()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="nxbench.benchmarks.html#nxbench.benchmarks.utils.MemorySnapshot.take"><code class="docutils literal notranslate"><span class="pre">MemorySnapshot.take()</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="nxbench.benchmarks.html#nxbench.benchmarks.utils.add_seeding"><code class="docutils literal notranslate"><span class="pre">add_seeding()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="nxbench.benchmarks.html#nxbench.benchmarks.utils.configure_benchmarks"><code class="docutils literal notranslate"><span class="pre">configure_benchmarks()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="nxbench.benchmarks.html#nxbench.benchmarks.utils.get_available_algorithms"><code class="docutils literal notranslate"><span class="pre">get_available_algorithms()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="nxbench.benchmarks.html#nxbench.benchmarks.utils.get_available_backends"><code class="docutils literal notranslate"><span class="pre">get_available_backends()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="nxbench.benchmarks.html#nxbench.benchmarks.utils.get_benchmark_config"><code class="docutils literal notranslate"><span class="pre">get_benchmark_config()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="nxbench.benchmarks.html#nxbench.benchmarks.utils.get_machine_info"><code class="docutils literal notranslate"><span class="pre">get_machine_info()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="nxbench.benchmarks.html#nxbench.benchmarks.utils.get_python_version"><code class="docutils literal notranslate"><span class="pre">get_python_version()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="nxbench.benchmarks.html#nxbench.benchmarks.utils.is_graphblas_available"><code class="docutils literal notranslate"><span class="pre">is_graphblas_available()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="nxbench.benchmarks.html#nxbench.benchmarks.utils.is_nx_cugraph_available"><code class="docutils literal notranslate"><span class="pre">is_nx_cugraph_available()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="nxbench.benchmarks.html#nxbench.benchmarks.utils.is_nx_parallel_available"><code class="docutils literal notranslate"><span class="pre">is_nx_parallel_available()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="nxbench.benchmarks.html#nxbench.benchmarks.utils.load_default_config"><code class="docutils literal notranslate"><span class="pre">load_default_config()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="nxbench.benchmarks.html#nxbench.benchmarks.utils.memory_tracker"><code class="docutils literal notranslate"><span class="pre">memory_tracker()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="nxbench.benchmarks.html#nxbench.benchmarks.utils.process_algorithm_params"><code class="docutils literal notranslate"><span class="pre">process_algorithm_params()</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="nxbench.benchmarks.html#module-nxbench.benchmarks">Module contents</a></li>
-</ul>
-</li>
 <li class="toctree-l1"><a class="reference internal" href="nxbench.data.html">nxbench.data package</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="nxbench.data.html#subpackages">Subpackages</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="nxbench.data.scripts.html">nxbench.data.scripts package</a><ul>
@@ -955,12 +839,12 @@ that changed and its new value.</p>
       <footer>
         
         <div class="related-pages">
-          <a class="next-page" href="nxbench.benchmarks.html">
+          <a class="next-page" href="nxbench.data.html">
               <div class="page-info">
                 <div class="context">
                   <span>Next</span>
                 </div>
-                <div class="title">nxbench.benchmarks package</div>
+                <div class="title">nxbench.data package</div>
               </div>
               <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
             </a>
