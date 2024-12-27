@@ -198,6 +198,7 @@ def test_configure_backend_success(backend, example_graph):
         assert result is example_graph
 
     elif backend == "parallel":
+        nx_parallel = pytest.importorskip("nx_parallel")
         mock_module = MagicMock()
         mock_module.ParallelGraph.return_value = "parallel_graph"
 
@@ -209,6 +210,7 @@ def test_configure_backend_success(backend, example_graph):
             assert result_p == "parallel_graph"
 
     elif backend == "cugraph":
+        cugraph = pytest.importorskip("nx_cugraph")
         mock_module = MagicMock()
         mock_module.from_networkx.return_value = "cugraph_graph"
 
@@ -219,7 +221,8 @@ def test_configure_backend_success(backend, example_graph):
             result_cu = configure_backend.fn(example_graph, "cugraph", 2)
             assert result_cu == "cugraph_graph"
 
-    else:  # "graphblas"
+    else:
+        graphblas = pytest.importorskip("graphblas_algorithms")
         mock_module = MagicMock()
         mock_ga = MagicMock()
         mock_ga.Graph.from_networkx.return_value = "graphblas_graph"
