@@ -319,6 +319,7 @@ async def benchmark_suite(
                     "resources": {resource_type: 1},
                     "threads_per_worker": num_thread,
                     "processes": False,
+                    "memory_limit": "2GB",
                 }
             ),
         )
