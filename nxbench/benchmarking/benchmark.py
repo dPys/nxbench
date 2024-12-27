@@ -36,10 +36,12 @@ os.environ.setdefault(
     "PREFECT_API_DATABASE_CONNECTION_URL",
     "postgresql+asyncpg://prefect_user:pass@localhost:5432/prefect_db",
 )
-os.environ.setdefault("PREFECT_ORION_DATABASE_CONNECTION_POOL_SIZE", "5")
-os.environ.setdefault("PREFECT_ORION_DATABASE_CONNECTION_MAX_OVERFLOW", "10")
+os.environ.setdefault("PREFECT_ORION_DATABASE_CONNECTION_POOL_SIZE", "10")
+os.environ.setdefault("PREFECT_ORION_DATABASE_CONNECTION_MAX_OVERFLOW", "20")
 os.environ.setdefault("PREFECT_API_URL", "http://127.0.0.1:4200/api")
 os.environ.setdefault("PREFECT_ORION_API_ENABLE_TASK_RUN_DATA_PERSISTENCE", "false")
+os.environ.setdefault("PREFECT_CLIENT_REQUEST_TIMEOUT", "60")
+os.environ.setdefault("PREFECT_HTTPX_SETTINGS", '{"limits": {"max_connections": 50}')
 os.environ.setdefault("MAX_WORKERS", "4")
 
 run_uuid = uuid.uuid4().hex
@@ -108,6 +110,8 @@ def run_algorithm(
             "OMP_NUM_THREADS",
             "MKL_NUM_THREADS",
             "OPENBLAS_NUM_THREADS",
+            "NUMEXPR_NUM_THREADS",
+            "VECLIB_MAXIMUM_THREADS",
         ]
         for var_name in vars_to_set:
             original_env[var_name] = os.environ.get(var_name)

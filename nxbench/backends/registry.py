@@ -31,6 +31,19 @@ backend_manager.register_backend(
 # ---- Nx-Parallel backend ----
 def convert_parallel(original_graph: nx.Graph, num_threads: int):
     nxp = import_module("nx_parallel")
+    from multiprocessing import cpu_count
+
+    total_cores = cpu_count()
+
+    n_jobs = min(num_threads, total_cores)
+
+    nx.config.backends.parallel.active = True
+    nx.config.backends.parallel.n_jobs = n_jobs
+    nx.config.backends.parallel.backend = "loky"
+    if hasattr(nx.config.backends.parallel, "inner_max_num_threads"):
+        nx.config.backends.parallel.inner_max_num_threads = max(
+            total_cores // n_jobs, 1
+        )
 
     return nxp.ParallelGraph(original_graph)
 
