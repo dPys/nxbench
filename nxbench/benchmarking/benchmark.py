@@ -87,14 +87,10 @@ def configure_backend(original_graph: nx.Graph, backend: str, num_thread: int) -
 def run_algorithm(
     graph: Any, algo_config: AlgorithmConfig, num_thread: int, backend: str
 ) -> tuple[Any, float, int, str | None]:
-    """
-    Attempt to run the algorithm on the configured backend, but gracefully
-    skip if that algorithm is not actually implemented for this backend.
-    """
+    """Run the algorithm on the configured backend"""
     logger = get_run_logger()
 
     try:
-        # retrieve the callable for the chosen backend
         algo_func = algo_config.get_callable(backend)
     except ImportError as e:
         logger.exception(
@@ -102,50 +98,44 @@ def run_algorithm(
         )
         return None, 0.0, 0, str(e)
 
-    # parse and prepare the parameters
     pos_args, kwargs = process_algorithm_params(algo_config.params)
+
     kwargs = add_seeding(kwargs, algo_func, algo_config.name)
 
     error = None
-    original_env = {}
-    vars_to_set = [
-        "NUM_THREAD",
-        "OMP_NUM_THREADS",
-        "MKL_NUM_THREADS",
-        "OPENBLAS_NUM_THREADS",
-        "NUMEXPR_NUM_THREADS",
-        "VECLIB_MAXIMUM_THREADS",
-    ]
     try:
+        original_env = {}
+        vars_to_set = [
+            "NUM_THREAD",
+            "OMP_NUM_THREADS",
+            "MKL_NUM_THREADS",
+            "OPENBLAS_NUM_THREADS",
+            "NUMEXPR_NUM_THREADS",
+            "VECLIB_MAXIMUM_THREADS",
+        ]
         for var_name in vars_to_set:
             original_env[var_name] = os.environ.get(var_name)
             os.environ[var_name] = str(num_thread)
 
         with memory_tracker() as mem:
             start_time = time.perf_counter()
-
-            try:
-                result = algo_func(graph, *pos_args, **kwargs)
-            except NotImplementedError as nie:
-                logger.info(
-                    f"Skipping {algo_config.name} for backend '{backend}' because "
-                    f"it's not implemented (NotImplementedError)."
-                )
-                return None, 0.0, 0, str(nie)
-
+            # pass the graph plus the processed pos_args and kwargs
+            result = algo_func(graph, *pos_args, **kwargs)
             end_time = time.perf_counter()
-            execution_time = end_time - start_time
-            peak_memory = mem["peak"]
 
+        execution_time = end_time - start_time
+        peak_memory = mem["peak"]
         logger.debug(f"Algorithm '{algo_config.name}' executed successfully.")
+
     except Exception as e:
         logger.exception("Algorithm run failed")
         execution_time = time.perf_counter() - start_time
         peak_memory = mem.get("peak", 0)
         result = None
         error = str(e)
+
     finally:
-        # restore environment
+        # restore environment variables
         for var_name in vars_to_set:
             if original_env[var_name] is None:
                 del os.environ[var_name]

@@ -31,7 +31,7 @@ backend_manager.register_backend(
 # ---- Nx-Parallel backend ----
 def convert_parallel(original_graph: nx.Graph, num_threads: int):
     nxp = import_module("nx_parallel")
-    from joblib import cpu_count
+    from multiprocessing import cpu_count
 
     total_cores = cpu_count()
 
