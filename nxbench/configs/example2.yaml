@@ -16,17 +16,14 @@ algorithms:
     groups: ["centrality", "path_based"]
     validate_result: "nxbench.validation.validate_node_scores"
 
-  # - name: "betweenness_centrality"
-  #   func: "networkx.betweenness_centrality"
-  #   params:
-  #     normalized: true
-  #     endpoints: false
-  #   requires_directed: false
-  #   groups: ["centrality", "path_based"]
-  #   min_rounds: 5
-  #   warmup: true
-  #   warmup_iterations: 20
-  #   validate_result: "nxbench.validation.validate_node_scores"
+  - name: "betweenness_centrality"
+    func: "networkx.betweenness_centrality"
+    params:
+      normalized: true
+      endpoints: false
+    requires_directed: false
+    groups: ["centrality", "path_based"]
+    validate_result: "nxbench.validation.validate_node_scores"
 
   # - name: "edge_betweenness_centrality"
   #   func: "networkx.edge_betweenness_centrality"
@@ -34,9 +31,6 @@ algorithms:
   #     normalized: true
   #   requires_directed: false
   #   groups: ["centrality", "path_based"]
-  #   min_rounds: 5
-  #   warmup: true
-  #   warmup_iterations: 20
   #   validate_result: "nxbench.validation.validate_edge_scores"
 
   # - name: "approximate_all_pairs_node_connectivity"
@@ -93,12 +87,12 @@ algorithms:
   #   requires_directed: false
   #   groups: ["paths", "all_pairs"]
 
-  # - name: "all_pairs_shortest_path_length"
-  #   func: "networkx.all_pairs_shortest_path_length"
-  #   params: {}
-  #   requires_directed: false
-  #   groups: ["paths", "distance"]
-  #   validate_result: "nxbench.validation.validate_scalar_result"
+  - name: "all_pairs_shortest_path_length"
+    func: "networkx.all_pairs_shortest_path_length"
+    params: {}
+    requires_directed: false
+    groups: ["paths", "distance"]
+    validate_result: "nxbench.validation.validate_scalar_result"
 
   # - name: "all_pairs_shortest_path"
   #   func: "networkx.all_pairs_shortest_path"
@@ -113,21 +107,21 @@ algorithms:
   #   requires_directed: false
   #   groups: ["paths", "weighted"]
 
-  - name: "all_pairs_dijkstra_path_length"
-    func: "networkx.all_pairs_dijkstra_path_length"
-    params:
-      weight: "weight"
-    requires_directed: false
-    groups: ["paths", "weighted"]
-    validate_result: "nxbench.validation.validate_scalar_result"
+  # - name: "all_pairs_dijkstra_path_length"
+  #   func: "networkx.all_pairs_dijkstra_path_length"
+  #   params:
+  #     weight: "weight"
+  #   requires_directed: false
+  #   groups: ["paths", "weighted"]
+  #   validate_result: "nxbench.validation.validate_scalar_result"
 
-  - name: "all_pairs_bellman_ford_path_length"
-    func: "networkx.all_pairs_bellman_ford_path_length"
-    params:
-      weight: "weight"
-    requires_directed: false
-    groups: ["paths", "weighted"]
-    validate_result: "nxbench.validation.validate_scalar_result"
+  # - name: "all_pairs_bellman_ford_path_length"
+  #   func: "networkx.all_pairs_bellman_ford_path_length"
+  #   params:
+  #     weight: "weight"
+  #   requires_directed: false
+  #   groups: ["paths", "weighted"]
+  #   validate_result: "nxbench.validation.validate_scalar_result"
 
   # - name: "johnson"
   #   func: "networkx.johnson"
@@ -169,16 +163,6 @@ datasets:
       directed: false
       weighted: false
 
-  - name: "erdos_renyi_small"
-    source: "generator"
-    params:
-      generator: "networkx.erdos_renyi_graph"
-      n: 1000
-      p: 0.01
-    metadata:
-      directed: true
-      weighted: false
-
   - name: "watts_strogatz_small"
     source: "generator"
     params:
@@ -190,37 +174,26 @@ datasets:
       directed: false
       weighted: false
 
-  - name: "watts_strogatz_small"
+  - name: "barabasi_albert_small"
     source: "generator"
     params:
-      generator: "networkx.watts_strogatz_graph"
+      generator: "networkx.barabasi_albert_graph"
       n: 1000
-      k: 6
+      m: 3
+    metadata:
+      directed: false
+      weighted: false
+
+  - name: "powerlaw_cluster_small"
+    source: "generator"
+    params:
+      generator: "networkx.powerlaw_cluster_graph"
+      n: 1000
+      m: 2
       p: 0.1
     metadata:
       directed: false
-      weighted: true
-
-  # - name: "barabasi_albert_small"
-  #   source: "generator"
-  #   params:
-  #     generator: "networkx.barabasi_albert_graph"
-  #     n: 1000
-  #     m: 3
-  #   metadata:
-  #     directed: false
-  #     weighted: false
-
-  # - name: "powerlaw_cluster_small"
-  #   source: "generator"
-  #   params:
-  #     generator: "networkx.powerlaw_cluster_graph"
-  #     n: 1000
-  #     m: 2
-  #     p: 0.1
-  #   metadata:
-  #     directed: false
-  #     weighted: false
+      weighted: false
 
   # - name: "erdos_renyi_large"
   #   source: "generator"
@@ -274,13 +247,13 @@ environ:
   backend:
     networkx:
       - "networkx==3.4.1"
-      - "networkx==3.4.2"
-    graphblas:
-      - "graphblas_algorithms==2023.10.0"
+    # graphblas:
+    #   - "graphblas_algorithms==2023.10.0"
+    parallel:
+      - "nx_parallel==0.3rc0.dev0"
   num_threads:
     - "1"
     - "4"
     - "8"
   pythons:
     - "3.10"
-    - "3.11"
