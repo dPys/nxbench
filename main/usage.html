@@ -391,6 +391,109 @@ prefect<span class="w"> </span>server<span class="w"> </span>start
 </div>
 </section>
 </section>
+<section id="adding-a-new-backend">
+<h2>Adding a New Backend<a class="headerlink" href="#adding-a-new-backend" title="Link to this heading">¶</a></h2>
+<blockquote>
+<div><p><strong>Note:</strong> The following guide assumes you have a recent version of NxBench with the new <code class="docutils literal notranslate"><span class="pre">BackendManager</span></code> and associated tools (e.g., <a class="reference download internal" download="" href="_downloads/13227a6f56ef9c17b0bcc4aa19bd8e6d/core.py"><span class="xref download myst"><code class="docutils literal notranslate"><span class="pre">core.py</span></code></span></a> and <a class="reference download internal" download="" href="_downloads/5289304efe1649646978b498553264c2/registry.py"><span class="xref download myst"><code class="docutils literal notranslate"><span class="pre">registry.py</span></code></span></a>) already in place. It also assumes that your backend follows the <a class="reference external" href="https://networkx.org/documentation/stable/reference/backends.html#docs-for-backend-developers">guidelines for developing custom NetworkX backends</a></p>
+</div></blockquote>
+<section id="verify-your-backend-is-installable">
+<h3>1. Verify Your Backend is Installable<a class="headerlink" href="#verify-your-backend-is-installable" title="Link to this heading">¶</a></h3>
+<ol class="arabic">
+<li><p><strong>Install</strong> your backend via <code class="docutils literal notranslate"><span class="pre">pip</span></code> (or conda, etc.).
+For example, if your backend library is <code class="docutils literal notranslate"><span class="pre">my_cool_backend</span></code>, ensure that:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>my_cool_backend
+</pre></div>
+</div>
+</li>
+<li><p><strong>Check import</strong>: NxBench’s detection system simply looks for <code class="docutils literal notranslate"><span class="pre">importlib.util.find_spec(&quot;my_cool_backend&quot;)</span></code>. So if your library is not found by Python, NxBench will conclude it is unavailable.</p></li>
+</ol>
+</section>
+<section id="write-a-conversion-function">
+<h3>2. Write a Conversion Function<a class="headerlink" href="#write-a-conversion-function" title="Link to this heading">¶</a></h3>
+<p>In NxBench, a “backend” is simply a library or extension that <strong>converts a <code class="docutils literal notranslate"><span class="pre">networkx.Graph</span></code> into an alternate representation</strong>. You must define one or more <strong>conversion</strong> functions:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">convert_my_cool_backend</span><span class="p">(</span><span class="n">nx_graph</span><span class="p">:</span> <span class="n">networkx</span><span class="o">.</span><span class="n">Graph</span><span class="p">,</span> <span class="n">num_threads</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+    <span class="kn">import</span> <span class="nn">my_cool_backend</span>
+    <span class="c1"># Possibly configure multi-threading if relevant:</span>
+    <span class="c1"># my_cool_backend.configure_threads(num_threads)</span>
+
+    <span class="c1"># Convert the Nx graph to your library’s internal representation:</span>
+    <span class="k">return</span> <span class="n">my_cool_backend</span><span class="o">.</span><span class="n">from_networkx</span><span class="p">(</span><span class="n">nx_graph</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="optional-write-a-teardown-function">
+<h2>3. (Optional) Write a Teardown Function<a class="headerlink" href="#optional-write-a-teardown-function" title="Link to this heading">¶</a></h2>
+<p>If your backend has special cleanup needs (e.g., free GPU memory, close connections, revert global state, etc.), define a teardown function:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">teardown_my_cool_backend</span><span class="p">():</span>
+    <span class="kn">import</span> <span class="nn">my_cool_backend</span>
+    <span class="c1"># e.g. my_cool_backend.shutdown()</span>
+    <span class="k">pass</span>
+</pre></div>
+</div>
+<p>If your backend doesn’t need cleanup, skip this or simply define an empty function.</p>
+</section>
+<section id="register-with-nxbench">
+<h2>4. Register with NxBench<a class="headerlink" href="#register-with-nxbench" title="Link to this heading">¶</a></h2>
+<p>Locate NxBench’s <a class="reference download internal" download="" href="_downloads/5289304efe1649646978b498553264c2/registry.py"><span class="xref download myst">registry.py</span></a> (or a similar file where other backends are registered). Add your calls to <code class="docutils literal notranslate"><span class="pre">backend_manager.register_backend(...)</span></code>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">nxbench.backends.registry</span> <span class="kn">import</span> <span class="n">backend_manager</span>
+<span class="kn">import</span> <span class="nn">networkx</span> <span class="k">as</span> <span class="nn">nx</span>  <span class="c1"># only if needed</span>
+
+<span class="k">def</span> <span class="nf">convert_my_cool_backend</span><span class="p">(</span><span class="n">nx_graph</span><span class="p">:</span> <span class="n">nx</span><span class="o">.</span><span class="n">Graph</span><span class="p">,</span> <span class="n">num_threads</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+    <span class="kn">import</span> <span class="nn">my_cool_backend</span>
+    <span class="c1"># Possibly configure my_cool_backend with num_threads</span>
+    <span class="k">return</span> <span class="n">my_cool_backend</span><span class="o">.</span><span class="n">from_networkx</span><span class="p">(</span><span class="n">nx_graph</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">teardown_my_cool_backend</span><span class="p">():</span>
+    <span class="c1"># e.g. release resources</span>
+    <span class="k">pass</span>
+
+<span class="n">backend_manager</span><span class="o">.</span><span class="n">register_backend</span><span class="p">(</span>
+    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;my_cool_backend&quot;</span><span class="p">,</span>         <span class="c1"># The name NxBench will use to refer to it</span>
+    <span class="n">import_name</span><span class="o">=</span><span class="s2">&quot;my_cool_backend&quot;</span><span class="p">,</span>  <span class="c1"># The importable Python module name</span>
+    <span class="n">conversion_func</span><span class="o">=</span><span class="n">convert_my_cool_backend</span><span class="p">,</span>
+    <span class="n">teardown_func</span><span class="o">=</span><span class="n">teardown_my_cool_backend</span>  <span class="c1"># optional</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>Important</strong>:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">name</span></code> is the “human-readable” alias in NxBench.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">import_name</span></code> is the actual module import path. They can be the same (most common) or different if your library’s PyPI name differs from its Python import path.</p></li>
+</ul>
+</section>
+<section id="confirm-it-works">
+<h2>5. Confirm It Works<a class="headerlink" href="#confirm-it-works" title="Link to this heading">¶</a></h2>
+<ol class="arabic">
+<li><p><strong>Check NxBench logs</strong>: When NxBench runs, it will detect whether <code class="docutils literal notranslate"><span class="pre">&quot;my_cool_backend&quot;</span></code> is installed by calling <code class="docutils literal notranslate"><span class="pre">importlib.util.find_spec(&quot;my_cool_backend&quot;)</span></code>.</p></li>
+<li><p><strong>Run a quick benchmark</strong>:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>nxbench<span class="w"> </span>--config<span class="w"> </span>my_config.yaml<span class="w"> </span>benchmark<span class="w"> </span>run
+</pre></div>
+</div>
+<p>If you see logs like “Chosen backends: [‘my_cool_backend’ …]” then NxBench recognized your backend. If it fails with “No valid backends found,” ensure your library is installed and spelled correctly.</p>
+</li>
+</ol>
+</section>
+<section id="optional-version-pinning">
+<h2>6. (Optional) Version Pinning<a class="headerlink" href="#optional-version-pinning" title="Link to this heading">¶</a></h2>
+<p>If you want NxBench to only run your backend if it matches a pinned version (e.g. <code class="docutils literal notranslate"><span class="pre">my_cool_backend==2.1.0</span></code>), add something like this to your NxBench config YAML:</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">environ</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">backend</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">my_cool_backend</span><span class="p">:</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;my_cool_backend==2.1.0&quot;</span>
+</pre></div>
+</div>
+<p>NxBench will:</p>
+<ul class="simple">
+<li><p>Detect the installed version automatically (via <code class="docutils literal notranslate"><span class="pre">my_cool_backend.**version**</span></code> or PyPI metadata)</p></li>
+<li><p>Skip running if it doesn’t match <code class="docutils literal notranslate"><span class="pre">2.1.0</span></code>.</p></li>
+</ul>
+<hr class="docutils" />
+<section id="thats-it">
+<h3>That’s it<a class="headerlink" href="#thats-it" title="Link to this heading">¶</a></h3>
+<p>You’ve successfully added a new backend to NxBench! Now, NxBench can detect it, convert graphs for it, optionally tear it down, and track its version during benchmarking.</p>
+</section>
+</section>
 </section>
 
         </article>
@@ -462,6 +565,18 @@ prefect<span class="w"> </span>server<span class="w"> </span>start
 <li><a class="reference internal" href="#starting-the-visualization-dashboard">Starting the Visualization Dashboard</a></li>
 <li><a class="reference internal" href="#running-benchmarks-with-a-specific-backend">Running Benchmarks with a Specific Backend</a></li>
 <li><a class="reference internal" href="#exporting-results-from-a-run-with-hash-9e3e8baa4a3443c392dc8fee00373b11-20241220002902">Exporting results from a run with hash <code class="docutils literal notranslate"><span class="pre">9e3e8baa4a3443c392dc8fee00373b11_20241220002902</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#adding-a-new-backend">Adding a New Backend</a><ul>
+<li><a class="reference internal" href="#verify-your-backend-is-installable">1. Verify Your Backend is Installable</a></li>
+<li><a class="reference internal" href="#write-a-conversion-function">2. Write a Conversion Function</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#optional-write-a-teardown-function">3. (Optional) Write a Teardown Function</a></li>
+<li><a class="reference internal" href="#register-with-nxbench">4. Register with NxBench</a></li>
+<li><a class="reference internal" href="#confirm-it-works">5. Confirm It Works</a></li>
+<li><a class="reference internal" href="#optional-version-pinning">6. (Optional) Version Pinning</a><ul>
+<li><a class="reference internal" href="#thats-it">That’s it</a></li>
 </ul>
 </li>
 </ul>

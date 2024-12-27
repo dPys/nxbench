@@ -298,10 +298,12 @@
     <span class="s2">&quot;PREFECT_API_DATABASE_CONNECTION_URL&quot;</span><span class="p">,</span>
     <span class="s2">&quot;postgresql+asyncpg://prefect_user:pass@localhost:5432/prefect_db&quot;</span><span class="p">,</span>
 <span class="p">)</span>
-<span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s2">&quot;PREFECT_ORION_DATABASE_CONNECTION_POOL_SIZE&quot;</span><span class="p">,</span> <span class="s2">&quot;5&quot;</span><span class="p">)</span>
-<span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s2">&quot;PREFECT_ORION_DATABASE_CONNECTION_MAX_OVERFLOW&quot;</span><span class="p">,</span> <span class="s2">&quot;10&quot;</span><span class="p">)</span>
+<span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s2">&quot;PREFECT_ORION_DATABASE_CONNECTION_POOL_SIZE&quot;</span><span class="p">,</span> <span class="s2">&quot;10&quot;</span><span class="p">)</span>
+<span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s2">&quot;PREFECT_ORION_DATABASE_CONNECTION_MAX_OVERFLOW&quot;</span><span class="p">,</span> <span class="s2">&quot;20&quot;</span><span class="p">)</span>
 <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s2">&quot;PREFECT_API_URL&quot;</span><span class="p">,</span> <span class="s2">&quot;http://127.0.0.1:4200/api&quot;</span><span class="p">)</span>
 <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s2">&quot;PREFECT_ORION_API_ENABLE_TASK_RUN_DATA_PERSISTENCE&quot;</span><span class="p">,</span> <span class="s2">&quot;false&quot;</span><span class="p">)</span>
+<span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s2">&quot;PREFECT_CLIENT_REQUEST_TIMEOUT&quot;</span><span class="p">,</span> <span class="s2">&quot;60&quot;</span><span class="p">)</span>
+<span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s2">&quot;PREFECT_HTTPX_SETTINGS&quot;</span><span class="p">,</span> <span class="s1">&#39;{&quot;limits&quot;: {&quot;max_connections&quot;: 50}&#39;</span><span class="p">)</span>
 <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s2">&quot;MAX_WORKERS&quot;</span><span class="p">,</span> <span class="s2">&quot;4&quot;</span><span class="p">)</span>
 
 <span class="n">run_uuid</span> <span class="o">=</span> <span class="n">uuid</span><span class="o">.</span><span class="n">uuid4</span><span class="p">()</span><span class="o">.</span><span class="n">hex</span>
@@ -381,6 +383,8 @@
             <span class="s2">&quot;OMP_NUM_THREADS&quot;</span><span class="p">,</span>
             <span class="s2">&quot;MKL_NUM_THREADS&quot;</span><span class="p">,</span>
             <span class="s2">&quot;OPENBLAS_NUM_THREADS&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;NUMEXPR_NUM_THREADS&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;VECLIB_MAXIMUM_THREADS&quot;</span><span class="p">,</span>
         <span class="p">]</span>
         <span class="k">for</span> <span class="n">var_name</span> <span class="ow">in</span> <span class="n">vars_to_set</span><span class="p">:</span>
             <span class="n">original_env</span><span class="p">[</span><span class="n">var_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">var_name</span><span class="p">)</span>
