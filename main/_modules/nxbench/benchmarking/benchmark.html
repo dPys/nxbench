@@ -390,24 +390,34 @@
             <span class="n">original_env</span><span class="p">[</span><span class="n">var_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">var_name</span><span class="p">)</span>
             <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="n">var_name</span><span class="p">]</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">num_thread</span><span class="p">)</span>
 
+        <span class="c1"># start memory tracking</span>
         <span class="k">with</span> <span class="n">memory_tracker</span><span class="p">()</span> <span class="k">as</span> <span class="n">mem</span><span class="p">:</span>
             <span class="n">start_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">perf_counter</span><span class="p">()</span>
-            <span class="c1"># pass the graph plus the processed pos_args and kwargs</span>
-            <span class="n">result</span> <span class="o">=</span> <span class="n">algo_func</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="o">*</span><span class="n">pos_args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-            <span class="n">end_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">perf_counter</span><span class="p">()</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">result</span> <span class="o">=</span> <span class="n">algo_func</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="o">*</span><span class="n">pos_args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">NotImplementedError</span> <span class="k">as</span> <span class="n">nie</span><span class="p">:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;Skipping </span><span class="si">{</span><span class="n">algo_config</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2"> for backend &#39;</span><span class="si">{</span><span class="n">backend</span><span class="si">}</span><span class="s2">&#39; &quot;</span>
+                    <span class="s2">&quot;because it&#39;s not implemented (NotImplementedError).&quot;</span>
+                <span class="p">)</span>
+                <span class="k">return</span> <span class="kc">None</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">nie</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">MemoryError</span> <span class="k">as</span> <span class="n">me</span><span class="p">:</span>
+                <span class="c1"># gracefully handle OOM:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="s2">&quot;Algorithm ran out of memory.&quot;</span><span class="p">)</span>
+                <span class="n">result</span> <span class="o">=</span> <span class="kc">None</span>
+                <span class="n">error</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;MemoryError: </span><span class="si">{</span><span class="n">me</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="s2">&quot;Algorithm run failed unexpectedly.&quot;</span><span class="p">)</span>
+                <span class="n">result</span> <span class="o">=</span> <span class="kc">None</span>
+                <span class="n">error</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+            <span class="k">finally</span><span class="p">:</span>
+                <span class="n">end_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">perf_counter</span><span class="p">()</span>
+                <span class="n">execution_time</span> <span class="o">=</span> <span class="n">end_time</span> <span class="o">-</span> <span class="n">start_time</span>
 
-        <span class="n">execution_time</span> <span class="o">=</span> <span class="n">end_time</span> <span class="o">-</span> <span class="n">start_time</span>
-        <span class="n">peak_memory</span> <span class="o">=</span> <span class="n">mem</span><span class="p">[</span><span class="s2">&quot;peak&quot;</span><span class="p">]</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Algorithm &#39;</span><span class="si">{</span><span class="n">algo_config</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&#39; executed successfully.&quot;</span><span class="p">)</span>
-
-    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="s2">&quot;Algorithm run failed&quot;</span><span class="p">)</span>
-        <span class="n">execution_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">perf_counter</span><span class="p">()</span> <span class="o">-</span> <span class="n">start_time</span>
-        <span class="n">peak_memory</span> <span class="o">=</span> <span class="n">mem</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;peak&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
-        <span class="n">result</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="n">error</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+            <span class="n">peak_memory</span> <span class="o">=</span> <span class="n">mem</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;peak&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
 
     <span class="k">finally</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Algorithm &#39;</span><span class="si">{</span><span class="n">algo_config</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&#39; executed successfully.&quot;</span><span class="p">)</span>
         <span class="c1"># restore environment variables</span>
         <span class="k">for</span> <span class="n">var_name</span> <span class="ow">in</span> <span class="n">vars_to_set</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">original_env</span><span class="p">[</span><span class="n">var_name</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -597,6 +607,7 @@
                     <span class="s2">&quot;resources&quot;</span><span class="p">:</span> <span class="p">{</span><span class="n">resource_type</span><span class="p">:</span> <span class="mi">1</span><span class="p">},</span>
                     <span class="s2">&quot;threads_per_worker&quot;</span><span class="p">:</span> <span class="n">num_thread</span><span class="p">,</span>
                     <span class="s2">&quot;processes&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+                    <span class="s2">&quot;memory_limit&quot;</span><span class="p">:</span> <span class="s2">&quot;2GB&quot;</span><span class="p">,</span>
                 <span class="p">}</span>
             <span class="p">),</span>
         <span class="p">)</span>
