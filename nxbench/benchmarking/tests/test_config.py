@@ -1,6 +1,7 @@
 import math
 import os
 import textwrap
+from functools import partial
 from unittest.mock import MagicMock, patch
 
 import networkx as nx
@@ -93,6 +94,84 @@ class TestAlgorithmConfig:
             in caplog.text
         )
 
+    def test_get_callable_non_networkx_backend_returns_partial(self):
+        """
+        Ensure get_callable() returns a functools.partial
+        if the backend is not 'networkx'.
+        """
+        with patch("builtins.__import__") as mock_import:
+            mock_module = MagicMock()
+            mock_func = MagicMock()
+            mock_import.return_value = mock_module
+            mock_module.some_function = mock_func
+
+            algo = AlgorithmConfig(
+                name="test_algo",
+                func="my_module.some_function",
+            )
+            # ensures get_func_ref() is valid
+            func_ref = algo.get_func_ref()
+            assert func_ref is not None
+
+            partial_func = algo.get_callable(backend_name="igraph")
+            assert isinstance(
+                partial_func, partial
+            ), "Should return a partial for non-networkx backends"
+            assert (
+                partial_func.func == mock_func
+            ), "Partial should wrap the imported function"
+            assert partial_func.keywords["backend"] == "igraph"
+
+    def test_get_callable_raises_importerror_if_func_is_none(self):
+        """If get_func_ref() returns None, get_callable() must raise ImportError."""
+        # force a bad function import
+        algo = AlgorithmConfig(
+            name="broken_algo",
+            func="nonexistent.module.func",
+        )
+        with pytest.raises(
+            ImportError, match="could not be imported for algorithm 'broken_algo'"
+        ):
+            algo.get_callable(backend_name="networkx")
+
+    def test_get_validate_ref_none_when_validate_result_is_none(self):
+        """If validate_result is not provided, get_validate_ref() should immediately
+        return None.
+        """
+        algo = AlgorithmConfig(
+            name="test", func="some.module.function", validate_result=None
+        )
+        ref = algo.get_validate_ref()
+        assert (
+            ref is None
+        ), "Should return None immediately if no validate_result is specified"
+
+    @pytest.mark.parametrize(
+        ("requires_directed", "requires_undirected", "requires_weighted"),
+        [
+            (True, False, False),
+            (False, True, True),
+            (True, True, True),
+        ],
+    )
+    def test_requires_attributes_instantiation(
+        self, requires_directed, requires_undirected, requires_weighted
+    ):
+        """
+        Instantiate AlgorithmConfig with the various booleans
+        for coverage on those attributes.
+        """
+        algo = AlgorithmConfig(
+            name="test_attrs",
+            func="some.module.func",
+            requires_directed=requires_directed,
+            requires_undirected=requires_undirected,
+            requires_weighted=requires_weighted,
+        )
+        assert algo.requires_directed == requires_directed
+        assert algo.requires_undirected == requires_undirected
+        assert algo.requires_weighted == requires_weighted
+
 
 class TestDatasetConfig:
     def test_valid_initialization(self):
@@ -139,7 +218,7 @@ machine_info:
         assert config.datasets[0].name == "jazz"
         assert config.datasets[0].source == "networkrepository"
 
-        # Verify machine_info
+        # verify machine_info
         assert config.machine_info == {"cpu": "Intel i7", "ram": "16GB"}
 
     def test_load_from_nonexistent_yaml(self):
@@ -160,9 +239,8 @@ datasets:
 
         config = BenchmarkConfig.from_yaml(config_file)
 
-        # No valid algorithms loaded because 'pagerank' isn't in a list
+        # no valid algorithms loaded because 'pagerank' isn't in a list
         assert len(config.algorithms) == 0
-        # Warnings about invalid structure
         assert "should be a list" in caplog.text
 
     def test_to_yaml(self, tmp_path):
@@ -202,6 +280,53 @@ datasets:
 
         assert "machine_info" in loaded_data
         assert loaded_data["machine_info"] == {"cpu": "Intel i7", "ram": "16GB"}
+
+    def test_load_from_invalid_datasets_type(self, tmp_path, caplog):
+        """
+        'datasets' should be a list, but if not, from_yaml should
+        log an error, set it to [], and continue.
+        """
+        yaml_content = """
+algorithms:
+  - name: pagerank
+    func: networkx.algorithms.link_analysis.pagerank_alg.pagerank
+datasets:
+  jazz:
+    source: networkrepository
+"""
+        config_file = tmp_path / "bad_datasets.yaml"
+        config_file.write_text(yaml_content)
+
+        config = BenchmarkConfig.from_yaml(config_file)
+        # expect no valid datasets loaded
+        assert (
+            len(config.datasets) == 0
+        ), "datasets should have been forced to empty list"
+        assert (
+            "should be a list in the config file" in caplog.text.lower()
+        ), "Expected an error log about 'datasets' not being a list"
+
+    def test_load_from_yaml_with_env_data(self, tmp_path):
+        """Ensure 'environ' data is captured in config.env_data"""
+        yaml_content = """
+algorithms:
+  - name: test_algo
+    func: some.module.function
+datasets:
+  - name: ds
+    source: dummy
+environ:
+  MY_ENV_VAR: "some_value"
+  OTHER_VAR: 123
+"""
+        config_file = tmp_path / "env_data.yaml"
+        config_file.write_text(yaml_content)
+
+        config = BenchmarkConfig.from_yaml(config_file)
+        assert config.env_data == {
+            "MY_ENV_VAR": "some_value",
+            "OTHER_VAR": 123,
+        }, "env_data should match what's in 'environ' key from YAML"
 
 
 class TestGlobalConfiguration:

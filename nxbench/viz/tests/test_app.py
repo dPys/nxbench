@@ -1,5 +1,3 @@
-# test_app.py
-
 from unittest.mock import patch
 
 import pandas as pd
@@ -16,10 +14,8 @@ from nxbench.viz.app import (
 @pytest.fixture
 def mock_load_and_prepare_data_return():
     """
-    Provide a mocked return value for load_and_prepare_data that includes:
-      - All the columns referenced by `hover_data` in make_violin_figure
-      - "backend" (or "backend_full") so that the fallback dimension will work
-      - Enough columns so aggregator code can run
+    Provide a mocked return value for load_and_prepare_data that includes
+    all columns needed by the code.
     """
     df = pd.DataFrame(
         {
@@ -41,13 +37,11 @@ def mock_load_and_prepare_data_return():
         }
     )
 
-    df["backend"] = df["backend_full"]
-
     index = pd.MultiIndex.from_tuples(
         [
-            ("bfs", "ds1", "cpu"),
-            ("bfs", "ds2", "gpu"),
-            ("dfs", "ds3", "cpu"),
+            ("bfs", "ds1", "parallel"),
+            ("bfs", "ds2", "cugraph"),
+            ("dfs", "ds3", "graphblas"),
         ],
         names=["algorithm", "dataset", "backend_full"],
     )
@@ -62,17 +56,14 @@ def mock_load_and_prepare_data_return():
     )
 
     group_columns = ["algorithm", "dataset", "backend_full"]
-    available_parcats_columns = ["dataset", "backend_full"]  # for the parallel cat
+    available_parcats_columns = ["dataset", "backend_full"]
 
     return (df, df_agg, group_columns, available_parcats_columns)
 
 
 @pytest.fixture
 def mock_load_data_function(mock_load_and_prepare_data_return):
-    """
-    Patch 'nxbench.viz.app.load_and_prepare_data' to return our mock data,
-    ensuring no real CSV file is read.
-    """
+    """Patch 'nxbench.viz.app.load_and_prepare_data' to return our mock data."""
     with patch("nxbench.viz.app.load_and_prepare_data") as mocked:
         mocked.return_value = mock_load_and_prepare_data_return
         yield mocked
@@ -95,19 +86,13 @@ def test_app_runs_without_crashing(mock_load_data_function):
     ],
 )
 def test_make_parallel_categories_figure_basic(color_by, mock_load_data_function):
-    """
-    Test the logic function for building the parallel categories figure with various
-    color_by parameters under normal circumstances.
-    """
-    df, df_agg, group_columns, available_parcats_columns = (
-        mock_load_data_function.return_value
-    )
-
+    """Basic test of the parallel categories figure with different color metrics."""
+    df, df_agg, group_cols, available_cols = mock_load_data_function.return_value
     selected_algorithm = "bfs"
     selected_dimensions = ["dataset", "backend_full"]
 
     fig, store_data = make_parallel_categories_figure(
-        df, df_agg, group_columns, selected_algorithm, color_by, selected_dimensions
+        df, df_agg, group_cols, selected_algorithm, color_by, selected_dimensions
     )
     assert isinstance(fig, go.Figure)
     assert store_data is not None
@@ -123,6 +108,52 @@ def test_make_parallel_categories_figure_basic(color_by, mock_load_data_function
         expected_title = "Memory Used (GB)"
 
     assert trace.line.colorbar.title.text == expected_title
+
+
+def test_make_parallel_categories_figure_no_data_for_algorithm(mock_load_data_function):
+    """
+    Trigger the KeyError block at lines ~75-88 by removing 'bfs' from df_agg altogether.
+    This ensures the top-level aggregator .xs() fails.
+    """
+    df, df_agg, group_cols, available_cols = mock_load_data_function.return_value
+    df_agg_no_bfs = df_agg.drop(labels="bfs", level="algorithm")
+
+    fig, store_data = make_parallel_categories_figure(
+        df,
+        df_agg_no_bfs,
+        group_cols,
+        "bfs",
+        "execution_time",
+        ["dataset", "backend_full"],
+    )
+    assert isinstance(fig, go.Figure)
+    assert store_data == []
+    assert fig.layout.annotations
+    assert any("No data available" in ann["text"] for ann in fig.layout.annotations)
+
+
+def test_make_parallel_categories_figure_preloading_temp_agg_missing_algo(
+    mock_load_data_function,
+):
+    """
+    Ensure coverage of lines ~105-106: BFS is in df_agg but missing from the
+    temporary aggregator (temp_agg), triggering the KeyError fallback to
+    mean_execution_time.
+    """
+    df, df_agg, group_cols, available_cols = mock_load_data_function.return_value
+
+    df.loc[df["algorithm"] == "bfs", "execution_time_with_preloading"] = None
+
+    fig, store_data = make_parallel_categories_figure(
+        df,
+        df_agg,
+        group_cols,
+        "bfs",
+        "execution_time_with_preloading",
+        ["dataset", "backend_full"],
+    )
+    assert isinstance(fig, go.Figure)
+    assert store_data
 
 
 def test_make_parallel_categories_figure_preloading_column_missing(
@@ -154,8 +185,8 @@ def test_make_parallel_categories_figure_preloading_agg_keyerror(
     mock_load_data_function,
 ):
     """
-    If aggregator's .xs(...) fails for BFS, we fallback to mean_execution_time.
-    We'll force that by removing BFS from df_agg so `.xs('bfs')` triggers KeyError.
+    If BFS is missing from df_agg, .xs('bfs') triggers KeyError immediately,
+    returning "No Data Available".
     """
     df, df_agg, group_columns, _ = mock_load_data_function.return_value
 
@@ -175,21 +206,18 @@ def test_make_parallel_categories_figure_preloading_agg_keyerror(
     )
 
     assert isinstance(fig, go.Figure)
-    assert not store_data, "We expect an empty store_data due to KeyError fallback."
+    assert store_data == []
 
 
 def test_make_violin_figure_empty_df(mock_load_data_function):
-    """If the .xs(...) yields an empty DataFrame, we get "No data available" figure."""
-    df, df_agg, group_columns, available_parcats_columns = (
-        mock_load_data_function.return_value
-    )
+    """If .xs(...) yields an empty DataFrame, we get "No data available" figure."""
+    df, df_agg, group_columns, available_cols = mock_load_data_function.return_value
     df_agg_empty = df_agg.drop(labels="bfs", level="algorithm")
 
-    selected_algorithm = "bfs"
     fig = make_violin_figure(
         df,
         df_agg_empty,
-        selected_algorithm,
+        "bfs",
         "execution_time",
         ["dataset", "backend_full"],
     )
@@ -208,9 +236,8 @@ def test_make_violin_figure_empty_df(mock_load_data_function):
 def test_make_violin_figure_color_by(
     color_by, expected_y_metric, mock_load_data_function
 ):
-    df, df_agg, group_columns, available_parcats_columns = (
-        mock_load_data_function.return_value
-    )
+    """Verify the correct y-metric is chosen in the violin figure."""
+    df, df_agg, group_columns, available_cols = mock_load_data_function.return_value
     df_agg = df_agg.reset_index()
     df_agg["num_nodes_bin"] = [1000, 2000, 3000]
     df_agg["num_edges_bin"] = [5000, 6000, 7000]
@@ -234,13 +261,8 @@ def test_make_violin_figure_color_by(
 
 
 def test_make_violin_figure_dimension_fallback(mock_load_data_function):
-    """
-    If the chosen dimension is missing, fallback to "backend" or "backend_full".
-    We'll just ensure it doesn't crash now that 'backend' exists.
-    """
-    df, df_agg, group_columns, available_parcats_columns = (
-        mock_load_data_function.return_value
-    )
+    """If the chosen dimension is missing, fallback to "backend" (or "backend_full")."""
+    df, df_agg, group_columns, available_cols = mock_load_data_function.return_value
     df_agg = df_agg.reset_index()
 
     df_agg["num_nodes_bin"] = [1000, 2000, 3000]
@@ -252,8 +274,7 @@ def test_make_violin_figure_dimension_fallback(mock_load_data_function):
     df_agg["os"] = ["Linux", "Linux", "Windows"]
     df_agg["num_thread"] = [1, 2, 4]
 
-    df_agg["backend"] = df_agg["backend_full"]
-
+    df_agg["backend"] = df_agg["backend_full"]  # ensure "backend" is available
     df_agg.set_index(["algorithm", "dataset", "backend_full"], inplace=True)
 
     selected_algorithm = "bfs"
@@ -267,13 +288,55 @@ def test_make_violin_figure_dimension_fallback(mock_load_data_function):
     assert not fig.layout.annotations
 
 
-def test_make_violin_figure_no_data_for_algorithm(mock_load_data_function):
-    """If the algorithm doesn't exist, KeyError => "No data available" annotation."""
-    df, df_agg, group_columns, available_parcats_columns = (
-        mock_load_data_function.return_value
+def test_make_violin_figure_empty_selected_dimensions(mock_load_data_function):
+    """
+    If selected_dimensions is empty, coverage for the code that does:
+        violin_dimension = selected_dimensions[0] if selected_dimensions else "backend"
+    """
+    df, df_agg, group_columns, available_cols = mock_load_data_function.return_value
+
+    df_agg = df_agg.reset_index()
+    df_agg["backend"] = df_agg["backend_full"]
+
+    df_agg["num_nodes_bin"] = [1000, 2000, 3000]
+    df_agg["num_edges_bin"] = [5000, 6000, 7000]
+    df_agg["is_directed"] = [False, True, False]
+    df_agg["is_weighted"] = [False, False, True]
+    df_agg["python_version"] = ["3.9", "3.9", "3.10"]
+    df_agg["cpu"] = ["Intel", "AMD", "Intel"]
+    df_agg["os"] = ["Linux", "Linux", "Windows"]
+    df_agg["num_thread"] = [1, 2, 4]
+
+    df_agg.set_index(["algorithm", "dataset", "backend_full"], inplace=True)
+
+    fig = make_violin_figure(
+        df,
+        df_agg,
+        "bfs",
+        "execution_time",
+        [],  # no dimensions passed
     )
+    assert isinstance(fig, go.Figure)
+    assert not fig.layout.annotations
+
+
+def test_make_violin_figure_no_data_for_algorithm(mock_load_data_function):
+    """If the algorithm doesn't exist at all, KeyError => "No data available"
+    annotation.
+    """
+    df, df_agg, group_columns, available_cols = mock_load_data_function.return_value
     fig = make_violin_figure(
         df, df_agg, "fakealgo", "execution_time", ["dataset", "backend_full"]
     )
     assert fig.layout.annotations
     assert any("No data available" in ann["text"] for ann in fig.layout.annotations)
+
+
+def test_run_server_calls_dash_run_server(mock_load_data_function):
+    """
+    Cover the 'if run: app.run_server(...)' line by mocking out Dash.run_server,
+    ensuring that code path is tested (though we don't actually spin up the server).
+    """
+    with patch("dash.Dash.run_server") as mock_dash_run:
+        run_server(port=9999, debug=True, run=True)
+        mock_dash_run.assert_called_once_with(port=9999, debug=True)

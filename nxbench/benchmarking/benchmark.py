@@ -117,24 +117,34 @@ def run_algorithm(
             original_env[var_name] = os.environ.get(var_name)
             os.environ[var_name] = str(num_thread)
 
+        # start memory tracking
         with memory_tracker() as mem:
             start_time = time.perf_counter()
-            # pass the graph plus the processed pos_args and kwargs
-            result = algo_func(graph, *pos_args, **kwargs)
-            end_time = time.perf_counter()
+            try:
+                result = algo_func(graph, *pos_args, **kwargs)
+            except NotImplementedError as nie:
+                logger.info(
+                    f"Skipping {algo_config.name} for backend '{backend}' "
+                    "because it's not implemented (NotImplementedError)."
+                )
+                return None, 0.0, 0, str(nie)
+            except MemoryError as me:
+                # gracefully handle OOM:
+                logger.exception("Algorithm ran out of memory.")
+                result = None
+                error = f"MemoryError: {me}"
+            except Exception as e:
+                logger.exception("Algorithm run failed unexpectedly.")
+                result = None
+                error = str(e)
+            finally:
+                end_time = time.perf_counter()
+                execution_time = end_time - start_time
 
-        execution_time = end_time - start_time
-        peak_memory = mem["peak"]
-        logger.debug(f"Algorithm '{algo_config.name}' executed successfully.")
-
-    except Exception as e:
-        logger.exception("Algorithm run failed")
-        execution_time = time.perf_counter() - start_time
-        peak_memory = mem.get("peak", 0)
-        result = None
-        error = str(e)
+            peak_memory = mem.get("peak", 0)
 
     finally:
+        logger.debug(f"Algorithm '{algo_config.name}' executed successfully.")
         # restore environment variables
         for var_name in vars_to_set:
             if original_env[var_name] is None:
@@ -309,6 +319,7 @@ async def benchmark_suite(
                     "resources": {resource_type: 1},
                     "threads_per_worker": num_thread,
                     "processes": False,
+                    "memory_limit": "2GB",
                 }
             ),
         )
