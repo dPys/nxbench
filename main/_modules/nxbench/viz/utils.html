@@ -339,6 +339,10 @@
     <span class="k">else</span><span class="p">:</span>
         <span class="n">df</span><span class="p">[</span><span class="s2">&quot;num_nodes_bin&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="s2">&quot;num_nodes&quot;</span><span class="p">]</span>
 
+    <span class="n">df</span><span class="p">[</span><span class="s2">&quot;num_nodes_bin&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">df</span><span class="p">[</span><span class="s2">&quot;num_nodes_bin&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s2">&quot;category&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">cat</span><span class="o">.</span><span class="n">remove_unused_categories</span><span class="p">()</span>
+    <span class="p">)</span>
+
     <span class="n">unique_n_edges</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="s2">&quot;num_edges&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">nunique</span><span class="p">(</span><span class="n">dropna</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">unique_n_edges</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
         <span class="n">num_edges_binned</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">cut</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="s2">&quot;num_edges&quot;</span><span class="p">],</span> <span class="n">bins</span><span class="o">=</span><span class="nb">min</span><span class="p">(</span><span class="n">unique_n_edges</span><span class="p">,</span> <span class="mi">4</span><span class="p">))</span>
@@ -354,6 +358,9 @@
     <span class="k">else</span><span class="p">:</span>
         <span class="n">df</span><span class="p">[</span><span class="s2">&quot;num_edges_bin&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="s2">&quot;num_edges&quot;</span><span class="p">]</span>
 
+    <span class="n">df</span><span class="p">[</span><span class="s2">&quot;num_edges_bin&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">df</span><span class="p">[</span><span class="s2">&quot;num_edges_bin&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s2">&quot;category&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">cat</span><span class="o">.</span><span class="n">remove_unused_categories</span><span class="p">()</span>
+    <span class="p">)</span>
     <span class="k">return</span> <span class="n">df</span></div>
 
 
@@ -415,6 +422,14 @@
     <span class="n">available_parcats_columns</span> <span class="o">=</span> <span class="p">[</span>
         <span class="n">col</span> <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">group_columns</span> <span class="k">if</span> <span class="n">col</span> <span class="o">!=</span> <span class="s2">&quot;algorithm&quot;</span> <span class="ow">and</span> <span class="n">unique_counts</span><span class="p">[</span><span class="n">col</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">1</span>
     <span class="p">]</span>
+
+    <span class="n">df_agg</span><span class="o">.</span><span class="n">reset_index</span><span class="p">(</span><span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="c1"># remove unused categories</span>
+    <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;num_nodes_bin&quot;</span><span class="p">,</span> <span class="s2">&quot;num_edges_bin&quot;</span><span class="p">]:</span>
+        <span class="k">if</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">df_agg</span><span class="o">.</span><span class="n">columns</span> <span class="ow">and</span> <span class="n">pd</span><span class="o">.</span><span class="n">api</span><span class="o">.</span><span class="n">types</span><span class="o">.</span><span class="n">is_categorical_dtype</span><span class="p">(</span><span class="n">df_agg</span><span class="p">[</span><span class="n">col</span><span class="p">]):</span>
+            <span class="n">df_agg</span><span class="p">[</span><span class="n">col</span><span class="p">]</span> <span class="o">=</span> <span class="n">df_agg</span><span class="p">[</span><span class="n">col</span><span class="p">]</span><span class="o">.</span><span class="n">cat</span><span class="o">.</span><span class="n">remove_unused_categories</span><span class="p">()</span>
+
+    <span class="n">df_agg</span><span class="o">.</span><span class="n">set_index</span><span class="p">(</span><span class="n">group_columns</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">df_agg</span><span class="p">,</span> <span class="n">group_columns</span><span class="p">,</span> <span class="n">available_parcats_columns</span></div>
 
