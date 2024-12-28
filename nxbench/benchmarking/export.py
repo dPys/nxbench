@@ -28,6 +28,17 @@ class ResultsExporter:
         self.data_manager = BenchmarkDataManager()
         self._cached_results: list[BenchmarkResult] | None = None
 
+    def _safely_parse_entry(self, entry: dict[str, Any]) -> BenchmarkResult | None:
+        """
+        Convert one dictionary entry into a BenchmarkResult, logging
+        and returning None on error (so we skip just that one).
+        """
+        try:
+            return self._create_benchmark_result_from_entry(entry)
+        except Exception:
+            logger.exception("Skipping one entry due to error")
+            return None
+
     def load_results(self) -> list[BenchmarkResult]:
         """Load benchmark results from the workflow outputs (JSON or CSV),
         integrating all known fields into BenchmarkResult and treating unknown
@@ -39,9 +50,11 @@ class ResultsExporter:
         results = []
 
         try:
-            if self.results_file.suffix.lower() == ".json":
+            suffix = self.results_file.suffix.lower()
+            if suffix == ".json":
                 with self.results_file.open("r") as f:
                     data = json.load(f)
+
                 if not isinstance(data, list):
                     logger.error(
                         f"Expected a list of results in JSON file, got {type(data)}"
@@ -49,20 +62,17 @@ class ResultsExporter:
                     return []
 
                 for entry in data:
-                    result = self._create_benchmark_result_from_entry(entry)
+                    result = self._safely_parse_entry(entry)
                     if result:
                         results.append(result)
 
-            elif self.results_file.suffix.lower() == ".csv":
+            elif suffix == ".csv":
                 df = pd.read_csv(self.results_file)
                 for _, row in df.iterrows():
                     entry = row.to_dict()
-                    result = self._create_benchmark_result_from_entry(entry)
+                    result = self._safely_parse_entry(entry)
                     if result:
                         results.append(result)
-            else:
-                logger.error(f"Unsupported file format: {self.results_file.suffix}")
-                return []
 
         except Exception:
             logger.exception(f"Failed to load results from: {self.results_file}")
@@ -74,67 +84,81 @@ class ResultsExporter:
 
     def _create_benchmark_result_from_entry(
         self, entry: dict[str, Any]
-    ) -> BenchmarkResult | None:
-        try:
-            known_fields = {
-                "algorithm",
-                "dataset",
-                "execution_time",
-                "execution_time_with_preloading",
-                "memory_used",
-                "num_nodes",
-                "num_edges",
-                "is_directed",
-                "is_weighted",
-                "backend",
-                "num_thread",
-                "date",
-                "validation",
-                "validation_message",
-                "error",
-            }
+    ) -> BenchmarkResult:
+        """
+        Parse a single JSON or CSV row into a BenchmarkResult object.
+        Missing/unparseable fields are gracefully handled, so no row is dropped.
+        """
+        known_fields = {
+            "algorithm",
+            "dataset",
+            "execution_time",
+            "execution_time_with_preloading",
+            "memory_used",
+            "num_nodes",
+            "num_edges",
+            "is_directed",
+            "is_weighted",
+            "backend",
+            "num_thread",
+            "date",
+            "validation",
+            "validation_message",
+            "error",
+        }
 
-            algorithm = entry.get("algorithm", "unknown")
-            dataset = entry.get("dataset", "unknown")
-            backend = entry.get("backend", "unknown")
-            execution_time = float(entry.get("execution_time", float("nan")))
-            execution_time_with_preloading = float(
-                entry.get("execution_time_with_preloading", float("nan"))
-            )
-            memory_used = float(entry.get("memory_used", float("nan")))
-            num_thread = int(entry.get("num_thread", 1))
-            num_nodes = int(entry.get("num_nodes", 0))
-            num_edges = int(entry.get("num_edges", 0))
-            is_directed = bool(entry.get("is_directed", False))
-            is_weighted = bool(entry.get("is_weighted", False))
-            date = int(entry.get("date", 0))
-            validation = entry.get("validation", "unknown")
-            validation_message = entry.get("validation_message", "")
-            error = entry.get("error")
+        def as_float(value, default=float("nan")):
+            """Attempt parsing a float; fallback to default if unparseable."""
+            try:
+                return float(value)
+            except (TypeError, ValueError):
+                return default
 
-            metadata = {k: v for k, v in entry.items() if k not in known_fields}
+        def as_int(value, default=0):
+            """Attempt parsing an int; fallback to default if unparseable."""
+            try:
+                return int(value)
+            except (TypeError, ValueError):
+                return default
 
-            return BenchmarkResult(
-                algorithm=algorithm,
-                dataset=dataset,
-                execution_time=execution_time,
-                execution_time_with_preloading=execution_time_with_preloading,
-                memory_used=memory_used,
-                num_nodes=num_nodes,
-                num_edges=num_edges,
-                is_directed=is_directed,
-                is_weighted=is_weighted,
-                backend=backend,
-                num_thread=num_thread,
-                date=date,
-                metadata=metadata,
-                validation=validation,
-                validation_message=validation_message,
-                error=error,
-            )
-        except Exception:
-            logger.exception("Failed to process result entry.")
-            return None
+        algorithm = entry.get("algorithm", "unknown")
+        dataset = entry.get("dataset", "unknown")
+        backend = entry.get("backend", "unknown")
+        execution_time = as_float(entry.get("execution_time"))
+        execution_time_with_preloading = as_float(
+            entry.get("execution_time_with_preloading")
+        )
+        memory_used = as_float(entry.get("memory_used"))
+        num_nodes = as_int(entry.get("num_nodes"))
+        num_edges = as_int(entry.get("num_edges"))
+        is_directed = bool(entry.get("is_directed", False))
+        is_weighted = bool(entry.get("is_weighted", False))
+        num_thread = as_int(entry.get("num_thread"), default=1)
+        date = as_int(entry.get("date"), default=0)
+        validation = entry.get("validation", "unknown")
+        validation_message = entry.get("validation_message", "")
+        error = entry.get("error")
+
+        metadata = {k: v for k, v in entry.items() if k not in known_fields}
+
+        return BenchmarkResult(
+            algorithm=algorithm,
+            dataset=dataset,
+            execution_time=execution_time,
+            execution_time_with_preloading=execution_time_with_preloading,
+            memory_used=memory_used,
+            num_nodes=num_nodes,
+            num_edges=num_edges,
+            is_directed=is_directed,
+            is_weighted=is_weighted,
+            backend=backend,
+            num_thread=num_thread,
+            date=date,
+            metadata=metadata,
+            validation=validation,
+            validation_message=validation_message,
+            error=error,
+        )
 
     def to_dataframe(self) -> pd.DataFrame:
         results = self.load_results()
@@ -150,9 +174,7 @@ class ResultsExporter:
                 "dataset": result.dataset,
                 "backend": result.backend,
                 "execution_time": result.execution_time,
-                ### ADDED:
                 "execution_time_with_preloading": result.execution_time_with_preloading,
-                ### END ADDED
                 "memory_used": result.memory_used,
                 "num_nodes": result.num_nodes,
                 "num_edges": result.num_edges,
