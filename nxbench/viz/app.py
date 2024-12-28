@@ -359,7 +359,7 @@ def run_server(port=8050, debug=False, run=True):
                         ],
                         value=available_parcats_columns,
                         multi=True,
-                        style={"width": "100%"},
+                        style={"width": "100%", "color": "#000"},
                     ),
                 ],
                 style={"width": "100%", "display": "block", "padding": "20px"},

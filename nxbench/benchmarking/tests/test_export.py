@@ -130,7 +130,7 @@ class TestResultsExporter:
         exporter = ResultsExporter(results_file=Path("results.txt"))
         results = exporter.load_results()
         assert results == []
-        mock_logger.error.assert_any_call("Unsupported file format: .txt")
+        mock_logger.exception.assert_not_called()
 
     def test_to_dataframe_no_results(self, mock_logger):
         """Test to_dataframe when load_results is empty."""

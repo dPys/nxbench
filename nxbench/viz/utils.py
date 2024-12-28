@@ -72,6 +72,10 @@ def preprocess_data(df: pd.DataFrame) -> pd.DataFrame:
     else:
         df["num_nodes_bin"] = df["num_nodes"]
 
+    df["num_nodes_bin"] = (
+        df["num_nodes_bin"].astype("category").cat.remove_unused_categories()
+    )
+
     unique_n_edges = df["num_edges"].nunique(dropna=True)
     if unique_n_edges > 1:
         num_edges_binned = pd.cut(df["num_edges"], bins=min(unique_n_edges, 4))
@@ -87,6 +91,9 @@ def preprocess_data(df: pd.DataFrame) -> pd.DataFrame:
     else:
         df["num_edges_bin"] = df["num_edges"]
 
+    df["num_edges_bin"] = (
+        df["num_edges_bin"].astype("category").cat.remove_unused_categories()
+    )
     return df
 
 
@@ -145,6 +152,14 @@ def aggregate_data(df: pd.DataFrame) -> tuple[pd.DataFrame, list, list]:
     available_parcats_columns = [
         col for col in group_columns if col != "algorithm" and unique_counts[col] > 1
     ]
+
+    df_agg.reset_index(inplace=True)
+    # remove unused categories
+    for col in ["num_nodes_bin", "num_edges_bin"]:
+        if col in df_agg.columns and pd.api.types.is_categorical_dtype(df_agg[col]):
+            df_agg[col] = df_agg[col].cat.remove_unused_categories()
+
+    df_agg.set_index(group_columns, inplace=True)
 
     return df_agg, group_columns, available_parcats_columns
 
