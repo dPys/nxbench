@@ -235,3 +235,81 @@ def test_delete_results_no_match(benchmark_db, sample_benchmark_result):
 
     remaining = benchmark_db.get_results(as_pandas=False)
     assert len(remaining) == 1
+
+
+def test_save_results_with_error_and_parameters(benchmark_db, sample_benchmark_result):
+    sample_benchmark_result.error = "Test error message"
+    benchmark_db.save_results(sample_benchmark_result)
+
+    results = benchmark_db.get_results(as_pandas=False)
+    assert len(results) == 1
+    result = results[0]
+    assert result["error"] == "Test error message"
+
+
+def test_filter_results_by_start_and_end_date(benchmark_db, sample_benchmark_result):
+    """
+    Test that results can be filtered correctly using both start_date and end_date.
+    We manually update timestamps in the DB to simulate older/newer records.
+    """
+    import sqlite3
+    from datetime import datetime, timedelta, timezone
+
+    benchmark_db.save_results(sample_benchmark_result)
+    old_timestamp = (datetime.now(timezone.utc) - timedelta(days=2)).isoformat()
+    with sqlite3.connect(benchmark_db.db_path) as conn:
+        conn.execute("UPDATE benchmarks SET timestamp=? WHERE id=1", (old_timestamp,))
+        conn.commit()
+
+    benchmark_db.save_results(sample_benchmark_result)
+    new_timestamp = datetime.now(timezone.utc).isoformat()
+
+    results = benchmark_db.get_results(
+        start_date=old_timestamp, end_date=new_timestamp, as_pandas=False
+    )
+    assert (
+        len(results) == 2
+    ), "Both old and new records should be included in the date range."
+
+    middle_timestamp = (datetime.now(timezone.utc) - timedelta(days=1)).isoformat()
+    results = benchmark_db.get_results(
+        start_date=middle_timestamp, end_date=new_timestamp, as_pandas=False
+    )
+    assert (
+        len(results) == 1
+    ), "Only the newer record should match after filtering by a middle start date."
+
+
+def test_directed_and_weighted_flags_are_integers(
+    benchmark_db, sample_benchmark_result
+):
+    """Ensure that 'directed' and 'weighted' fields are correctly stored as integers
+    (0 or 1).
+    """
+    sample_benchmark_result.is_directed = True
+    sample_benchmark_result.is_weighted = True
+    benchmark_db.save_results(sample_benchmark_result)
+
+    results = benchmark_db.get_results(as_pandas=False)
+    assert len(results) == 1
+    result = results[0]
+    assert (
+        result["directed"] == 1
+    ), "'is_directed=True' should be stored as integer '1'."
+    assert (
+        result["weighted"] == 1
+    ), "'is_weighted=True' should be stored as integer '1'."
+
+    sample_benchmark_result.is_directed = False
+    sample_benchmark_result.is_weighted = False
+    benchmark_db.save_results(sample_benchmark_result)
+
+    results = benchmark_db.get_results(as_pandas=False)
+    assert len(results) == 2
+    new_record = results[1]
+    assert (
+        new_record["directed"] == 0
+    ), "'is_directed=False' should be stored as integer '0'."
+    assert (
+        new_record["weighted"] == 0
+    ), "'is_weighted=False' should be stored as integer '0'."
