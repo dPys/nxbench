@@ -218,7 +218,6 @@ class TestResultsExporter:
             )
 
     @patch("nxbench.benchmarking.export.BenchmarkDB")
-    @patch("nxbench.benchmarking.export.get_python_version", return_value="3.10.14")
     def test_export_results_sql_replace(self, mock_pyver, mock_db_class, mock_logger):
         """Test exporting results into SQL with 'replace'."""
         exporter = ResultsExporter(results_file=Path("results.csv"))
@@ -250,7 +249,6 @@ class TestResultsExporter:
             mock_db_instance.save_results.assert_called_once_with(
                 results=mock_results,
                 machine_info={},
-                python_version="3.10.14",  # matches our patched version
             )
             mock_logger.info.assert_called_with(
                 "Exported results to SQL database: database.db"

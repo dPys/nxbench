@@ -247,7 +247,6 @@ def make_violin_figure(
             "num_edges_bin",
             "is_directed",
             "is_weighted",
-            "python_version",
             "cpu",
             "os",
             "num_thread",

@@ -30,7 +30,6 @@ def mock_load_and_prepare_data_return():
             "num_edges_bin": [5000, 6000, 7000],
             "is_directed": [False, True, False],
             "is_weighted": [False, False, True],
-            "python_version": ["3.9", "3.9", "3.10"],
             "cpu": ["Intel", "AMD", "Intel"],
             "os": ["Linux", "Linux", "Windows"],
             "num_thread": [1, 2, 4],
@@ -243,7 +242,6 @@ def test_make_violin_figure_color_by(
     df_agg["num_edges_bin"] = [5000, 6000, 7000]
     df_agg["is_directed"] = [False, True, False]
     df_agg["is_weighted"] = [False, False, True]
-    df_agg["python_version"] = ["3.9", "3.9", "3.10"]
     df_agg["cpu"] = ["Intel", "AMD", "Intel"]
     df_agg["os"] = ["Linux", "Linux", "Windows"]
     df_agg["num_thread"] = [1, 2, 4]
@@ -269,7 +267,6 @@ def test_make_violin_figure_dimension_fallback(mock_load_data_function):
     df_agg["num_edges_bin"] = [5000, 6000, 7000]
     df_agg["is_directed"] = [False, True, False]
     df_agg["is_weighted"] = [False, False, True]
-    df_agg["python_version"] = ["3.9", "3.9", "3.10"]
     df_agg["cpu"] = ["Intel", "AMD", "Intel"]
     df_agg["os"] = ["Linux", "Linux", "Windows"]
     df_agg["num_thread"] = [1, 2, 4]
@@ -302,7 +299,6 @@ def test_make_violin_figure_empty_selected_dimensions(mock_load_data_function):
     df_agg["num_edges_bin"] = [5000, 6000, 7000]
     df_agg["is_directed"] = [False, True, False]
     df_agg["is_weighted"] = [False, False, True]
-    df_agg["python_version"] = ["3.9", "3.9", "3.10"]
     df_agg["cpu"] = ["Intel", "AMD", "Intel"]
     df_agg["os"] = ["Linux", "Linux", "Windows"]
     df_agg["num_thread"] = [1, 2, 4]

@@ -29,7 +29,6 @@ CREATE TABLE IF NOT EXISTS benchmarks (
     memory_usage REAL,
     git_commit TEXT,
     machine_info TEXT,
-    python_version TEXT,
     package_versions TEXT
 );
 
@@ -78,7 +77,6 @@ class BenchmarkDB:
         results: BenchmarkResult | list[BenchmarkResult],
         git_commit: str | None = None,
         machine_info: dict | None = None,
-        python_version: str | None = None,
         package_versions: dict | None = None,
     ) -> None:
         """Save benchmark results to database.
@@ -91,8 +89,6 @@ class BenchmarkDB:
             Git commit hash for version tracking
         machine_info : dict, optional
             System information
-        python_version : str, optional
-            Python version used
         package_versions : dict, optional
             Versions of key packages
         """
@@ -112,7 +108,6 @@ class BenchmarkDB:
             "memory_usage",
             "git_commit",
             "machine_info",
-            "python_version",
             "package_versions",
         }
 
@@ -134,7 +129,6 @@ class BenchmarkDB:
                         "timestamp": datetime.now(timezone.utc).isoformat(),
                         "git_commit": git_commit,
                         "machine_info": str(machine_info) if machine_info else None,
-                        "python_version": python_version,
                         "package_versions": (
                             str(package_versions) if package_versions else None
                         ),
@@ -235,7 +229,6 @@ class BenchmarkDB:
             "memory_usage",
             "git_commit",
             "machine_info",
-            "python_version",
             "package_versions",
         }
 

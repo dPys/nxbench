@@ -205,10 +205,10 @@ docker-compose -f docker/docker-compose.cpu.yaml up nxbench
 docker-compose -f docker/docker-compose.cpu.yaml up dashboard
 
 # Run specific backend
-docker-compose -f docker/docker-compose.cpu.yaml run --rm nxbench --config 'nxbench/configs/example.yaml' benchmark run --backend networkx
+docker-compose -f docker/docker-compose.cpu.yaml run --rm nxbench nxbench --config 'nxbench/configs/example.yaml' benchmark run
 
 # Export results from a run with hash `9e3e8baa4a3443c392dc8fee00373b11_20241220002902`
-docker-compose -f docker/docker-compose.cpu.yaml run --rm nxbench --config 'nxbench/configs/example.yaml' benchmark export 'nxbench_results/9e3e8baa4a3443c392dc8fee00373b11_20241220002902.json' --output-format csv --output-file 'nxbench_results/results.csv'
+docker-compose -f docker/docker-compose.cpu.yaml run --rm nxbench export 'nxbench_results/9e3e8baa4a3443c392dc8fee00373b11_20241220002902.json' --output-format csv --output-file 'nxbench_results/results.csv'
 ```
 
 ## Contributing

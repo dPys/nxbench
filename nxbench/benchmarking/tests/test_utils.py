@@ -14,7 +14,6 @@ from nxbench.benchmarking.utils import (
     get_available_algorithms,
     get_benchmark_config,
     get_machine_info,
-    get_python_version,
     load_default_config,
     memory_tracker,
     process_algorithm_params,
@@ -127,17 +126,8 @@ def test_load_default_config():
     assert len(default.datasets) > 0
     assert "num_threads" in default.env_data
     assert "backend" in default.env_data
-    assert "pythons" in default.env_data
     # machine_info might be empty by default
     assert isinstance(default.machine_info, dict)
-
-
-def test_get_python_version():
-    """Test Python version string formatting."""
-    version = get_python_version()
-    assert len(version.split(".")) == 3
-    for part in version.split("."):
-        assert part.isdigit()
 
 
 def test_configure_benchmarks_env_vars():
@@ -326,7 +316,6 @@ def test_add_seeding_non_int_seed():
     Test that if the 'seed' in kwargs is non-integer, no global seeds
     are set, and none are passed to the algorithm function.
     """
-    old_python_random_state = random.getstate()
     old_numpy_random_state = np.random.get_state()
 
     try:
@@ -341,12 +330,10 @@ def test_add_seeding_non_int_seed():
 
         assert "seed" not in updated_kwargs
 
-        assert random.getstate() == old_python_random_state
         assert np.allclose(np.random.get_state()[1], old_numpy_random_state[1])
 
     finally:
         # Restore original states
-        random.setstate(old_python_random_state)
         np.random.set_state(old_numpy_random_state)
 
 

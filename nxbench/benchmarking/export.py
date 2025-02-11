@@ -6,7 +6,6 @@ from typing import Any
 import pandas as pd
 
 from nxbench.benchmarking.config import BenchmarkResult
-from nxbench.benchmarking.utils import get_python_version
 from nxbench.data.db import BenchmarkDB
 from nxbench.data.loader import BenchmarkDataManager
 
@@ -185,7 +184,6 @@ class ResultsExporter:
                 "validation": result.validation,
                 "validation_message": result.validation_message,
                 "error": result.error,
-                "python_version": get_python_version(),
             }
 
             for k, v in result.metadata.items():
@@ -221,7 +219,6 @@ class ResultsExporter:
             db.save_results(
                 results=results,
                 machine_info={},
-                python_version=get_python_version(),
             )
             logger.info(f"Exported results to SQL database: {output_path}")
 

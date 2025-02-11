@@ -100,16 +100,6 @@ def patch_machine_info():  # noqa: PT004
         yield
 
 
-@pytest.fixture
-def patch_python_version():  # noqa: PT004
-    """Patch get_python_version to return '3.10.12' by default."""
-    with patch(
-        "nxbench.benchmarking.benchmark.get_python_version",
-        return_value="3.10.12",
-    ):
-        yield
-
-
 ###############################################################################
 #                               TEST: load_config                             #
 ###############################################################################
@@ -586,7 +576,7 @@ async def test_benchmark_suite_missing_dataset(mock_algorithm_config):
 
 
 @pytest.mark.asyncio
-@pytest.mark.usefixtures("patch_machine_info", "patch_python_version")
+@pytest.mark.usefixtures("patch_machine_info")
 @patch(
     "nxbench.benchmarking.benchmark.setup_cache", return_value={"ds1": ("graph", {})}
 )
@@ -632,7 +622,7 @@ async def test_main_benchmark_success(
 ## TODO: Fix caplog setup here (passes locally for python3.10), but fails for other
 ## python versions)
 # @pytest.mark.asyncio
-# @pytest.mark.usefixtures("patch_machine_info", "patch_python_version")
+# @pytest.mark.usefixtures("patch_machine_info")
 # @patch("nxbench.benchmarking.benchmark.setup_cache", return_value={"ds1": ("graph",
 # {})})
 # @patch("nxbench.benchmarking.benchmark.benchmark_suite", new_callable=AsyncMock)

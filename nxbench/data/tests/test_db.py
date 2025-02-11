@@ -53,14 +53,12 @@ def test_init_db_creates_schema(temp_db_path):
 def test_save_and_retrieve_results(benchmark_db, sample_benchmark_result):
     git_commit = "abc123"
     machine_info = {"cpu": "Intel i9"}
-    python_version = "3.10.0"
     package_versions = {"nxbench": "1.0.0"}
 
     benchmark_db.save_results(
         sample_benchmark_result,
         git_commit=git_commit,
         machine_info=machine_info,
-        python_version=python_version,
         package_versions=package_versions,
     )
 
@@ -71,7 +69,6 @@ def test_save_and_retrieve_results(benchmark_db, sample_benchmark_result):
     assert result["backend"] == "test_backend"
     assert result["git_commit"] == git_commit
     assert result["machine_info"] == str(machine_info)
-    assert result["python_version"] == python_version
 
 
 def test_get_unique_values(benchmark_db, sample_benchmark_result):
@@ -170,7 +167,6 @@ def test_save_results_with_minimal_data(benchmark_db):
     assert result["algorithm"] == "minimal_algo"
     assert result["git_commit"] is None
     assert result["machine_info"] is None
-    assert result["python_version"] is None
     assert result["package_versions"] is None
 
 

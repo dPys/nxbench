@@ -20,7 +20,6 @@ from nxbench.benchmarking.utils import (
     add_seeding,
     get_benchmark_config,
     get_machine_info,
-    get_python_version,
     list_available_backends,
     memory_tracker,
     process_algorithm_params,
@@ -382,22 +381,12 @@ async def main_benchmark(
         datasets = config["datasets"]
         env_data = config["env_data"]
 
-        # parse user-specified constraints for Python versions, backends, threads
-        pythons = env_data.get("pythons", ["3.10"])
+        # parse user-specified constraints for backends, threads
         backend_configs = env_data.get("backend", {"networkx": ["networkx==3.4.1"]})
         num_threads = env_data.get("num_threads", [1])
         if not isinstance(num_threads, list):
             num_threads = [num_threads]
         num_threads = [int(x) for x in num_threads]
-
-        # check Python version
-        actual_python_version = get_python_version()  # e.g. "3.10.12"
-        if not any(py_ver in actual_python_version for py_ver in pythons):
-            logger.error(
-                f"No requested Python version matches the actual interpreter "
-                f"({actual_python_version}). Aborting."
-            )
-            return
 
         available_backends = (
             list_available_backends()
@@ -452,7 +441,6 @@ async def main_benchmark(
                 continue
 
             if isinstance(run_result, dict):
-                run_result["python_version"] = actual_python_version
                 bname = run_result.get("backend", "unknown")
                 run_result["backend_version"] = backend_version_map.get(
                     bname, "unknown"

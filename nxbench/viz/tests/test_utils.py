@@ -25,7 +25,6 @@ def raw_df():
         "backend": ["networkx", "networkx", "gunrock", "graphx"],
         "is_directed": [False, True, False, True],
         "is_weighted": [False, False, True, True],
-        "python_version": ["3.8", "3.9", "3.10", "3.11"],
         "backend_version": ["networkx==2.8", "networkx==2.8", "gunrock==1.0", None],
         "cpu": ["intel", "amd", "intel", "amd"],
         "os": ["linux", "linux", "windows", "mac"],
@@ -96,7 +95,6 @@ def test_aggregate_data():
             "num_edges_bin": ["50 <= x < 250", "50 <= x < 250", "250 <= x < 500"],
             "is_directed": [False, False, True],
             "is_weighted": [False, False, True],
-            "python_version": ["3.8", "3.8", "3.9"],
             "cpu": ["intel", "intel", "amd"],
             "os": ["linux", "linux", "windows"],
             "num_thread": [4, 4, 8],
@@ -120,7 +118,6 @@ def test_aggregate_data():
 
     assert "dataset" in parcats_columns
     assert "backend_full" in parcats_columns
-    assert "python_version" in parcats_columns
 
 
 @patch("nxbench.viz.utils.load_data")
@@ -230,7 +227,6 @@ def test_aggregate_data_no_backend_version():
             "num_edges_bin": ["50 <= x < 250", "250 <= x < 500"],
             "is_directed": [False, True],
             "is_weighted": [False, True],
-            "python_version": ["3.8", "3.9"],
             "cpu": ["intel", "amd"],
             "os": ["linux", "windows"],
             "num_thread": [4, 8],

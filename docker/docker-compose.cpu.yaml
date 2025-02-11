@@ -1,3 +1,5 @@
+version: "2.4"
+
 services:
   postgres:
     image: postgres:14
@@ -13,59 +15,79 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      - default
 
   orion:
-    image: prefecthq/prefect:2-latest
-    container_name: nxbench_orion
+    image: prefecthq/prefect:3-latest
     environment:
       PREFECT_API_DATABASE_CONNECTION_URL: "postgresql+asyncpg://prefect_user:pass@postgres:5432/prefect_db"
       PREFECT_ORION_DATABASE_CONNECTION_POOL_SIZE: "5"
       PREFECT_ORION_DATABASE_CONNECTION_MAX_OVERFLOW: "10"
       PREFECT_ORION_API_ENABLE_TASK_RUN_DATA_PERSISTENCE: "false"
-    command: prefect orion start --host 0.0.0.0 --port 4200
+      PREFECT_SERVER_API_HOST: "0.0.0.0"
+      PREFECT_ORION_API_PORT: "4200"
+    command: prefect server start --host 0.0.0.0 --port 4200
     depends_on:
       - postgres
     ports:
       - "4200:4200"
+    networks:
+      default:
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4200/api/admin/version"]
+      interval: 10s
+      timeout: 5s
+      retries: 10000
 
   nxbench:
     build:
-      context: .
-      dockerfile: Dockerfile
+      context: ..
+      dockerfile: docker/Dockerfile
     image: nxbench:latest
     container_name: nxbench
     volumes:
-      - ./nxbench/configs:/app/configs
       - nxbench_data:/root/.nxbench
       - nxbench_results:/app/results
     environment:
+      NXBENCH_CONFIG_FILE: "/app/config.yaml"
       NXBENCH_HOME: "/root/.nxbench"
-      NXBENCH_CONFIG_FILE: "/app/configs/example.yaml"
       PREFECT_API_URL: "http://orion:4200/api"
       NUM_THREAD: "${NUM_THREAD:-8}"
-    command: nxbench benchmark run --backend all
+    command: nxbench benchmark run
     depends_on:
-      - orion
-      - postgres
+      orion:
+        condition: service_started
+      postgres:
+        condition: service_started
+    networks:
+      - default
 
   dashboard:
     build:
-      context: .
-      dockerfile: Dockerfile
+      context: ..
+      dockerfile: docker/Dockerfile
     image: nxbench:latest
     container_name: nxbench_dashboard
     ports:
       - "8050:8050"
     volumes:
-      - nxbench_results:/app/results:ro
+      - nxbench_data:/root/.nxbench
+      - nxbench_results:/app/results
     environment:
+      NXBENCH_CONFIG_FILE: "/app/config.yaml"
       PREFECT_API_URL: "http://orion:4200/api"
-      NXBENCH_CONFIG_FILE: "/app/configs/example.yaml"
-    command: nxbench viz serve --port 8050 --host 0.0.0.0
+    command: nxbench viz serve --port 8050
     depends_on:
-      - orion
-      - nxbench
+      orion:
+        condition: service_healthy
+    networks:
+      - default
 
 volumes:
   nxbench_data:
   nxbench_results:
+
+networks:
+  default:
+    driver: bridge

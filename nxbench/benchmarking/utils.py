@@ -5,7 +5,6 @@ import logging
 import os
 import platform
 import random
-import sys
 import tracemalloc
 from contextlib import contextmanager
 from pathlib import Path
@@ -83,7 +82,6 @@ def load_default_config() -> BenchmarkConfig:
             "networkx": ["networkx==3.4.2"],
             "graphblas": ["graphblas_algorithms==2023.10.0"],
         },
-        "pythons": ["3.10", "3.11"],
     }
 
     return BenchmarkConfig(
@@ -92,12 +90,6 @@ def load_default_config() -> BenchmarkConfig:
         env_data=env_data,
         machine_info={},
     )
-
-
-def get_python_version() -> str:
-    """Get formatted Python version string."""
-    version_info = sys.version_info
-    return f"{version_info.major}.{version_info.minor}.{version_info.micro}"
 
 
 class MemorySnapshot:
