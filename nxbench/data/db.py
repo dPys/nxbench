@@ -4,7 +4,7 @@ from dataclasses import asdict
 from datetime import datetime, timezone
 
 import pandas as pd
-import psycopg2
+from psycopg2 import connect, sql
 
 from nxbench.benchmarking.config import BenchmarkResult
 
@@ -73,7 +73,7 @@ class BenchmarkDB:
     @contextmanager
     def _connection(self):
         """Context manager for PostgreSQL database connections."""
-        conn = psycopg2.connect(self.conn_str)
+        conn = connect(self.conn_str)
         try:
             yield conn
         finally:
@@ -147,15 +147,11 @@ class BenchmarkDB:
                     if not filtered_dict:
                         continue
                     columns = list(filtered_dict.keys())
-                    query = psycopg2.sql.SQL(
+                    query = sql.SQL(
                         "INSERT INTO benchmarks ({fields}) VALUES ({values})"
                     ).format(
-                        fields=psycopg2.sqlsql.SQL(",").join(
-                            map(psycopg2.sqlsql.Identifier, columns)
-                        ),
-                        values=psycopg2.sqlsql.SQL(",").join(
-                            psycopg2.sqlsql.Placeholder() for _ in columns
-                        ),
+                        fields=sql.SQL(",").join(map(sql.Identifier, columns)),
+                        values=sql.SQL(",").join(sql.Placeholder() for _ in columns),
                     )
                     cur.execute(query, list(filtered_dict.values()))
             conn.commit()

@@ -4,8 +4,11 @@ import pandas as pd
 import psycopg2
 import pytest
 
+import nxbench.data.db
 from nxbench.benchmarking.config import BenchmarkResult
 from nxbench.data.db import BenchmarkDB
+
+nxbench.data.db.psycopg2 = psycopg2
 
 
 @pytest.fixture

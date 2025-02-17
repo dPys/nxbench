@@ -106,7 +106,7 @@ def test_benchmark_export_ok(mock_exporter_cls, runner):
         result = runner.invoke(cli, args)
         assert result.exit_code == 0, result.output
 
-        mock_exporter_cls.assert_called_once_with(results_file=result_file)
+        mock_exporter_cls.assert_called_once_with(results_file=result_file, config={})
         mock_exporter.export_results.assert_called_once_with(
             output_path=output_file, form="csv"
         )

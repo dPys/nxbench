@@ -46,6 +46,14 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-pip-
 
+      - name: Install PostgreSQL
+        run: |
+          sudo apt-get update && sudo apt-get install -y postgresql postgresql-contrib
+          sudo service postgresql start
+          sudo -u postgres psql -c "CREATE USER prefect_user WITH PASSWORD 'pass';"
+          sudo -u postgres psql -c "CREATE DATABASE prefect_db OWNER prefect_user;"
+          sudo -u postgres psql -c "GRANT ALL PRIVILEGES ON DATABASE prefect_db TO prefect_user;"
+
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
