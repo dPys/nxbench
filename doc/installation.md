@@ -2,8 +2,8 @@
 
 ## Prerequisites
 
-- Python 3.10+
-- PostgreSQL (for Prefect Orion database)
+- **Python 3.10+**
+- **PostgreSQL** (for Prefect Orion database)
 
 ### Setting up PostgreSQL
 
@@ -11,16 +11,25 @@
 
    - **macOS (Homebrew)**:
 
-   ```bash
-   brew install postgresql
-   brew services start postgresql
-   ```
+     ```bash
+     brew install postgresql
+     brew services start postgresql
+     ```
 
    - **Linux (Debian/Ubuntu)**:
 
+     ```bash
+     sudo apt-get update && sudo apt-get install -y postgresql postgresql-contrib
+     sudo service postgresql start
+     ```
+
+   - **Windows**:
+     Download and run the [PostgreSQL installer](https://www.postgresql.org/download/windows/) and follow the prompts.
+
+2. **Create a PostgreSQL User and Database**:
+
    ```bash
-   sudo apt-get update && sudo apt-get install -y postgresql postgresql-contrib
-   sudo service postgresql start
+   psql postgres
    ```
 
    - **Windows**:
@@ -69,7 +78,7 @@ In a terminal window:
    export PREFECT_ORION_DATABASE_CONNECTION_POOL_SIZE="5"
    export PREFECT_ORION_DATABASE_CONNECTION_MAX_OVERFLOW="10"
    export PREFECT_ORION_API_ENABLE_TASK_RUN_DATA_PERSISTENCE="false"
-   export PREFECT_API_URL="http://127.0.0.1:4200/api"
+   export PREFECT_API_URL="<http://127.0.0.1:4200/api>"
    ```
 
 2. **Start the Orion server**:
@@ -79,28 +88,6 @@ In a terminal window:
    ```
 
    By default it will run on `http://127.0.0.1:4200`.
-
-## Running Benchmarks
-
-In a new terminal window:
-
-```bash
-nxbench --config 'nxbench/configs/example.yaml' benchmark run
-```
-
-After the run completes, you can export results:
-
-```bash
-nxbench --config 'nxbench/configs/example.yaml' benchmark export 'results/<run_file>.json' --output-format csv --output-file 'results/results.csv'
-```
-
-To visualize:
-
-```bash
-nxbench viz serve
-```
-
----
 
 ## Installation (Docker Setup)
 
