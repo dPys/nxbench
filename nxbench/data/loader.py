@@ -288,11 +288,11 @@ class BenchmarkDataManager:
         name: str,
         metadata: dict[str, Any],
         session: aiohttp.ClientSession | None = None,
-    ) -> nx.Graph | nx.DiGraph:
+    ) -> tuple[nx.Graph | nx.DiGraph, dict[str, Any]]:
         for ext in self.SUPPORTED_FORMATS:
-            graph_file = self.data_dir / f"{name}{ext}"
+            graph_file = self.data_home / f"{name}{ext}"
             if graph_file.exists():
-                return self._load_graph_file(graph_file, metadata)
+                return self._load_graph_file(graph_file, metadata), metadata
 
         url = metadata.get("download_url")
         if not url:
@@ -300,19 +300,19 @@ class BenchmarkDataManager:
 
         logger.info(
             f"Network '{name}' not found in local cache. Attempting to download from "
-            f"repository."
+            "repository."
         )
         await self._download_and_extract_network(name, url, session)
 
         for ext in self.SUPPORTED_FORMATS:
-            graph_file = self.data_dir / f"{name}{ext}"
+            graph_file = self.data_home / f"{name}{ext}"
             if graph_file.exists():
-                return self._load_graph_file(graph_file, metadata)
+                return self._load_graph_file(graph_file, metadata), metadata
 
         logger.error(f"No suitable graph file found after downloading '{name}'")
         raise FileNotFoundError(
             f"No suitable graph file found after downloading '{name}'. Ensure the "
-            f"download was successful and the graph file exists."
+            "download was successful and the graph file exists."
         )
 
     async def _download_and_extract_network(

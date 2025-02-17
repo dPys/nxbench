@@ -3,12 +3,22 @@
 # This wrapper extracts the --config value and uses it to bind mount the host file.
 # It supports both relative and absolute paths for the config file.
 #
-# Additionally, it detects if the user wants to run a visualization (viz) command,
-# export benchmark results (benchmark export), or run benchmarks, and selects the
-# appropriate docker-compose service with published ports and host results directory
-# mounted.
+# Additionally, it detects if the user wants to run:
+#   - a visualization (viz) command,
+#   - export benchmark results (benchmark export), or
+#   - any other nxbench subcommand (e.g. data download, data list, benchmark run).
+#
+# It then selects the appropriate docker-compose service with published ports
+# and mounts the host results directory if needed.
 #
 # You can also pass --gpu to switch between the CPU and GPU docker-compose versions.
+#
+# Examples:
+#   ./docker/nxbench-run.sh --config 'nxbench/configs/example.yaml' benchmark run
+#   ./docker/nxbench-run.sh --config 'nxbench/configs/example.yaml' viz serve
+#   ./docker/nxbench-run.sh --config 'nxbench/configs/example.yaml' benchmark export 'results/input.json' --output-format csv --output-file 'results/results.csv'
+#   ./docker/nxbench-run.sh --config 'nxbench/configs/example.yaml' data download karate
+#   ./docker/nxbench-run.sh --config 'nxbench/configs/example.yaml' data list --category social
 
 CONFIG=""
 ARGS=()
@@ -52,6 +62,7 @@ fi
 echo "Using config file: $CONFIG"
 echo "Using docker-compose file: $COMPOSE_FILE"
 
+# Build a SUBCOMMAND_ARGS array that excludes the --config flag and its replacement.
 SUBCOMMAND_ARGS=()
 skip_next=0
 for arg in "${ARGS[@]}"; do
@@ -70,7 +81,7 @@ for arg in "${ARGS[@]}"; do
 done
 
 SERVICE="nxbench"
-# check if we are running "viz" or "benchmark export"
+# Check if we are running "viz" or "benchmark export"
 for (( i=0; i<${#SUBCOMMAND_ARGS[@]}; i++ )); do
     if [[ "${SUBCOMMAND_ARGS[$i]}" == "viz" ]]; then
         SERVICE="dashboard"
@@ -78,26 +89,25 @@ for (( i=0; i<${#SUBCOMMAND_ARGS[@]}; i++ )); do
     fi
     if [[ "${SUBCOMMAND_ARGS[$i]}" == "export" ]]; then
         EXPORT_MODE=1
-        # do not break; we want to process export below.
+        # Do not break; we want to process export below.
     fi
 done
 
-# for dashboard or export mode we mount the host's results directory.
+# For dashboard or export mode we mount the host's results directory.
 if [ "$SERVICE" == "dashboard" ] || [ $EXPORT_MODE -eq 1 ]; then
     RESULTS_DIR="$(pwd)/results"
     mkdir -p "$RESULTS_DIR"
 
     if [ "$SERVICE" == "dashboard" ]; then
-        # for viz mode, require that the output CSV already exists.
+        # For viz mode, require that the output CSV already exists.
         RESULTS_FILE="$RESULTS_DIR/results.csv"
         if [ ! -f "$RESULTS_FILE" ]; then
-            echo "Error: Results file '$RESULTS_FILE' does not exist."
+            echo "Error: Results file '$RESULTS_FILE' does not exist. Please run the benchmark first."
             exit 1
         fi
     elif [ $EXPORT_MODE -eq 1 ]; then
-        # for export mode, we expect the command to be:
-        # nxbench benchmark export <input_json> --output-format ... --output-file
-        # <output_csv>
+        # For export mode, we expect the command to be:
+        # nxbench benchmark export <input_json> --output-format ... --output-file <output_csv>
         if [ "${#SUBCOMMAND_ARGS[@]}" -ge 3 ] && [ "${SUBCOMMAND_ARGS[0]}" = "benchmark" ] && [ "${SUBCOMMAND_ARGS[1]}" = "export" ]; then
             INPUT_JSON_FILE="$(pwd)/${SUBCOMMAND_ARGS[2]}"
             if [ ! -f "$INPUT_JSON_FILE" ]; then
