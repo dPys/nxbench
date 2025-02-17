@@ -8,7 +8,7 @@
 
     <link rel="shortcut icon" href="_static/favicon.ico"/><!-- Generated with Sphinx 8.1.3 and Furo 2024.08.06 -->
         <title>Installation - NxBench</title>
-      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=a746c00c" />
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=8f2a1f02" />
     <link rel="stylesheet" type="text/css" href="_static/styles/furo.css?v=354aac6f" />
     <link rel="stylesheet" type="text/css" href="_static/styles/furo-extensions.css?v=302659d7" />
     <link rel="stylesheet" type="text/css" href="_static/css/nxbench-custom.css" />
@@ -275,25 +275,32 @@
 <section id="prerequisites">
 <h2>Prerequisites<a class="headerlink" href="#prerequisites" title="Link to this heading">¶</a></h2>
 <ul class="simple">
-<li><p>Python 3.10+</p></li>
-<li><p>PostgreSQL (for Prefect Orion database)</p></li>
+<li><p><strong>Python 3.10+</strong></p></li>
+<li><p><strong>PostgreSQL</strong> (for Prefect Orion database)</p></li>
 </ul>
 <section id="setting-up-postgresql">
 <h3>Setting up PostgreSQL<a class="headerlink" href="#setting-up-postgresql" title="Link to this heading">¶</a></h3>
 <ol class="arabic">
 <li><p><strong>Install PostgreSQL</strong>:</p>
-<ul class="simple">
-<li><p><strong>macOS (Homebrew)</strong>:</p></li>
-</ul>
+<ul>
+<li><p><strong>macOS (Homebrew)</strong>:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>brew<span class="w"> </span>install<span class="w"> </span>postgresql
 brew<span class="w"> </span>services<span class="w"> </span>start<span class="w"> </span>postgresql
 </pre></div>
 </div>
-<ul class="simple">
-<li><p><strong>Linux (Debian/Ubuntu)</strong>:</p></li>
-</ul>
+</li>
+<li><p><strong>Linux (Debian/Ubuntu)</strong>:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>sudo<span class="w"> </span>apt-get<span class="w"> </span>update<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>sudo<span class="w"> </span>apt-get<span class="w"> </span>install<span class="w"> </span>-y<span class="w"> </span>postgresql<span class="w"> </span>postgresql-contrib
 sudo<span class="w"> </span>service<span class="w"> </span>postgresql<span class="w"> </span>start
+</pre></div>
+</div>
+</li>
+<li><p><strong>Windows</strong>:
+Download and run the <a class="reference external" href="https://www.postgresql.org/download/windows/">PostgreSQL installer</a> and follow the prompts.</p></li>
+</ul>
+</li>
+<li><p><strong>Create a PostgreSQL User and Database</strong>:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>psql<span class="w"> </span>postgres
 </pre></div>
 </div>
 <ul class="simple">
@@ -337,7 +344,7 @@ make<span class="w"> </span>install
 <span class="nb">export</span><span class="w"> </span><span class="nv">PREFECT_ORION_DATABASE_CONNECTION_POOL_SIZE</span><span class="o">=</span><span class="s2">&quot;5&quot;</span>
 <span class="nb">export</span><span class="w"> </span><span class="nv">PREFECT_ORION_DATABASE_CONNECTION_MAX_OVERFLOW</span><span class="o">=</span><span class="s2">&quot;10&quot;</span>
 <span class="nb">export</span><span class="w"> </span><span class="nv">PREFECT_ORION_API_ENABLE_TASK_RUN_DATA_PERSISTENCE</span><span class="o">=</span><span class="s2">&quot;false&quot;</span>
-<span class="nb">export</span><span class="w"> </span><span class="nv">PREFECT_API_URL</span><span class="o">=</span><span class="s2">&quot;http://127.0.0.1:4200/api&quot;</span>
+<span class="nb">export</span><span class="w"> </span><span class="nv">PREFECT_API_URL</span><span class="o">=</span><span class="s2">&quot;&lt;http://127.0.0.1:4200/api&gt;&quot;</span>
 </pre></div>
 </div>
 </li>
@@ -350,29 +357,13 @@ make<span class="w"> </span>install
 </ol>
 </section>
 </section>
-<section id="running-benchmarks">
-<h2>Running Benchmarks<a class="headerlink" href="#running-benchmarks" title="Link to this heading">¶</a></h2>
-<p>In a new terminal window:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>nxbench<span class="w"> </span>--config<span class="w"> </span><span class="s1">&#39;nxbench/configs/example.yaml&#39;</span><span class="w"> </span>benchmark<span class="w"> </span>run
-</pre></div>
-</div>
-<p>After the run completes, you can export results:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>nxbench<span class="w"> </span>--config<span class="w"> </span><span class="s1">&#39;nxbench/configs/example.yaml&#39;</span><span class="w"> </span>benchmark<span class="w"> </span><span class="nb">export</span><span class="w"> </span><span class="s1">&#39;results/&lt;run_file&gt;.json&#39;</span><span class="w"> </span>--output-format<span class="w"> </span>csv<span class="w"> </span>--output-file<span class="w"> </span><span class="s1">&#39;results/results.csv&#39;</span>
-</pre></div>
-</div>
-<p>To visualize:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>nxbench<span class="w"> </span>viz<span class="w"> </span>serve
-</pre></div>
-</div>
-</section>
-<hr class="docutils" />
 <section id="installation-docker-setup">
 <h2>Installation (Docker Setup)<a class="headerlink" href="#installation-docker-setup" title="Link to this heading">¶</a></h2>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># CPU-only</span>
-docker-compose<span class="w"> </span>-f<span class="w"> </span>docker/docker-compose.cpu.yaml<span class="w"> </span>build
+make<span class="w"> </span>build
 
 <span class="c1"># With GPU</span>
-docker-compose<span class="w"> </span>-f<span class="w"> </span>docker/docker-compose.gpu.yaml<span class="w"> </span>build
+make<span class="w"> </span>build-gpu
 </pre></div>
 </div>
 </section>
@@ -451,7 +442,6 @@ docker-compose<span class="w"> </span>-f<span class="w"> </span>docker/docker-co
 <li><a class="reference internal" href="#setting-up-prefect-orion">Setting up Prefect Orion</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#running-benchmarks">Running Benchmarks</a></li>
 <li><a class="reference internal" href="#installation-docker-setup">Installation (Docker Setup)</a></li>
 <li><a class="reference internal" href="#development-setup">Development Setup</a></li>
 </ul>

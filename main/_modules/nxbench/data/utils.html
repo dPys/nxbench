@@ -7,7 +7,7 @@
 
     <link rel="shortcut icon" href="../../../_static/favicon.ico"/><!-- Generated with Sphinx 8.1.3 and Furo 2024.08.06 -->
         <title>nxbench.data.utils - NxBench</title>
-      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=a746c00c" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=8f2a1f02" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo.css?v=354aac6f" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo-extensions.css?v=302659d7" />
     <link rel="stylesheet" type="text/css" href="../../../_static/css/nxbench-custom.css" />
@@ -260,17 +260,17 @@
         </div>
         <article role="main" id="furo-main-content">
           <h1>Source code for nxbench.data.utils</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span> <span class="nn">re</span>
-<span class="kn">import</span> <span class="nn">zipfile</span>
-<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">Counter</span>
-<span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">re</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">zipfile</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">collections</span><span class="w"> </span><span class="kn">import</span> <span class="n">Counter</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
 
-<span class="kn">import</span> <span class="nn">networkx</span> <span class="k">as</span> <span class="nn">nx</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">networkx</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">nx</span>
 
 
 <div class="viewcode-block" id="normalize_name">
 <a class="viewcode-back" href="../../../api/nxbench.data.html#nxbench.data.utils.normalize_name">[docs]</a>
-<span class="k">def</span> <span class="nf">normalize_name</span><span class="p">(</span><span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">normalize_name</span><span class="p">(</span><span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Normalize the network name for URL construction.</span>
 <span class="sd">    Preserves the original casing and replaces special characters with hyphens.</span>
 <span class="sd">    Collapses multiple hyphens into a single hyphen and strips leading/trailing hyphens.</span>
@@ -284,7 +284,7 @@
 
 <div class="viewcode-block" id="get_connected_components">
 <a class="viewcode-back" href="../../../api/nxbench.data.html#nxbench.data.utils.get_connected_components">[docs]</a>
-<span class="k">def</span> <span class="nf">get_connected_components</span><span class="p">(</span><span class="n">G</span><span class="p">:</span> <span class="n">nx</span><span class="o">.</span><span class="n">Graph</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_connected_components</span><span class="p">(</span><span class="n">G</span><span class="p">:</span> <span class="n">nx</span><span class="o">.</span><span class="n">Graph</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Retrieve connected components of a graph.&quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">nx</span><span class="o">.</span><span class="n">is_directed</span><span class="p">(</span><span class="n">G</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">nx</span><span class="o">.</span><span class="n">is_strongly_connected</span><span class="p">(</span><span class="n">G</span><span class="p">):</span>
@@ -296,7 +296,7 @@
 
 <div class="viewcode-block" id="lcc">
 <a class="viewcode-back" href="../../../api/nxbench.data.html#nxbench.data.utils.lcc">[docs]</a>
-<span class="k">def</span> <span class="nf">lcc</span><span class="p">(</span><span class="n">G</span><span class="p">:</span> <span class="n">nx</span><span class="o">.</span><span class="n">Graph</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">nx</span><span class="o">.</span><span class="n">Graph</span><span class="p">:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">lcc</span><span class="p">(</span><span class="n">G</span><span class="p">:</span> <span class="n">nx</span><span class="o">.</span><span class="n">Graph</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">nx</span><span class="o">.</span><span class="n">Graph</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Extract the largest connected component (LCC) of the graph.</span>
 
 <span class="sd">    Removes self-loops from the extracted subgraph.</span>
@@ -325,7 +325,7 @@
 
 <div class="viewcode-block" id="safe_extract">
 <a class="viewcode-back" href="../../../api/nxbench.data.html#nxbench.data.utils.safe_extract">[docs]</a>
-<span class="k">def</span> <span class="nf">safe_extract</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="n">extracted_path</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">safe_extract</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="n">extracted_path</span><span class="p">):</span>
     <span class="n">extracted_path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">extracted_path</span><span class="p">)</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">extracted_path</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
         <span class="n">extracted_path</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
@@ -339,7 +339,7 @@
 
 <div class="viewcode-block" id="fix_matrix_market_file">
 <a class="viewcode-back" href="../../../api/nxbench.data.html#nxbench.data.utils.fix_matrix_market_file">[docs]</a>
-<span class="k">def</span> <span class="nf">fix_matrix_market_file</span><span class="p">(</span><span class="n">in_path</span><span class="p">:</span> <span class="n">Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Path</span><span class="p">:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">fix_matrix_market_file</span><span class="p">(</span><span class="n">in_path</span><span class="p">:</span> <span class="n">Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Path</span><span class="p">:</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">in_path</span><span class="o">.</span><span class="n">exists</span><span class="p">()</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">in_path</span><span class="o">.</span><span class="n">is_file</span><span class="p">():</span>
         <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span>
             <span class="sa">f</span><span class="s2">&quot;Input file &#39;</span><span class="si">{</span><span class="n">in_path</span><span class="si">!s}</span><span class="s2">&#39; does not exist or is not a file.&quot;</span>
@@ -458,7 +458,7 @@
 
 <div class="viewcode-block" id="detect_delimiter">
 <a class="viewcode-back" href="../../../api/nxbench.data.html#nxbench.data.utils.detect_delimiter">[docs]</a>
-<span class="k">def</span> <span class="nf">detect_delimiter</span><span class="p">(</span><span class="n">file_path</span><span class="p">:</span> <span class="n">Path</span><span class="p">,</span> <span class="n">sample_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">5</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">detect_delimiter</span><span class="p">(</span><span class="n">file_path</span><span class="p">:</span> <span class="n">Path</span><span class="p">,</span> <span class="n">sample_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">5</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Detect the most common delimiter in the first few lines of a file.&quot;&quot;&quot;</span>
     <span class="n">delimiters</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;,&quot;</span><span class="p">,</span> <span class="s2">&quot;</span><span class="se">\t</span><span class="s2">&quot;</span><span class="p">,</span> <span class="s2">&quot; &quot;</span><span class="p">,</span> <span class="s2">&quot;;&quot;</span><span class="p">]</span>
     <span class="n">delimiter_counts</span> <span class="o">=</span> <span class="n">Counter</span><span class="p">()</span>

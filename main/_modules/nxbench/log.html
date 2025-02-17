@@ -7,7 +7,7 @@
 
     <link rel="shortcut icon" href="../../_static/favicon.ico"/><!-- Generated with Sphinx 8.1.3 and Furo 2024.08.06 -->
         <title>nxbench.log - NxBench</title>
-      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=a746c00c" />
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=8f2a1f02" />
     <link rel="stylesheet" type="text/css" href="../../_static/styles/furo.css?v=354aac6f" />
     <link rel="stylesheet" type="text/css" href="../../_static/styles/furo-extensions.css?v=302659d7" />
     <link rel="stylesheet" type="text/css" href="../../_static/css/nxbench-custom.css" />
@@ -260,14 +260,14 @@
         </div>
         <article role="main" id="furo-main-content">
           <h1>Source code for nxbench.log</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span> <span class="nn">logging</span>
-<span class="kn">import</span> <span class="nn">sys</span>
-<span class="kn">from</span> <span class="nn">collections.abc</span> <span class="kn">import</span> <span class="n">Callable</span>
-<span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span>
-<span class="kn">from</span> <span class="nn">logging.handlers</span> <span class="kn">import</span> <span class="n">TimedRotatingFileHandler</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Callable</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">logging.handlers</span><span class="w"> </span><span class="kn">import</span> <span class="n">TimedRotatingFileHandler</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span>
 
-<span class="kn">from</span> <span class="nn">networkx.utils.configs</span> <span class="kn">import</span> <span class="n">Config</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">networkx.utils.configs</span><span class="w"> </span><span class="kn">import</span> <span class="n">Config</span>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
     <span class="s2">&quot;NxBenchConfig&quot;</span><span class="p">,</span>
@@ -287,7 +287,7 @@
 <div class="viewcode-block" id="LoggingHandlerConfig">
 <a class="viewcode-back" href="../../api/nxbench.html#nxbench.log.LoggingHandlerConfig">[docs]</a>
 <span class="nd">@dataclass</span>
-<span class="k">class</span> <span class="nc">LoggingHandlerConfig</span><span class="p">:</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">LoggingHandlerConfig</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Configuration for a single logging handler.&quot;&quot;&quot;</span>
 
     <span class="n">handler_type</span><span class="p">:</span> <span class="nb">str</span>  <span class="c1"># &#39;console&#39; or &#39;file&#39;</span>
@@ -303,7 +303,7 @@
 <div class="viewcode-block" id="LoggerConfig">
 <a class="viewcode-back" href="../../api/nxbench.html#nxbench.log.LoggerConfig">[docs]</a>
 <span class="nd">@dataclass</span>
-<span class="k">class</span> <span class="nc">LoggerConfig</span><span class="p">:</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">LoggerConfig</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Configuration for a single logger.&quot;&quot;&quot;</span>
 
     <span class="n">name</span><span class="p">:</span> <span class="nb">str</span>
@@ -315,7 +315,7 @@
 <div class="viewcode-block" id="LoggingConfig">
 <a class="viewcode-back" href="../../api/nxbench.html#nxbench.log.LoggingConfig">[docs]</a>
 <span class="nd">@dataclass</span>
-<span class="k">class</span> <span class="nc">LoggingConfig</span><span class="p">:</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">LoggingConfig</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Configuration for all loggers.&quot;&quot;&quot;</span>
 
     <span class="n">loggers</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">LoggerConfig</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">list</span><span class="p">)</span></div>
@@ -324,7 +324,7 @@
 
 <div class="viewcode-block" id="setup_logger">
 <a class="viewcode-back" href="../../api/nxbench.html#nxbench.log.setup_logger">[docs]</a>
-<span class="k">def</span> <span class="nf">setup_logger</span><span class="p">(</span><span class="n">logger_cfg</span><span class="p">:</span> <span class="n">LoggerConfig</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">setup_logger</span><span class="p">(</span><span class="n">logger_cfg</span><span class="p">:</span> <span class="n">LoggerConfig</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Set up a single logger based on LoggerConfig.&quot;&quot;&quot;</span>
     <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="n">logger_cfg</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
     <span class="n">logger</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">logging</span><span class="p">,</span> <span class="n">logger_cfg</span><span class="o">.</span><span class="n">level</span><span class="o">.</span><span class="n">upper</span><span class="p">(),</span> <span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">))</span>
@@ -340,7 +340,7 @@
 
 <div class="viewcode-block" id="create_handler">
 <a class="viewcode-back" href="../../api/nxbench.html#nxbench.log.create_handler">[docs]</a>
-<span class="k">def</span> <span class="nf">create_handler</span><span class="p">(</span><span class="n">handler_cfg</span><span class="p">:</span> <span class="n">LoggingHandlerConfig</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">logging</span><span class="o">.</span><span class="n">Handler</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">create_handler</span><span class="p">(</span><span class="n">handler_cfg</span><span class="p">:</span> <span class="n">LoggingHandlerConfig</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">logging</span><span class="o">.</span><span class="n">Handler</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Create a logging handler based on the handler configuration.&quot;&quot;&quot;</span>
     <span class="n">formatter</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">Formatter</span><span class="p">(</span><span class="n">handler_cfg</span><span class="o">.</span><span class="n">formatter</span><span class="p">)</span>
     <span class="n">handler</span> <span class="o">=</span> <span class="kc">None</span>
@@ -371,7 +371,7 @@
 
 <div class="viewcode-block" id="setup_logger_from_config">
 <a class="viewcode-back" href="../../api/nxbench.html#nxbench.log.setup_logger_from_config">[docs]</a>
-<span class="k">def</span> <span class="nf">setup_logger_from_config</span><span class="p">(</span><span class="n">logging_config</span><span class="p">:</span> <span class="n">LoggingConfig</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">setup_logger_from_config</span><span class="p">(</span><span class="n">logging_config</span><span class="p">:</span> <span class="n">LoggingConfig</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Set up all loggers based on the provided LoggingConfig.&quot;&quot;&quot;</span>
     <span class="k">for</span> <span class="n">logger_cfg</span> <span class="ow">in</span> <span class="n">logging_config</span><span class="o">.</span><span class="n">loggers</span><span class="p">:</span>
         <span class="n">setup_logger</span><span class="p">(</span><span class="n">logger_cfg</span><span class="p">)</span></div>
@@ -380,7 +380,7 @@
 
 <div class="viewcode-block" id="update_logger">
 <a class="viewcode-back" href="../../api/nxbench.html#nxbench.log.update_logger">[docs]</a>
-<span class="k">def</span> <span class="nf">update_logger</span><span class="p">(</span><span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">action</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">update_logger</span><span class="p">(</span><span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">action</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Update a specific logger based on action.&quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">action</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;add_logger&quot;</span><span class="p">,</span> <span class="s2">&quot;update_logger&quot;</span><span class="p">):</span>
         <span class="n">logger_cfg</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span>
@@ -430,7 +430,7 @@
 
 <div class="viewcode-block" id="on_config_change">
 <a class="viewcode-back" href="../../api/nxbench.html#nxbench.log.on_config_change">[docs]</a>
-<span class="k">def</span> <span class="nf">on_config_change</span><span class="p">(</span><span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">on_config_change</span><span class="p">(</span><span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Handle configuration changes.</span>
 
 <span class="sd">    Parameters</span>
@@ -451,7 +451,7 @@
 
 <div class="viewcode-block" id="get_default_logger">
 <a class="viewcode-back" href="../../api/nxbench.html#nxbench.log.get_default_logger">[docs]</a>
-<span class="k">def</span> <span class="nf">get_default_logger</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">logging</span><span class="o">.</span><span class="n">Logger</span><span class="p">:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_default_logger</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">logging</span><span class="o">.</span><span class="n">Logger</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Return a default logger instance for simple logging.&quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">&quot;nxbench&quot;</span><span class="p">)</span></div>
 
@@ -459,7 +459,7 @@
 
 <div class="viewcode-block" id="disable_logger">
 <a class="viewcode-back" href="../../api/nxbench.html#nxbench.log.disable_logger">[docs]</a>
-<span class="k">def</span> <span class="nf">disable_logger</span><span class="p">(</span><span class="n">logger_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">disable_logger</span><span class="p">(</span><span class="n">logger_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Disables the logger by removing all handlers.&quot;&quot;&quot;</span>
     <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="n">logger_name</span><span class="p">)</span>
     <span class="n">logger</span><span class="o">.</span><span class="n">disabled</span> <span class="o">=</span> <span class="kc">True</span>
@@ -468,7 +468,7 @@
 
 
 
-<span class="k">def</span> <span class="nf">initialize_logging</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">initialize_logging</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Initialize logging based on the current configuration.&quot;&quot;&quot;</span>
     <span class="n">setup_logger_from_config</span><span class="p">(</span><span class="n">_config</span><span class="o">.</span><span class="n">logging_config</span><span class="p">)</span>
     <span class="n">_config</span><span class="o">.</span><span class="n">register_observer</span><span class="p">(</span><span class="n">on_config_change</span><span class="p">)</span>
@@ -477,7 +477,7 @@
 <div class="viewcode-block" id="NxBenchConfig">
 <a class="viewcode-back" href="../../api/nxbench.html#nxbench.log.NxBenchConfig">[docs]</a>
 <span class="nd">@dataclass</span>
-<span class="k">class</span> <span class="nc">NxBenchConfig</span><span class="p">(</span><span class="n">Config</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">NxBenchConfig</span><span class="p">(</span><span class="n">Config</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Configuration for NetworkX that controls behaviors such as how to use backends</span>
 <span class="sd">    and logging.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -496,14 +496,14 @@
 
 <div class="viewcode-block" id="NxBenchConfig.__post_init__">
 <a class="viewcode-back" href="../../api/nxbench.html#nxbench.log.NxBenchConfig.__post_init__">[docs]</a>
-    <span class="k">def</span> <span class="nf">__post_init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">__post_init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Set environment variables based on initialized fields.&quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">set_verbosity_level</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">verbosity_level</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="NxBenchConfig.register_observer">
 <a class="viewcode-back" href="../../api/nxbench.html#nxbench.log.NxBenchConfig.register_observer">[docs]</a>
-    <span class="k">def</span> <span class="nf">register_observer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">callback</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="kc">None</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">register_observer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">callback</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="kc">None</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Register an observer callback to be notified on configuration changes.</span>
 
 <span class="sd">        Parameters</span>
@@ -518,7 +518,7 @@
 
 <div class="viewcode-block" id="NxBenchConfig.notify_observers">
 <a class="viewcode-back" href="../../api/nxbench.html#nxbench.log.NxBenchConfig.notify_observers">[docs]</a>
-    <span class="k">def</span> <span class="nf">notify_observers</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">notify_observers</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Notify all registered observers about a configuration change.</span>
 
 <span class="sd">        Parameters</span>
@@ -534,7 +534,7 @@
 
 <div class="viewcode-block" id="NxBenchConfig.set_verbosity_level">
 <a class="viewcode-back" href="../../api/nxbench.html#nxbench.log.NxBenchConfig.set_verbosity_level">[docs]</a>
-    <span class="k">def</span> <span class="nf">set_verbosity_level</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">level</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">set_verbosity_level</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">level</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Set the verbosity level (0-2). 2=DEBUG, 1=INFO, 0=NO logging.&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">level</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">]:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Verbosity level must be 0, 1, or 2&quot;</span><span class="p">)</span>

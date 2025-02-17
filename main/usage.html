@@ -8,7 +8,7 @@
 
     <link rel="shortcut icon" href="_static/favicon.ico"/><!-- Generated with Sphinx 8.1.3 and Furo 2024.08.06 -->
         <title>Usage - NxBench</title>
-      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=a746c00c" />
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=8f2a1f02" />
     <link rel="stylesheet" type="text/css" href="_static/styles/furo.css?v=354aac6f" />
     <link rel="stylesheet" type="text/css" href="_static/styles/furo-extensions.css?v=302659d7" />
     <link rel="stylesheet" type="text/css" href="_static/css/nxbench-custom.css" />
@@ -340,8 +340,8 @@ prefect<span class="w"> </span>server<span class="w"> </span>start
 </pre></div>
 </div>
 </li>
-<li><p><strong>Export Results to a SQL Database</strong>:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>nxbench<span class="w"> </span>--config<span class="w"> </span><span class="s1">&#39;nxbench/configs/example.yaml&#39;</span><span class="w"> </span>benchmark<span class="w"> </span><span class="nb">export</span><span class="w"> </span><span class="s1">&#39;results/9e3e8baa4a3443c392dc8fee00373b11_20241220002902.json&#39;</span><span class="w"> </span>--output-format<span class="w"> </span>sql<span class="w"> </span>--output-file<span class="w"> </span><span class="s1">&#39;results/benchmarks.sqlite&#39;</span>
+<li><p><strong>Export Results to a Postgres SQL Database</strong>:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>nxbench<span class="w"> </span>--config<span class="w"> </span><span class="s1">&#39;nxbench/configs/example.yaml&#39;</span><span class="w"> </span>benchmark<span class="w"> </span><span class="nb">export</span><span class="w"> </span><span class="s1">&#39;results/9e3e8baa4a3443c392dc8fee00373b11_20241220002902.json&#39;</span><span class="w"> </span>--output-format<span class="w"> </span>sql
 </pre></div>
 </div>
 </li>
@@ -360,36 +360,28 @@ prefect<span class="w"> </span>server<span class="w"> </span>start
 </section>
 <section id="reproducible-benchmarking-through-containerization">
 <h2>Reproducible Benchmarking Through Containerization<a class="headerlink" href="#reproducible-benchmarking-through-containerization" title="Link to this heading">¶</a></h2>
-<section id="running-benchmarks-with-gpu-support">
-<h3>Running Benchmarks with GPU Support<a class="headerlink" href="#running-benchmarks-with-gpu-support" title="Link to this heading">¶</a></h3>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>docker-compose<span class="w"> </span>up<span class="w"> </span>nxbench
+<p>Use the provided convenience script (docker/nxbench-run.sh) instead of invoking docker-compose directly. This script automatically resolves your configuration file, switches between CPU and GPU modes, detects the desired nxbench subcommand, and mounts the host’s results directory when needed.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Download a Dataset (e.g. Karate):</span>
+docker/nxbench-run.sh<span class="w"> </span>--config<span class="w"> </span><span class="s1">&#39;nxbench/configs/example.yaml&#39;</span><span class="w"> </span>data<span class="w"> </span>download<span class="w"> </span>karate
+
+<span class="c1"># List Available Datasets by Category:</span>
+docker/nxbench-run.sh<span class="w"> </span>--config<span class="w"> </span><span class="s1">&#39;nxbench/configs/example.yaml&#39;</span><span class="w"> </span>data<span class="w"> </span>list<span class="w"> </span>--category<span class="w"> </span>social
+
+<span class="c1"># Run benchmarks</span>
+docker/nxbench-run.sh<span class="w"> </span>--config<span class="w"> </span><span class="s1">&#39;nxbench/configs/example.yaml&#39;</span><span class="w"> </span>benchmark<span class="w"> </span>run
+
+<span class="c1"># Run benchmarks (with GPU support)</span>
+docker/nxbench-run.sh<span class="w"> </span>--gpu<span class="w"> </span>--config<span class="w"> </span><span class="s1">&#39;nxbench/configs/example.yaml&#39;</span><span class="w"> </span>benchmark<span class="w"> </span>run
+
+<span class="c1"># Export Benchmark Results to CSV:</span>
+docker/nxbench-run.sh<span class="w"> </span>--config<span class="w"> </span><span class="s1">&#39;nxbench/configs/example.yaml&#39;</span><span class="w"> </span>benchmark<span class="w"> </span><span class="nb">export</span><span class="w"> </span><span class="s1">&#39;nxbench_results/9e3e8baa4a3443c392dc8fee00373b11_20241220002902.json&#39;</span><span class="w"> </span>--output-format<span class="w"> </span>csv<span class="w"> </span>--output-file<span class="w"> </span><span class="s1">&#39;nxbench_results/results.csv&#39;</span>
+
+<span class="c1"># Launch the Visualization Dashboard:</span>
+docker/nxbench-run.sh<span class="w"> </span>--config<span class="w"> </span><span class="s1">&#39;nxbench/configs/example.yaml&#39;</span><span class="w"> </span>viz<span class="w"> </span>serve
+<span class="c1"># Note: The dashboard service requires that benchmark results have been generated and exported (i.e. a valid results/results.csv file</span>
+<span class="c1"># exists).</span>
 </pre></div>
 </div>
-</section>
-<section id="running-benchmarks-on-cpu-only">
-<h3>Running Benchmarks on CPU Only<a class="headerlink" href="#running-benchmarks-on-cpu-only" title="Link to this heading">¶</a></h3>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nv">NUM_GPU</span><span class="o">=</span><span class="m">0</span><span class="w"> </span>docker-compose<span class="w"> </span>up<span class="w"> </span>nxbench
-</pre></div>
-</div>
-</section>
-<section id="starting-the-visualization-dashboard">
-<h3>Starting the Visualization Dashboard<a class="headerlink" href="#starting-the-visualization-dashboard" title="Link to this heading">¶</a></h3>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>docker-compose<span class="w"> </span>up<span class="w"> </span>dashboard
-</pre></div>
-</div>
-</section>
-<section id="running-benchmarks-with-a-specific-backend">
-<h3>Running Benchmarks with a Specific Backend<a class="headerlink" href="#running-benchmarks-with-a-specific-backend" title="Link to this heading">¶</a></h3>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>docker-compose<span class="w"> </span>-f<span class="w"> </span>docker/docker-compose.cpu.yaml<span class="w"> </span>run<span class="w"> </span>--rm<span class="w"> </span>nxbench<span class="w"> </span>--config<span class="w"> </span><span class="s1">&#39;nxbench/configs/example.yaml&#39;</span><span class="w"> </span>benchmark<span class="w"> </span>run<span class="w"> </span>--backend<span class="w"> </span>networkx
-</pre></div>
-</div>
-</section>
-<section id="exporting-results-from-a-run-with-hash-9e3e8baa4a3443c392dc8fee00373b11-20241220002902">
-<h3>Exporting results from a run with hash <code class="docutils literal notranslate"><span class="pre">9e3e8baa4a3443c392dc8fee00373b11_20241220002902</span></code><a class="headerlink" href="#exporting-results-from-a-run-with-hash-9e3e8baa4a3443c392dc8fee00373b11-20241220002902" title="Link to this heading">¶</a></h3>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>docker-compose<span class="w"> </span>-f<span class="w"> </span>docker/docker-compose.cpu.yaml<span class="w"> </span>run<span class="w"> </span>--rm<span class="w"> </span>nxbench<span class="w"> </span>--config<span class="w"> </span><span class="s1">&#39;nxbench/configs/example.yaml&#39;</span><span class="w"> </span>benchmark<span class="w"> </span><span class="nb">export</span><span class="w"> </span><span class="s1">&#39;nxbench_results/9e3e8baa4a3443c392dc8fee00373b11_20241220002902.json&#39;</span><span class="w"> </span>--output-format<span class="w"> </span>csv<span class="w"> </span>--output-file<span class="w"> </span><span class="s1">&#39;nxbench_results/results.csv&#39;</span>
-</pre></div>
-</div>
-</section>
 </section>
 <section id="adding-a-new-backend">
 <h2>Adding a New Backend<a class="headerlink" href="#adding-a-new-backend" title="Link to this heading">¶</a></h2>
@@ -411,8 +403,8 @@ For example, if your backend library is <code class="docutils literal notranslat
 <section id="write-a-conversion-function">
 <h3>2. Write a Conversion Function<a class="headerlink" href="#write-a-conversion-function" title="Link to this heading">¶</a></h3>
 <p>In NxBench, a “backend” is simply a library or extension that <strong>converts a <code class="docutils literal notranslate"><span class="pre">networkx.Graph</span></code> into an alternate representation</strong>. You must define one or more <strong>conversion</strong> functions:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">convert_my_cool_backend</span><span class="p">(</span><span class="n">nx_graph</span><span class="p">:</span> <span class="n">networkx</span><span class="o">.</span><span class="n">Graph</span><span class="p">,</span> <span class="n">num_threads</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
-    <span class="kn">import</span> <span class="nn">my_cool_backend</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">convert_my_cool_backend</span><span class="p">(</span><span class="n">nx_graph</span><span class="p">:</span> <span class="n">networkx</span><span class="o">.</span><span class="n">Graph</span><span class="p">,</span> <span class="n">num_threads</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">my_cool_backend</span>
     <span class="c1"># Possibly configure multi-threading if relevant:</span>
     <span class="c1"># my_cool_backend.configure_threads(num_threads)</span>
 
@@ -425,8 +417,8 @@ For example, if your backend library is <code class="docutils literal notranslat
 <section id="optional-write-a-teardown-function">
 <h2>3. (Optional) Write a Teardown Function<a class="headerlink" href="#optional-write-a-teardown-function" title="Link to this heading">¶</a></h2>
 <p>If your backend has special cleanup needs (e.g., free GPU memory, close connections, revert global state, etc.), define a teardown function:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">teardown_my_cool_backend</span><span class="p">():</span>
-    <span class="kn">import</span> <span class="nn">my_cool_backend</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">teardown_my_cool_backend</span><span class="p">():</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">my_cool_backend</span>
     <span class="c1"># e.g. my_cool_backend.shutdown()</span>
     <span class="k">pass</span>
 </pre></div>
@@ -436,15 +428,15 @@ For example, if your backend library is <code class="docutils literal notranslat
 <section id="register-with-nxbench">
 <h2>4. Register with NxBench<a class="headerlink" href="#register-with-nxbench" title="Link to this heading">¶</a></h2>
 <p>Locate NxBench’s <a class="reference download internal" download="" href="_downloads/5289304efe1649646978b498553264c2/registry.py"><span class="xref download myst">registry.py</span></a> (or a similar file where other backends are registered). Add your calls to <code class="docutils literal notranslate"><span class="pre">backend_manager.register_backend(...)</span></code>:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">nxbench.backends.registry</span> <span class="kn">import</span> <span class="n">backend_manager</span>
-<span class="kn">import</span> <span class="nn">networkx</span> <span class="k">as</span> <span class="nn">nx</span>  <span class="c1"># only if needed</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">nxbench.backends.registry</span><span class="w"> </span><span class="kn">import</span> <span class="n">backend_manager</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">networkx</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">nx</span>  <span class="c1"># only if needed</span>
 
-<span class="k">def</span> <span class="nf">convert_my_cool_backend</span><span class="p">(</span><span class="n">nx_graph</span><span class="p">:</span> <span class="n">nx</span><span class="o">.</span><span class="n">Graph</span><span class="p">,</span> <span class="n">num_threads</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
-    <span class="kn">import</span> <span class="nn">my_cool_backend</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">convert_my_cool_backend</span><span class="p">(</span><span class="n">nx_graph</span><span class="p">:</span> <span class="n">nx</span><span class="o">.</span><span class="n">Graph</span><span class="p">,</span> <span class="n">num_threads</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">my_cool_backend</span>
     <span class="c1"># Possibly configure my_cool_backend with num_threads</span>
     <span class="k">return</span> <span class="n">my_cool_backend</span><span class="o">.</span><span class="n">from_networkx</span><span class="p">(</span><span class="n">nx_graph</span><span class="p">)</span>
 
-<span class="k">def</span> <span class="nf">teardown_my_cool_backend</span><span class="p">():</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">teardown_my_cool_backend</span><span class="p">():</span>
     <span class="c1"># e.g. release resources</span>
     <span class="k">pass</span>
 
@@ -559,14 +551,7 @@ For example, if your backend library is <code class="docutils literal notranslat
 <li><a class="reference internal" href="#visualization">Visualization</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#reproducible-benchmarking-through-containerization">Reproducible Benchmarking Through Containerization</a><ul>
-<li><a class="reference internal" href="#running-benchmarks-with-gpu-support">Running Benchmarks with GPU Support</a></li>
-<li><a class="reference internal" href="#running-benchmarks-on-cpu-only">Running Benchmarks on CPU Only</a></li>
-<li><a class="reference internal" href="#starting-the-visualization-dashboard">Starting the Visualization Dashboard</a></li>
-<li><a class="reference internal" href="#running-benchmarks-with-a-specific-backend">Running Benchmarks with a Specific Backend</a></li>
-<li><a class="reference internal" href="#exporting-results-from-a-run-with-hash-9e3e8baa4a3443c392dc8fee00373b11-20241220002902">Exporting results from a run with hash <code class="docutils literal notranslate"><span class="pre">9e3e8baa4a3443c392dc8fee00373b11_20241220002902</span></code></a></li>
-</ul>
-</li>
+<li><a class="reference internal" href="#reproducible-benchmarking-through-containerization">Reproducible Benchmarking Through Containerization</a></li>
 <li><a class="reference internal" href="#adding-a-new-backend">Adding a New Backend</a><ul>
 <li><a class="reference internal" href="#verify-your-backend-is-installable">1. Verify Your Backend is Installable</a></li>
 <li><a class="reference internal" href="#write-a-conversion-function">2. Write a Conversion Function</a></li>
