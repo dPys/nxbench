@@ -73,14 +73,13 @@ services:
       - "8050:8050"
     volumes:
       - nxbench_data:/root/.nxbench
-      - nxbench_results:/app/results
     environment:
-      NXBENCH_CONFIG_FILE: "/app/config.yaml"
+      NXBENCH_CONFIG_FILE: "/app/config_override.yaml"
       PREFECT_API_URL: "http://orion:4200/api"
     command: nxbench viz serve --port 8050
     depends_on:
       orion:
-        condition: service_healthy
+        condition: service_started
     networks:
       - default
 
