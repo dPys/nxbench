@@ -290,7 +290,7 @@ class BenchmarkDataManager:
         session: aiohttp.ClientSession | None = None,
     ) -> tuple[nx.Graph | nx.DiGraph, dict[str, Any]]:
         for ext in self.SUPPORTED_FORMATS:
-            graph_file = self.data_home / f"{name}{ext}"
+            graph_file = self.data_dir / f"{name}{ext}"
             if graph_file.exists():
                 return self._load_graph_file(graph_file, metadata), metadata
 
@@ -305,7 +305,7 @@ class BenchmarkDataManager:
         await self._download_and_extract_network(name, url, session)
 
         for ext in self.SUPPORTED_FORMATS:
-            graph_file = self.data_home / f"{name}{ext}"
+            graph_file = self.data_dir / f"{name}{ext}"
             if graph_file.exists():
                 return self._load_graph_file(graph_file, metadata), metadata
 

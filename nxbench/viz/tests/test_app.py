@@ -335,4 +335,6 @@ def test_run_server_calls_dash_run_server(mock_load_data_function):
     """
     with patch("dash.Dash.run_server") as mock_dash_run:
         run_server(port=9999, debug=True, run=True)
-        mock_dash_run.assert_called_once_with(port=9999, debug=True)
+        mock_dash_run.assert_called_once_with(
+            host="0.0.0.0", port=9999, debug=True  # noqa: S104
+        )
