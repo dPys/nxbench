@@ -218,7 +218,7 @@ class TestResultsExporter:
             )
 
     @patch("nxbench.benchmarking.export.BenchmarkDB")
-    def test_export_results_sql_replace(self, mock_pyver, mock_db_class, mock_logger):
+    def test_export_results_sql_replace(self, mock_db_class, mock_logger):
         """Test exporting results into SQL with 'replace'."""
         exporter = ResultsExporter(results_file=Path("results.csv"))
         mock_db_instance = mock_db_class.return_value
