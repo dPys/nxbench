@@ -247,7 +247,6 @@ def make_violin_figure(
             "num_edges_bin",
             "is_directed",
             "is_weighted",
-            "python_version",
             "cpu",
             "os",
             "num_thread",
@@ -511,7 +510,7 @@ def run_server(port=8050, debug=False, run=True):
     )
 
     if run:
-        app.run_server(port=port, debug=debug)
+        app.run_server(host="0.0.0.0", port=port, debug=debug)  # noqa: S104
 
     return app
 

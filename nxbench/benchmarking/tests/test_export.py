@@ -8,6 +8,8 @@ import pytest
 from nxbench.benchmarking.config import BenchmarkResult
 from nxbench.benchmarking.export import ResultsExporter
 
+db_auth = "dbname=prefect_db user=prefect_user password=pass host=localhost"
+
 
 @pytest.fixture(autouse=True)
 def mock_benchmark_data_manager_metadata():
@@ -218,8 +220,7 @@ class TestResultsExporter:
             )
 
     @patch("nxbench.benchmarking.export.BenchmarkDB")
-    @patch("nxbench.benchmarking.export.get_python_version", return_value="3.10.14")
-    def test_export_results_sql_replace(self, mock_pyver, mock_db_class, mock_logger):
+    def test_export_results_sql_replace(self, mock_db_class, mock_logger):
         """Test exporting results into SQL with 'replace'."""
         exporter = ResultsExporter(results_file=Path("results.csv"))
         mock_db_instance = mock_db_class.return_value
@@ -245,15 +246,15 @@ class TestResultsExporter:
             exporter.export_results(
                 Path("database.db"), form="sql", if_exists="replace"
             )
-            mock_db_class.assert_called_with(Path("database.db"))
+            mock_db_class.assert_called_with(conn_str=db_auth)
+
             mock_db_instance.delete_results.assert_called_once()
             mock_db_instance.save_results.assert_called_once_with(
-                results=mock_results,
-                machine_info={},
-                python_version="3.10.14",  # matches our patched version
+                results=mock_results, machine_info={}, package_versions={}
             )
             mock_logger.info.assert_called_with(
-                "Exported results to SQL database: database.db"
+                f"Exported results to PostgreSQL database using connection string: "
+                f"{db_auth}"
             )
 
     def test_export_results_unsupported_format(self):

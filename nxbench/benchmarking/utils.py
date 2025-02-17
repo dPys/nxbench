@@ -5,7 +5,6 @@ import logging
 import os
 import platform
 import random
-import sys
 import tracemalloc
 from contextlib import contextmanager
 from pathlib import Path
@@ -83,7 +82,6 @@ def load_default_config() -> BenchmarkConfig:
             "networkx": ["networkx==3.4.2"],
             "graphblas": ["graphblas_algorithms==2023.10.0"],
         },
-        "pythons": ["3.10", "3.11"],
     }
 
     return BenchmarkConfig(
@@ -94,30 +92,19 @@ def load_default_config() -> BenchmarkConfig:
     )
 
 
-def get_python_version() -> str:
-    """Get formatted Python version string."""
-    version_info = sys.version_info
-    return f"{version_info.major}.{version_info.minor}.{version_info.micro}"
-
-
 class MemorySnapshot:
     """Class to store and diff memory snapshots."""
 
     def __init__(self, snapshot=None):
-        """Initialize with optional tracemalloc snapshot."""
         self.snapshot = snapshot
 
     def take(self):
-        """Take a new snapshot."""
         self.snapshot = tracemalloc.take_snapshot()
 
     def compare_to(self, other: "MemorySnapshot") -> tuple[int, int]:
-        """Compare this snapshot to another and return (current, peak) memory diff in
-        bytes.
-        """
+        """Compare snapshots and return (current, peak) difference in bytes."""
         if not self.snapshot or not other.snapshot:
             return 0, 0
-
         stats = self.snapshot.compare_to(other.snapshot, "lineno")
         current = sum(stat.size_diff for stat in stats)
         peak = sum(stat.size for stat in stats)
@@ -126,30 +113,30 @@ class MemorySnapshot:
 
 @contextmanager
 def memory_tracker():
-    """Track memory usage of code block.
+    """Track memory usage using snapshots.
 
-    Returns dict with 'current' and 'peak' memory usage in bytes.
-    Memory usage is measured as the difference between before and after execution.
+    This works whether or not tracemalloc is already running.
     """
     gc.collect()
-    tracemalloc.start()
-
-    baseline = MemorySnapshot()
-    baseline.take()
-
+    if not tracemalloc.is_tracing():
+        tracemalloc.start(25)
+        started_here = True
+    else:
+        started_here = False
+    baseline = tracemalloc.take_snapshot()
     mem = {}
     try:
         yield mem
     finally:
         gc.collect()
-        end = MemorySnapshot()
-        end.take()
-        current, peak = end.compare_to(baseline)
-
-        mem["current"] = current
-        mem["peak"] = peak
-
-        tracemalloc.stop()
+        snapshot = tracemalloc.take_snapshot()
+        ms1 = MemorySnapshot(baseline)
+        ms2 = MemorySnapshot(snapshot)
+        current, peak = ms2.compare_to(ms1)
+        mem["current"] = current / (1024 * 1024)  # convert to MB
+        mem["peak"] = peak / (1024 * 1024)
+        if started_here:
+            tracemalloc.stop()
 
 
 def get_available_algorithms():

@@ -20,7 +20,6 @@ from nxbench.benchmarking.utils import (
     add_seeding,
     get_benchmark_config,
     get_machine_info,
-    get_python_version,
     list_available_backends,
     memory_tracker,
     process_algorithm_params,
@@ -99,9 +98,7 @@ def run_algorithm(
         return None, 0.0, 0, str(e)
 
     pos_args, kwargs = process_algorithm_params(algo_config.params)
-
     kwargs = add_seeding(kwargs, algo_func, algo_config.name)
-
     error = None
     try:
         original_env = {}
@@ -117,7 +114,6 @@ def run_algorithm(
             original_env[var_name] = os.environ.get(var_name)
             os.environ[var_name] = str(num_thread)
 
-        # start memory tracking
         with memory_tracker() as mem:
             start_time = time.perf_counter()
             try:
@@ -137,15 +133,14 @@ def run_algorithm(
                 logger.exception("Algorithm run failed unexpectedly.")
                 result = None
                 error = str(e)
-            finally:
-                end_time = time.perf_counter()
-                execution_time = end_time - start_time
-
-            peak_memory = mem.get("peak", 0)
-
+            end_time = time.perf_counter()
+            execution_time = end_time - start_time
+        peak_memory = mem.get("peak", 0)
+        # logger.info(
+        #     f"Artificial allocation: len={result}, peak_memory={peak_memory:.4f} MB"
+        # )
     finally:
         logger.debug(f"Algorithm '{algo_config.name}' executed successfully.")
-        # restore environment variables
         for var_name in vars_to_set:
             if original_env[var_name] is None:
                 del os.environ[var_name]
@@ -208,7 +203,7 @@ def collect_metrics(
         metrics = {
             "execution_time": execution_time,
             "execution_time_with_preloading": execution_time_with_preloading,
-            "memory_used": peak_memory / (1024 * 1024),  # convert to MB
+            "memory_used": peak_memory,  # convert to MB
             "num_nodes": (graph.number_of_nodes()),
             "num_edges": (graph.number_of_edges()),
             "algorithm": algo_config.name,
@@ -369,6 +364,70 @@ async def benchmark_suite(
     return await asyncio.gather(*tasks, return_exceptions=True)
 
 
+def display_results_summary(results: list[dict[str, Any]]) -> None:
+    """Print summary table of benchmark results to the terminal."""
+    valid_results = [r for r in results if isinstance(r, dict)]
+    if not valid_results:
+        return
+
+    # ANSI escape codes for coloring:
+    RESET = "\033[0m"
+    BOLD = "\033[1m"
+    BLUE = "\033[34m"
+    GREEN = "\033[32m"
+    YELLOW = "\033[33m"
+    RED = "\033[31m"
+
+    headers = [
+        "Algorithm",
+        "Dataset",
+        "Backend",
+        "Time (s)",
+        "Memory (MB)",
+        "Validation",
+    ]
+    rows = []
+    for res in valid_results:
+        algorithm = res.get("algorithm", "N/A")
+        dataset = res.get("dataset", "N/A")
+        backend = res.get("backend", "N/A")
+        # execution_time may be NaN if an error occurred
+        exec_time = res.get("execution_time", float("nan"))
+        mem_used = res.get("memory_used", float("nan"))
+        validation = res.get("validation", "N/A")
+        # colorize the validation field:
+        val_lower = str(validation).lower()
+        if val_lower == "passed":
+            validation = f"{GREEN}{validation}{RESET}"
+        elif val_lower == "warning":
+            validation = f"{YELLOW}{validation}{RESET}"
+        else:
+            validation = f"{RED}{validation}{RESET}"
+        rows.append(
+            [
+                str(algorithm),
+                str(dataset),
+                str(backend),
+                f"{exec_time:.4f}",
+                f"{mem_used:.4f}",
+                validation,
+            ]
+        )
+
+    col_widths = [max(len(str(cell)) for cell in col) for col in zip(headers, *rows)]
+    colored_headers = [f"{BOLD}{BLUE}{h}{RESET}" for h in headers]
+    header_line = " | ".join(h.ljust(w) for h, w in zip(colored_headers, col_widths))
+    separator_line = "-+-".join("-" * w for w in col_widths)
+
+    print("\nBenchmark Summary:")  # noqa: T201
+    print(header_line)  # noqa: T201
+    print(separator_line)  # noqa: T201
+    for row in rows:
+        print(  # noqa: T201
+            " | ".join(cell.ljust(w) for cell, w in zip(row, col_widths))
+        )
+
+
 async def main_benchmark(
     results_dir: Path = Path("results"),
 ):
@@ -382,22 +441,12 @@ async def main_benchmark(
         datasets = config["datasets"]
         env_data = config["env_data"]
 
-        # parse user-specified constraints for Python versions, backends, threads
-        pythons = env_data.get("pythons", ["3.10"])
+        # parse user-specified constraints for backends, threads
         backend_configs = env_data.get("backend", {"networkx": ["networkx==3.4.1"]})
         num_threads = env_data.get("num_threads", [1])
         if not isinstance(num_threads, list):
             num_threads = [num_threads]
         num_threads = [int(x) for x in num_threads]
-
-        # check Python version
-        actual_python_version = get_python_version()  # e.g. "3.10.12"
-        if not any(py_ver in actual_python_version for py_ver in pythons):
-            logger.error(
-                f"No requested Python version matches the actual interpreter "
-                f"({actual_python_version}). Aborting."
-            )
-            return
 
         available_backends = (
             list_available_backends()
@@ -420,9 +469,11 @@ async def main_benchmark(
                         matched = True
                         break
                 else:
-                    # if the user didn't pin a version, accept the installed version
-                    matched = True
-                    break
+                    # if the user didn't pin a version, raise
+                    raise ValueError(
+                        f"Version constraint '{req_ver}' for backend '{backend}' "
+                        "is not supported."
+                    )
 
             if matched:
                 chosen_backends.append(backend)
@@ -452,7 +503,6 @@ async def main_benchmark(
                 continue
 
             if isinstance(run_result, dict):
-                run_result["python_version"] = actual_python_version
                 bname = run_result.get("backend", "unknown")
                 run_result["backend_version"] = backend_version_map.get(
                     bname, "unknown"
@@ -468,3 +518,5 @@ async def main_benchmark(
             json.dump([r for r in final_results if isinstance(r, dict)], f, indent=4)
 
         logger.info(f"Benchmark suite results saved to {out_file}")
+
+        display_results_summary(final_results)

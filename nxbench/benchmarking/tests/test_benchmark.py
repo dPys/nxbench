@@ -100,16 +100,6 @@ def patch_machine_info():  # noqa: PT004
         yield
 
 
-@pytest.fixture
-def patch_python_version():  # noqa: PT004
-    """Patch get_python_version to return '3.10.12' by default."""
-    with patch(
-        "nxbench.benchmarking.benchmark.get_python_version",
-        return_value="3.10.12",
-    ):
-        yield
-
-
 ###############################################################################
 #                               TEST: load_config                             #
 ###############################################################################
@@ -374,7 +364,7 @@ def test_collect_metrics_no_error(example_graph, mock_algorithm_config):
     )
     assert res["execution_time"] == 1.23
     assert res["execution_time_with_preloading"] == 1.55
-    assert res["memory_used"] == 5000000 / (1024 * 1024)
+    assert res["memory_used"] == 5000000
     assert res["algorithm"] == "alg1"
     assert res["backend"] == "networkx"
     assert res["dataset"] == "ds1"
@@ -586,7 +576,7 @@ async def test_benchmark_suite_missing_dataset(mock_algorithm_config):
 
 
 @pytest.mark.asyncio
-@pytest.mark.usefixtures("patch_machine_info", "patch_python_version")
+@pytest.mark.usefixtures("patch_machine_info")
 @patch(
     "nxbench.benchmarking.benchmark.setup_cache", return_value={"ds1": ("graph", {})}
 )
@@ -632,7 +622,7 @@ async def test_main_benchmark_success(
 ## TODO: Fix caplog setup here (passes locally for python3.10), but fails for other
 ## python versions)
 # @pytest.mark.asyncio
-# @pytest.mark.usefixtures("patch_machine_info", "patch_python_version")
+# @pytest.mark.usefixtures("patch_machine_info")
 # @patch("nxbench.benchmarking.benchmark.setup_cache", return_value={"ds1": ("graph",
 # {})})
 # @patch("nxbench.benchmarking.benchmark.benchmark_suite", new_callable=AsyncMock)
@@ -688,51 +678,3 @@ async def test_main_benchmark_success(
 #         "No valid backends found or matched. Exiting." in rec.message
 #         for rec in caplog.records
 #     ), "Expected an error log about no valid backends."
-
-
-@pytest.mark.asyncio
-@pytest.mark.usefixtures("patch_machine_info")
-@patch(
-    "nxbench.benchmarking.benchmark.setup_cache", return_value={"ds1": ("graph", {})}
-)
-@patch("nxbench.benchmarking.benchmark.benchmark_suite", new_callable=AsyncMock)
-@patch("nxbench.benchmarking.benchmark.load_config")
-@patch("nxbench.benchmarking.benchmark.Path", autospec=True)
-async def test_main_benchmark_no_python_match(
-    mock_path_cls,
-    mock_load_config,
-    mock_benchmark_suite,
-    mock_setup_cache,
-    mock_benchmark_config,
-    tmp_path,
-    caplog,
-):
-    mock_path_obj = MagicMock()
-    mock_path_obj.mkdir.return_value = None
-
-    def path_side_effect(arg):
-        if arg == "results":
-            return tmp_path
-        return tmp_path / arg
-
-    mock_path_cls.side_effect = path_side_effect
-
-    new_config = mock_benchmark_config.copy()
-    new_config["env_data"]["pythons"] = ["3.9"]
-    mock_load_config.return_value = new_config
-
-    with patch(
-        "nxbench.benchmarking.benchmark.list_available_backends",
-        return_value={"networkx": "3.4.1"},
-    ):
-        await main_benchmark(results_dir=tmp_path)
-        assert any(
-            "No requested Python version matches the actual interpreter" in rec.message
-            for rec in caplog.records
-        )
-
-        files = list(tmp_path.iterdir())
-        assert len(files) == 1
-        with files[0].open("r") as f:
-            data = json.load(f)
-            assert len(data) == 0

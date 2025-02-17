@@ -29,11 +29,15 @@ RUN apt-get update && apt-get install -y \
     && conda clean --all --yes
 
 RUN pip install --no-cache-dir \
-    nxbench \
     nx-parallel \
-    python-graphblas \
-    ipython \
+    # python-graphblas \
+    # graphblas-algorithms \
+    ipython
+
+RUN pip install --no-cache-dir -e . \
     && mkdir -p ~/.nxbench/data && rm -rf /root/.cache/pip
+
+COPY nxbench/configs/example.yaml /app/config.yaml
 
 CMD ["nxbench"]
 
@@ -41,5 +45,3 @@ LABEL maintainer="Derek Alexander <dpysalexander@example.com>"
 LABEL description="Container image for nxbench graph algorithm benchmarking suite"
 LABEL version="0.1.0"
 LABEL org.opencontainers.image.source="https://github.com/dpys/nxbench"
-
-# USER rapids

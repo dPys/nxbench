@@ -17,6 +17,10 @@ from nxbench.validation.registry import BenchmarkValidator
 logger = logging.getLogger("nxbench")
 
 
+def _raise_unsupported_export_format(output_format: str) -> None:
+    raise ValueError(f"Unsupported export format: {output_format}")
+
+
 @click.group(invoke_without_command=True)
 @click.option("-v", "--verbose", count=True, help="Increase verbosity.")
 @click.option(
@@ -167,7 +171,7 @@ def run_benchmark(ctx):
     "--output-file",
     type=click.Path(dir_okay=False, writable=True, path_type=Path),
     help="Path to the output file. If not provided, the output file will be derived "
-    "from RESULT_FILE.",
+    "from RESULT_FILE (ignored for SQL export).",
 )
 @click.pass_context
 def export(ctx, result_file: Path, output_format: str, output_file: Path | None):
@@ -175,24 +179,34 @@ def export(ctx, result_file: Path, output_format: str, output_file: Path | None)
 
     RESULT_FILE is the path to the input benchmark results file (JSON or CSV).
     """
-    config = ctx.obj.get("CONFIG")
+    # Retrieve the configuration from the context.
+    config = ctx.obj.get("CONFIG") or {}
+
+    if output_format == "sql":
+        config["db_conn_str"] = (
+            "dbname=prefect_db user=prefect_user password=pass host=localhost"
+        )
 
     if config:
         logger.debug(f"Using config file for export: {config}")
 
     try:
-        exporter = ResultsExporter(results_file=result_file)
-
-        if output_file is None:
-            output_file = result_file.with_suffix(f".{output_format}")
-            logger.debug(
-                f"No output file specified. Using inferred path: {output_file}"
-            )
-
-        exporter.export_results(output_path=output_file, form=output_format)
-
-        logger.info(f"Exported results to {output_file}")
-        click.echo(f"Exported results to {output_file}")
+        exporter = ResultsExporter(results_file=result_file, config=config)
+        if output_format in ("json", "csv"):
+            if output_file is None:
+                output_file = result_file.with_suffix(f".{output_format}")
+                logger.debug(
+                    f"No output file specified. Using inferred path: {output_file}"
+                )
+            exporter.export_results(output_path=output_file, form=output_format)
+            logger.info(f"Exported results to {output_file}")
+            click.echo(f"Exported results to {output_file}")
+        elif output_format == "sql":
+            exporter.export_results(form="sql")
+            logger.info("Exported results to PostgreSQL database")
+            click.echo("Exported results to PostgreSQL database")
+        else:
+            _raise_unsupported_export_format(output_format)
 
     except Exception as e:
         logger.exception("Failed to export results")

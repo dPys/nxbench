@@ -69,10 +69,10 @@ The CLI provides comprehensive management of benchmarks, datasets, and visualiza
   nxbench --config 'nxbench/configs/example.yaml' -vvv benchmark run
   ```
 
-- **Export Results to a SQL Database**:
+- **Export Results to a Postgres SQL Database**:
 
   ```bash
-  nxbench --config 'nxbench/configs/example.yaml' benchmark export 'results/9e3e8baa4a3443c392dc8fee00373b11_20241220002902.json' --output-format sql --output-file 'results/benchmarks.sqlite'
+  nxbench --config 'nxbench/configs/example.yaml' benchmark export 'results/9e3e8baa4a3443c392dc8fee00373b11_20241220002902.json' --output-format sql
   ```
 
 ### Visualization
@@ -85,34 +85,28 @@ The CLI provides comprehensive management of benchmarks, datasets, and visualiza
 
 ## Reproducible Benchmarking Through Containerization
 
-### Running Benchmarks with GPU Support
+Use the provided convenience script (docker/nxbench-run.sh) instead of invoking docker-compose directly. This script automatically resolves your configuration file, switches between CPU and GPU modes, detects the desired nxbench subcommand, and mounts the host's results directory when needed.
 
 ```bash
-docker-compose up nxbench
-```
+# Download a Dataset (e.g. Karate):
+docker/nxbench-run.sh --config 'nxbench/configs/example.yaml' data download karate
 
-### Running Benchmarks on CPU Only
+# List Available Datasets by Category:
+docker/nxbench-run.sh --config 'nxbench/configs/example.yaml' data list --category social
 
-```bash
-NUM_GPU=0 docker-compose up nxbench
-```
+# Run benchmarks
+docker/nxbench-run.sh --config 'nxbench/configs/example.yaml' benchmark run
 
-### Starting the Visualization Dashboard
+# Run benchmarks (with GPU support)
+docker/nxbench-run.sh --gpu --config 'nxbench/configs/example.yaml' benchmark run
 
-```bash
-docker-compose up dashboard
-```
+# Export Benchmark Results to CSV:
+docker/nxbench-run.sh --config 'nxbench/configs/example.yaml' benchmark export 'nxbench_results/9e3e8baa4a3443c392dc8fee00373b11_20241220002902.json' --output-format csv --output-file 'nxbench_results/results.csv'
 
-### Running Benchmarks with a Specific Backend
-
-```bash
-docker-compose -f docker/docker-compose.cpu.yaml run --rm nxbench --config 'nxbench/configs/example.yaml' benchmark run --backend networkx
-```
-
-### Exporting results from a run with hash `9e3e8baa4a3443c392dc8fee00373b11_20241220002902`
-
-```bash
-docker-compose -f docker/docker-compose.cpu.yaml run --rm nxbench --config 'nxbench/configs/example.yaml' benchmark export 'nxbench_results/9e3e8baa4a3443c392dc8fee00373b11_20241220002902.json' --output-format csv --output-file 'nxbench_results/results.csv'
+# Launch the Visualization Dashboard:
+docker/nxbench-run.sh --config 'nxbench/configs/example.yaml' viz serve
+# Note: The dashboard service requires that benchmark results have been generated and exported (i.e. a valid results/results.csv file
+# exists).
 ```
 
 ## Adding a New Backend

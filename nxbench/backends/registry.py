@@ -1,5 +1,4 @@
 import logging
-import os
 from importlib import import_module
 
 import networkx as nx
@@ -56,14 +55,13 @@ backend_manager.register_backend(
 # ---- Nx-CuGraph backend ----
 def convert_cugraph(original_graph: nx.Graph, num_threads: int):
     nxc = import_module("nx_cugraph")
-    os.environ["NX_CUGRAPH_AUTOCONFIG"] = "True"
 
     edge_attr = "weight" if nx.is_weighted(original_graph) else None
     return nxc.from_networkx(original_graph, edge_attrs=edge_attr)
 
 
 def teardown_cugraph():
-    os.environ["NX_CUGRAPH_AUTOCONFIG"] = "False"
+    pass
 
 
 backend_manager.register_backend(

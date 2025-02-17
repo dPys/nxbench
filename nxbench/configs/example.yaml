@@ -90,13 +90,10 @@ validation:
 environ:
   backend:
     networkx:
-      - "networkx==3.4.1"
+      - "networkx==3.4.2"
     graphblas:
       - "graphblas_algorithms==2023.10.0"
   num_threads:
     - "1"
     - "4"
     - "8"
-  pythons:
-    - "3.10"
-    # - "3.11"
