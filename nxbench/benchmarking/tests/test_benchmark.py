@@ -364,7 +364,7 @@ def test_collect_metrics_no_error(example_graph, mock_algorithm_config):
     )
     assert res["execution_time"] == 1.23
     assert res["execution_time_with_preloading"] == 1.55
-    assert res["memory_used"] == 5000000 / (1024 * 1024)
+    assert res["memory_used"] == 5000000
     assert res["algorithm"] == "alg1"
     assert res["backend"] == "networkx"
     assert res["dataset"] == "ds1"

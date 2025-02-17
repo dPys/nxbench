@@ -15,23 +15,24 @@ logger = logging.getLogger("nxbench")
 class ResultsExporter:
     """Handle loading, processing, and exporting of benchmark results."""
 
-    def __init__(self, results_file: Path):
-        """Initialize the results exporter.
-
+    def __init__(self, results_file: Path, config: dict | None = None):
+        """
         Parameters
         ----------
         results_file : Path
-            Path to the benchmark results file (JSON or CSV)
+            Path to the benchmark results file (JSON or CSV).
+        config : dict, optional
+            Configuration dictionary. For SQL export, this should contain the key
+            "db_conn_str" (e.g., "dbname=prefect_db user=prefect_user password=pass
+            host=localhost").
+            If not provided, a default connection string is used.
         """
         self.results_file = results_file
+        self.config = config or {}
         self.data_manager = BenchmarkDataManager()
         self._cached_results: list[BenchmarkResult] | None = None
 
     def _safely_parse_entry(self, entry: dict[str, Any]) -> BenchmarkResult | None:
-        """
-        Convert one dictionary entry into a BenchmarkResult, logging
-        and returning None on error (so we skip just that one).
-        """
         try:
             return self._create_benchmark_result_from_entry(entry)
         except Exception:
@@ -39,32 +40,24 @@ class ResultsExporter:
             return None
 
     def load_results(self) -> list[BenchmarkResult]:
-        """Load benchmark results from the workflow outputs (JSON or CSV),
-        integrating all known fields into BenchmarkResult and treating unknown
-        fields as metadata.
-        """
         if self._cached_results is not None:
             return self._cached_results
 
         results = []
-
         try:
             suffix = self.results_file.suffix.lower()
             if suffix == ".json":
                 with self.results_file.open("r") as f:
                     data = json.load(f)
-
                 if not isinstance(data, list):
                     logger.error(
                         f"Expected a list of results in JSON file, got {type(data)}"
                     )
                     return []
-
                 for entry in data:
                     result = self._safely_parse_entry(entry)
                     if result:
                         results.append(result)
-
             elif suffix == ".csv":
                 df = pd.read_csv(self.results_file)
                 for _, row in df.iterrows():
@@ -72,7 +65,6 @@ class ResultsExporter:
                     result = self._safely_parse_entry(entry)
                     if result:
                         results.append(result)
-
         except Exception:
             logger.exception(f"Failed to load results from: {self.results_file}")
             return []
@@ -84,10 +76,6 @@ class ResultsExporter:
     def _create_benchmark_result_from_entry(
         self, entry: dict[str, Any]
     ) -> BenchmarkResult:
-        """
-        Parse a single JSON or CSV row into a BenchmarkResult object.
-        Missing/unparseable fields are gracefully handled, so no row is dropped.
-        """
         known_fields = {
             "algorithm",
             "dataset",
@@ -107,14 +95,12 @@ class ResultsExporter:
         }
 
         def as_float(value, default=float("nan")):
-            """Attempt parsing a float; fallback to default if unparseable."""
             try:
                 return float(value)
             except (TypeError, ValueError):
                 return default
 
         def as_int(value, default=0):
-            """Attempt parsing an int; fallback to default if unparseable."""
             try:
                 return int(value)
             except (TypeError, ValueError):
@@ -137,7 +123,6 @@ class ResultsExporter:
         validation = entry.get("validation", "unknown")
         validation_message = entry.get("validation_message", "")
         error = entry.get("error")
-
         metadata = {k: v for k, v in entry.items() if k not in known_fields}
 
         return BenchmarkResult(
@@ -166,7 +151,6 @@ class ResultsExporter:
 
         records = []
         all_metadata_keys = set()
-
         for result in results:
             record = {
                 "algorithm": result.algorithm,
@@ -185,47 +169,47 @@ class ResultsExporter:
                 "validation_message": result.validation_message,
                 "error": result.error,
             }
-
             for k, v in result.metadata.items():
                 record[k] = v
                 all_metadata_keys.add(k)
-
             records.append(record)
-
         df = pd.DataFrame(records)
         for mk in all_metadata_keys:
             if mk not in df.columns:
                 df[mk] = pd.NA
-
         return df
 
     def export_results(
-        self, output_path: Path, form: str = "csv", if_exists: str = "replace"
+        self,
+        output_path: Path | None = None,
+        form: str = "csv",
+        if_exists: str = "replace",
     ) -> None:
-        """Export benchmark results in specified format (csv, sql, json)."""
         df = self.to_dataframe()
-
         if form == "csv":
+            if output_path is None:
+                raise ValueError("An output file must be specified for CSV export")
             df.to_csv(output_path, index=False)
             logger.info(f"Exported results to CSV: {output_path}")
-
-        elif form == "sql":
-            db = BenchmarkDB(output_path)
-
-            if if_exists == "replace":
-                db.delete_results()
-
-            results = self.load_results()
-            db.save_results(
-                results=results,
-                machine_info={},
-            )
-            logger.info(f"Exported results to SQL database: {output_path}")
-
         elif form == "json":
+            if output_path is None:
+                raise ValueError("An output file must be specified for JSON export")
             df.to_json(output_path, orient="records", indent=2)
             logger.info(f"Exported results to JSON: {output_path}")
-
+        elif form == "sql":
+            conn_str = self.config.get(
+                "db_conn_str",
+                "dbname=prefect_db user=prefect_user password=pass host=localhost",
+            )
+            db = BenchmarkDB(conn_str=conn_str)
+            if if_exists == "replace":
+                db.delete_results()
+            results = self.load_results()
+            db.save_results(results=results, machine_info={}, package_versions={})
+            logger.info(
+                f"Exported results to PostgreSQL database using connection string: "
+                f"{conn_str}"
+            )
         else:
             raise ValueError(f"Unsupported export format: {form}")
 
@@ -236,9 +220,7 @@ class ResultsExporter:
         dataset: str | None = None,
         date_range: tuple[str, str] | None = None,
     ) -> pd.DataFrame:
-        """Query benchmark results with optional filtering."""
         df = self.to_dataframe()
-
         if algorithm:
             df = df[df["algorithm"] == algorithm]
         if backend:
@@ -251,5 +233,4 @@ class ResultsExporter:
                 (df["date"] >= pd.to_datetime(start_date))
                 & (df["date"] <= pd.to_datetime(end_date))
             ]
-
         return df.sort_values(["algorithm", "dataset", "backend"])

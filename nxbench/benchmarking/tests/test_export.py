@@ -8,6 +8,8 @@ import pytest
 from nxbench.benchmarking.config import BenchmarkResult
 from nxbench.benchmarking.export import ResultsExporter
 
+db_auth = "dbname=prefect_db user=prefect_user password=pass host=localhost"
+
 
 @pytest.fixture(autouse=True)
 def mock_benchmark_data_manager_metadata():
@@ -244,14 +246,15 @@ class TestResultsExporter:
             exporter.export_results(
                 Path("database.db"), form="sql", if_exists="replace"
             )
-            mock_db_class.assert_called_with(Path("database.db"))
+            mock_db_class.assert_called_with(conn_str=db_auth)
+
             mock_db_instance.delete_results.assert_called_once()
             mock_db_instance.save_results.assert_called_once_with(
-                results=mock_results,
-                machine_info={},
+                results=mock_results, machine_info={}, package_versions={}
             )
             mock_logger.info.assert_called_with(
-                "Exported results to SQL database: database.db"
+                f"Exported results to PostgreSQL database using connection string: "
+                f"{db_auth}"
             )
 
     def test_export_results_unsupported_format(self):

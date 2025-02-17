@@ -93,10 +93,10 @@ In a terminal window:
 
 ```bash
 # CPU-only
-docker-compose -f docker/docker-compose.cpu.yaml build
+make build
 
 # With GPU
-docker-compose -f docker/docker-compose.gpu.yaml build
+make build-gpu
 ```
 
 ## Development Setup

@@ -9,7 +9,10 @@ clean_local:
 	@rm -rf .mypy_cache .pytest_cache build dist nxbench.egg-info htmlcov .benchmarks env
 
 build:
-	@docker-compose build
+	@docker-compose -f docker/docker-compose.cpu.yaml build
+
+build-gpu:
+	@docker-compose -f docker/docker-compose.gpu.yaml build
 
 install: clean_local
 	@pip uninstall nxbench -y

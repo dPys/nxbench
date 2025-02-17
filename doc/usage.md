@@ -69,10 +69,10 @@ The CLI provides comprehensive management of benchmarks, datasets, and visualiza
   nxbench --config 'nxbench/configs/example.yaml' -vvv benchmark run
   ```
 
-- **Export Results to a SQL Database**:
+- **Export Results to a Postgres SQL Database**:
 
   ```bash
-  nxbench --config 'nxbench/configs/example.yaml' benchmark export 'results/9e3e8baa4a3443c392dc8fee00373b11_20241220002902.json' --output-format sql --output-file 'results/benchmarks.sqlite'
+  nxbench --config 'nxbench/configs/example.yaml' benchmark export 'results/9e3e8baa4a3443c392dc8fee00373b11_20241220002902.json' --output-format sql
   ```
 
 ### Visualization

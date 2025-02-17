@@ -1,12 +1,10 @@
-import sqlite3
 import warnings
-from collections.abc import Generator
 from contextlib import contextmanager
 from dataclasses import asdict
 from datetime import datetime, timezone
-from pathlib import Path
 
 import pandas as pd
+import psycopg2
 
 from nxbench.benchmarking.config import BenchmarkResult
 
@@ -14,7 +12,7 @@ warnings.filterwarnings("ignore")
 
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS benchmarks (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    id SERIAL PRIMARY KEY,
     timestamp TEXT NOT NULL,
     algorithm TEXT NOT NULL,
     backend TEXT NOT NULL,
@@ -40,33 +38,42 @@ CREATE INDEX IF NOT EXISTS idx_timestamp ON benchmarks(timestamp);
 
 
 class BenchmarkDB:
-    """Database interface for storing and querying benchmark results."""
+    """Database interface for storing and querying benchmark results in PostgreSQL."""
 
-    def __init__(self, db_path: str | Path | None = None):
-        """Initialize the database connection.
+    def __init__(self, conn_str: str | None = None):
+        """
+        Initialize the database connection.
 
         Parameters
         ----------
-        db_path : str or Path, optional
-            Path to SQLite database file. If None, uses default location
+        conn_str : str, optional
+            PostgreSQL connection string. If None, a default connection string is used.
         """
-        if db_path is None:
-            db_path = Path.home() / ".nxbench" / "benchmarks.db"
-
-        self.db_path = Path(db_path)
-        self.db_path.parent.mkdir(parents=True, exist_ok=True)
-
+        if conn_str is None:
+            conn_str = (
+                "dbname=prefect_db user=prefect_user password=pass host=localhost"
+            )
+        self.conn_str = conn_str
         self._init_db()
 
     def _init_db(self) -> None:
         """Initialize the database schema."""
         with self._connection() as conn:
-            conn.executescript(SCHEMA)
+            with conn.cursor() as cur:
+                cur.execute(SCHEMA)
+            conn.commit()
+
+    def truncate(self) -> None:
+        """Completely clear the benchmarks table and reset the serial counter."""
+        with self._connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute("TRUNCATE TABLE benchmarks RESTART IDENTITY CASCADE")
+            conn.commit()
 
     @contextmanager
-    def _connection(self) -> Generator[sqlite3.Connection, None, None]:
-        """Context manager for database connections."""
-        conn = sqlite3.connect(self.db_path)
+    def _connection(self):
+        """Context manager for PostgreSQL database connections."""
+        conn = psycopg2.connect(self.conn_str)
         try:
             yield conn
         finally:
@@ -79,18 +86,18 @@ class BenchmarkDB:
         machine_info: dict | None = None,
         package_versions: dict | None = None,
     ) -> None:
-        """Save benchmark results to database.
+        """Save benchmark results to the database.
 
         Parameters
         ----------
         results : BenchmarkResult or list of BenchmarkResult
-            Results to save
+            Results to save.
         git_commit : str, optional
-            Git commit hash for version tracking
+            Git commit hash for version tracking.
         machine_info : dict, optional
-            System information
+            System information.
         package_versions : dict, optional
-            Versions of key packages
+            Versions of key packages.
         """
         valid_columns = {
             "id",
@@ -115,42 +122,42 @@ class BenchmarkDB:
             results = [results]
 
         with self._connection() as conn:
-            for result in results:
-                result_dict = asdict(result)
-
-                result_dict["timing"] = result_dict.pop("execution_time")
-                result_dict["memory_usage"] = result_dict.pop("memory_used")
-
-                result_dict["directed"] = int(result_dict.pop("is_directed"))
-                result_dict["weighted"] = int(result_dict.pop("is_weighted"))
-
-                result_dict.update(
-                    {
-                        "timestamp": datetime.now(timezone.utc).isoformat(),
-                        "git_commit": git_commit,
-                        "machine_info": str(machine_info) if machine_info else None,
-                        "package_versions": (
-                            str(package_versions) if package_versions else None
-                        ),
+            with conn.cursor() as cur:
+                for result in results:
+                    result_dict = asdict(result)
+                    # Rename fields
+                    result_dict["timing"] = result_dict.pop("execution_time")
+                    result_dict["memory_usage"] = result_dict.pop("memory_used")
+                    # Convert booleans to integers
+                    result_dict["directed"] = int(result_dict.pop("is_directed"))
+                    result_dict["weighted"] = int(result_dict.pop("is_weighted"))
+                    result_dict.update(
+                        {
+                            "timestamp": datetime.now(timezone.utc).isoformat(),
+                            "git_commit": git_commit,
+                            "machine_info": str(machine_info) if machine_info else None,
+                            "package_versions": (
+                                str(package_versions) if package_versions else None
+                            ),
+                        }
+                    )
+                    filtered_dict = {
+                        k: v for k, v in result_dict.items() if k in valid_columns
                     }
-                )
-
-                filtered_dict = {
-                    k: v for k, v in result_dict.items() if k in valid_columns
-                }
-
-                if not filtered_dict:
-                    continue
-
-                columns = list(filtered_dict.keys())
-
-                query = "INSERT INTO benchmarks ("
-                query += ",".join(f'"{col}"' for col in columns)
-                query += ") VALUES ("
-                query += ",".join("?" for _ in columns)
-                query += ")"
-
-                conn.execute(query, list(filtered_dict.values()))
+                    if not filtered_dict:
+                        continue
+                    columns = list(filtered_dict.keys())
+                    query = psycopg2.sql.SQL(
+                        "INSERT INTO benchmarks ({fields}) VALUES ({values})"
+                    ).format(
+                        fields=psycopg2.sqlsql.SQL(",").join(
+                            map(psycopg2.sqlsql.Identifier, columns)
+                        ),
+                        values=psycopg2.sqlsql.SQL(",").join(
+                            psycopg2.sqlsql.Placeholder() for _ in columns
+                        ),
+                    )
+                    cur.execute(query, list(filtered_dict.values()))
             conn.commit()
 
     def get_results(
@@ -167,49 +174,48 @@ class BenchmarkDB:
         Parameters
         ----------
         algorithm : str, optional
-            Filter by algorithm name
+            Filter by algorithm name.
         backend : str, optional
-            Filter by backend
+            Filter by backend.
         dataset : str, optional
-            Filter by dataset
+            Filter by dataset.
         start_date : str, optional
-            Filter results after this date (ISO format)
+            Filter results after this date (ISO format).
         end_date : str, optional
-            Filter results before this date (ISO format)
+            Filter results before this date (ISO format).
         as_pandas : bool, default=True
-            Return results as pandas DataFrame
+            Return results as a pandas DataFrame.
 
         Returns
         -------
         DataFrame or list of dict
-            Filtered benchmark results
+            Filtered benchmark results.
         """
-        query = "SELECT * FROM benchmarks WHERE 1=1"
+        query = "SELECT * FROM benchmarks WHERE TRUE"
         params = []
-
         if algorithm:
-            query += " AND algorithm = ?"
+            query += " AND algorithm = %s"
             params.append(algorithm)
         if backend:
-            query += " AND backend = ?"
+            query += " AND backend = %s"
             params.append(backend)
         if dataset:
-            query += " AND dataset = ?"
+            query += " AND dataset = %s"
             params.append(dataset)
         if start_date:
-            query += " AND timestamp >= ?"
+            query += " AND timestamp >= %s"
             params.append(start_date)
         if end_date:
-            query += " AND timestamp <= ?"
+            query += " AND timestamp <= %s"
             params.append(end_date)
-
         with self._connection() as conn:
             if as_pandas:
                 return pd.read_sql_query(query, conn, params=params)
-
-            cursor = conn.execute(query, params)
-            columns = [desc[0] for desc in cursor.description]
-            return [dict(zip(columns, row)) for row in cursor.fetchall()]
+            with conn.cursor() as cur:
+                cur.execute(query, params)
+                columns = [desc[0] for desc in cur.description]
+                rows = cur.fetchall()
+            return [dict(zip(columns, row)) for row in rows]
 
     def get_unique_values(self, column: str) -> list[str]:
         """Get unique values for a given column."""
@@ -231,14 +237,14 @@ class BenchmarkDB:
             "machine_info",
             "package_versions",
         }
-
         if column not in valid_columns:
             raise ValueError(f"Invalid column name: {column}")
 
-        query = f"SELECT DISTINCT {column} FROM benchmarks"  # noqa: S608
+        query = f'SELECT DISTINCT "{column}" FROM benchmarks'  # noqa: S608
         with self._connection() as conn:
-            cursor = conn.execute(query)
-            return [row[0] for row in cursor.fetchall()]
+            with conn.cursor() as cur:
+                cur.execute(query)
+                return [row[0] for row in cur.fetchall()]
 
     def delete_results(
         self,
@@ -252,36 +258,37 @@ class BenchmarkDB:
         Parameters
         ----------
         algorithm : str, optional
-            Delete results for this algorithm
+            Delete results for this algorithm.
         backend : str, optional
-            Delete results for this backend
+            Delete results for this backend.
         dataset : str, optional
-            Delete results for this dataset
+            Delete results for this dataset.
         before_date : str, optional
-            Delete results before this date
+            Delete results before this date.
 
         Returns
         -------
         int
-            Number of records deleted
+            Number of records deleted.
         """
-        query = "DELETE FROM benchmarks WHERE 1=1"
+        query = "DELETE FROM benchmarks WHERE TRUE"
         params = []
-
         if algorithm:
-            query += " AND algorithm = ?"
+            query += " AND algorithm = %s"
             params.append(algorithm)
         if backend:
-            query += " AND backend = ?"
+            query += " AND backend = %s"
             params.append(backend)
         if dataset:
-            query += " AND dataset = ?"
+            query += " AND dataset = %s"
             params.append(dataset)
         if before_date:
-            query += " AND timestamp < ?"
+            query += " AND timestamp < %s"
             params.append(before_date)
 
         with self._connection() as conn:
-            cursor = conn.execute(query, params)
+            with conn.cursor() as cur:
+                cur.execute(query, params)
+                affected = cur.rowcount
             conn.commit()
-            return cursor.rowcount
+        return affected

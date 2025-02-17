@@ -155,8 +155,8 @@ def test_memory_tracking():
 
     assert "current" in mem
     assert "peak" in mem
-    assert isinstance(mem["current"], int)
-    assert isinstance(mem["peak"], int)
+    assert isinstance(mem["current"], float)
+    assert isinstance(mem["peak"], float)
     assert mem["peak"] >= mem["current"]
 
 

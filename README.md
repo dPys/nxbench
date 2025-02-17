@@ -106,10 +106,10 @@ Docker:
 
 ```bash
 # CPU-only
-docker-compose -f docker/docker-compose.cpu.yaml build
+make build
 
 # With GPU
-docker-compose -f docker/docker-compose.gpu.yaml build
+make build-gpu
 ```
 
 ## Quick Start
@@ -170,7 +170,7 @@ nxbench data list --category social  # list available datasets
 
 # Benchmarking
 nxbench --config 'nxbench/configs/example.yaml' -vvv benchmark run  # debug benchmark runs
-nxbench --config 'nxbench/configs/example.yaml' benchmark export 'results/9e3e8baa4a3443c392dc8fee00373b11_20241220002902.json' --output-format sql --output-file 'results/benchmarks.sqlite' # export the results from a run with hash `9e3e8baa4a3443c392dc8fee00373b11_20241220002902` into a sql database
+nxbench --config 'nxbench/configs/example.yaml' benchmark export 'results/9e3e8baa4a3443c392dc8fee00373b11_20241220002902.json' --output-format sql # export the results from a run with hash `9e3e8baa4a3443c392dc8fee00373b11_20241220002902` into postgres sql
 ```
 
 ## Configuration
